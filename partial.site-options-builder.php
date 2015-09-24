@@ -206,43 +206,55 @@ class sm_options_page extends sm_options_container
 			}
 		</style>
 		<script>
-			jQuery(document).ready(function() {
-				jQuery(' input:checkbox.onOffSwitch').each(function(i){
-					// add clas on if box is checked
-					if(jQuery(this).is(':checked')) addclass = 'on';
+			jQuery(document).ready(function () {
+
+				// force the page not jump to the hash location on load
+				jQuery('html, body').animate({scrollTop: 0});
+
+				jQuery(' input:checkbox.onOffSwitch').each(function (i) {
+					// add class on if box is checked
+					if (jQuery(this).is(':checked')) addclass = 'on';
 					else addclass = '';
-					// create on/off link for switch grphic
-					jQuery(this).before('<a href="#" id="button-'+jQuery(this).attr('id')+'" class="switch '+addclass+'"></a>');
+					// create on/off link for switch graphic
+					jQuery(this).before('<a href="#" id="button-' + jQuery(this).attr('id') + '" class="switch ' + addclass + '"></a>');
 					// hide the check box
 					jQuery(this).hide();
 				});
 
-				jQuery('form a.switch').click(function(e) {
+				jQuery('form a.switch').click(function (e) {
 					e.preventDefault();
 					// change switch class
 					jQuery(this).toggleClass('on').toggleClass('off');
 					// save check box object
 					thebox = jQuery(this).attr('id');
-					thebox = '#'+thebox.replace('button-', '');
+					thebox = '#' + thebox.replace('button-', '');
 					// check and uncheck box
-					if(jQuery(thebox).is(':checked')) jQuery(thebox).removeAttr('checked');
-					else jQuery(thebox).attr('checked','checked');
+					if (jQuery(thebox).is(':checked')) jQuery(thebox).removeAttr('checked');
+					else jQuery(thebox).attr('checked', 'checked');
 				});
 
 
-				jQuery('#smOptionsNav li a').click(function(){
-					var active = jQuery((jQuery(this).attr('href'))+', '+(jQuery(this).attr('href')+'-nav')).addClass('active');
+				jQuery('#smOptionsNav li a').click(function () {
+					var active = jQuery((jQuery(this).attr('href')) + ', ' + (jQuery(this).attr('href') + '-nav')).addClass('active');
+					// add tab's location to URL but stay at the top of the page
+					window.location.hash = jQuery(this).attr('href');
+					window.scrollTo(0, 0);
 					jQuery(active).siblings().removeClass('active');
+
 					return false;
 				});
-				//load hashed section if avail, otherwise load first section
-				if(hash = window.location.hash) {console.log(jQuery(hash+'-nav a').trigger('click'));}
-				else{jQuery('#smOptionsNav li:first a').trigger('click');}
+				// load hashed section if avail, otherwise load first section
+				if (hash = window.location.hash) {
+					console.log(jQuery(hash + '-nav a').trigger('click'));
+				}
+				else {
+					jQuery('#smOptionsNav li:first a').trigger('click');
+				}
 
-				//prepare the media uploader tool
+				// prepare the media uploader tool
 				storeSendToEditor = window.send_to_editor;
-				newSendToEditor   = function(html) {
-					imgurl = jQuery('img',html).attr('src');
+				newSendToEditor = function (html) {
+					imgurl = jQuery('img', html).attr('src');
 					jQuery("#" + uploadID.name).val(imgurl);
 					tb_remove();
 					window.send_to_editor = storeSendToEditor;
@@ -257,7 +269,6 @@ class sm_options_page extends sm_options_container
 				tb_show('', 'media-upload.php?type=image&amp;TB_iframe=true');
 				return false;
 			}
-
 		</script>
 	<?php
 	}
