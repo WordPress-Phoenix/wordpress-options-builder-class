@@ -27,53 +27,76 @@ if(!function_exists('get_custom_option')) {
 if(!function_exists('dbug')){function dbug(){}}
 dbug('Version 1.3.0');
 
-class sm_options_container
-{
-	// property declaration
-	public $parts;          public $parent_id;
-	public $capability;     public $id;
-	public $notifications;  public $security_check;
+class sm_options_container {
 
-	public function __construct($i, $args = array()) {
-		$this->id = preg_replace('/_/','-',$i);
-		$this->parts = array();
-		$this->parent_id = '';
-		$this->capability = 'read';
-		$this->notifications = array();
+	// property declaration
+	public $parts;
+	public $parent_id;
+	public $capability;
+	public $id;
+	public $notifications;
+	public $security_check;
+
+	public function __construct( $i, $args = array () ) {
+		$this->id             = preg_replace( '/_/', '-', $i );
+		$this->parts          = array ();
+		$this->parent_id      = '';
+		$this->capability     = 'read';
+		$this->notifications  = array ();
 		$this->security_check = false;
 	}
 
-	public function add_part($part) {
+	public function add_part( $part ) {
 		$this->parts[] = $part;
 	}
 
 	public function save_options() {
 		$any_updated = false;
 
-		//make sure that a nonce was passed or do not save options
-		if(!empty($_REQUEST['_wpnonce'])) $nonce = $_REQUEST['_wpnonce'];
-		else return false;
-
-		//check the nonce for security and save it to the class object or end function
-		if($this->security_check || wp_verify_nonce($nonce, $this->id)) $this->security_check = true;
-		else return false;
-
-		//verified to save options, continue saving
-		foreach($this->parts as $part) {
-			$part->security_check = $this->security_check;
-			if(is_a($part, 'sm_option')) $updated = $part->update_option();
-			else $updated = $part->save_options();
-			if($updated) $any_updated = true;
+		// make sure that a nonce was passed or do not save options
+		if ( ! empty( $_REQUEST['_wpnonce'] ) ) {
+			$nonce = $_REQUEST['_wpnonce'];
+		} else {
+			return false;
 		}
-		if(defined('SM_SITEOP_DEBUG') && SM_SITEOP_DEBUG) dbug("Save Options ($this->id): ".var_export($updated, true));
-		if($any_updated) $this->notifications['update'] = '<div class="updated">Your options have been saved!</div>';
+
+		// check the nonce for security and save it to the class object or end function
+		if ( $this->security_check || wp_verify_nonce( $nonce, $this->id ) ) {
+			$this->security_check = true;
+		} else {
+			return false;
+		}
+
+		// verified to save options, continue saving
+		foreach ( $this->parts as $part ) {
+			$part->security_check = $this->security_check;
+			if ( is_a( $part, 'sm_option' ) ) {
+				$updated = $part->update_option();
+			} else {
+				$updated = $part->save_options();
+			}
+			if ( $updated ) {
+				$any_updated = true;
+			}
+		}
+		if ( defined( 'SM_SITEOP_DEBUG' ) && SM_SITEOP_DEBUG ) {
+			dbug( "Save Options ($this->id): " . var_export( $updated, true ) );
+		}
+		if ( $any_updated ) {
+			$this->notifications['update'] = '<div class="updated"><p>Your options have been saved!</p></div>';
+		}
+
 		return $any_updated;
 	}
 
 	public function echo_notifications() {
-		do_action('wlfw_after_option_save', $this);
-		if(defined('SM_SITEOP_DEBUG') && SM_SITEOP_DEBUG) dbug($this->notifications);
-		foreach ($this->notifications as $notify_html) echo $notify_html;
+		do_action( 'sm_after_option_save', $this );
+		if ( defined( 'SM_SITEOP_DEBUG' ) && SM_SITEOP_DEBUG ) {
+			dbug( $this->notifications );
+		}
+		foreach ( $this->notifications as $notify_html ) {
+			echo $notify_html;
+		}
 	}
 
 }
