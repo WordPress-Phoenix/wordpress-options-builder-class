@@ -7,25 +7,38 @@
  * @licence: GPL 2.0 - please retain comments that express original build of this file by the author.
  */
 
-//avoid direct calls to this file, because now WP core and framework has been used
+// avoid direct calls to this file, because now WP core and framework has been used
 if ( ! function_exists( 'add_filter' ) ) {
-	header('Status: 403 Forbidden'); header('HTTP/1.1 403 Forbidden'); exit();
+	header( 'Status: 403 Forbidden' );
+	header( 'HTTP/1.1 403 Forbidden' );
+	exit();
 }
 
-if(defined('SITEOPTION_PREFIX')) define('SM_SITEOP_PREFIX', SITEOPTION_PREFIX);
-if(!defined('SM_SITEOP_PREFIX')) define('SM_SITEOP_PREFIX', 'sm_option_');
-define('SM_SITEOP_DEBUG', FALSE);
+if ( defined( 'SITEOPTION_PREFIX' ) ) {
+	define( 'SM_SITEOP_PREFIX', SITEOPTION_PREFIX );
+}
+if ( ! defined( 'SM_SITEOP_PREFIX' ) ) {
+	define( 'SM_SITEOP_PREFIX', 'sm_option_' );
+}
+define( 'SM_SITEOP_DEBUG', false );
 
 //provide a simpler way to get the custom site options created
-if(!function_exists('get_custom_option')) {
-	function get_custom_option($s='') {
-		return get_site_option(SM_SITEOP_PREFIX.$s);
+if ( ! function_exists( 'get_custom_option' ) ) {
+	function get_custom_option( $s = '', $network_option = false ) {
+		if ( $network_option ) {
+			return get_site_option( SITEOPTION_PREFIX . $s );
+		} else {
+			return get_option( SITEOPTION_PREFIX . $s );
+		}
 	}
 }
 
-//stop dbug calls from throwing errors when the sm-debug-bar plugin is not active
-if(!function_exists('dbug')){function dbug(){}}
-dbug('Version 1.3.0');
+// stop dbug calls from throwing errors when the sm-debug-bar plugin is not active
+if ( ! function_exists( 'dbug' ) ) {
+	function dbug() {
+	}
+}
+dbug( 'Version 1.3.0' );
 
 class sm_options_container {
 
@@ -432,7 +445,7 @@ class sm_options_page extends sm_options_container {
 				return false;
 			}
 		</script>
-	<?php
+		<?php
 	}
 
 	public function media_upload_scripts() {
