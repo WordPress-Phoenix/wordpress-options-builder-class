@@ -102,81 +102,108 @@ class sm_options_container {
 }
 
 
-class sm_options_page extends sm_options_container
-{
+class sm_options_page extends sm_options_container {
 	// property declaration
-	public $page_title;   public $menu_title;
-	public $libraries;    public $icon;
-	public $disable_styles; public $theme_page;
+	public $page_title;
+	public $menu_title;
+	public $libraries;
+	public $icon;
+	public $disable_styles;
+	public $theme_page;
+	public $network_page;
 
 	// method declaration
-	public function __construct($args = array()) {
-		$defaults = array(
-			'parts' => array(),
-			'parent_id' => 'options-general.php',
-			'page_title' => 'Custom Site Options',
-			'menu_title' => 'Custom Site Options',
-			'capability' => 'manage_options',
-			'id' => 'custom-site-options',
-			'icon' => 'icon-options-general',
-			'libraries' => array(),
-			'disable_styles' => FALSE,
-			'theme_page' => FALSE
+	public function __construct( $args = array () ) {
+		$defaults = array (
+			'parts'          => array (),
+			'parent_id'      => 'options-general.php',
+			'page_title'     => 'Custom Site Options',
+			'menu_title'     => 'Custom Site Options',
+			'capability'     => 'manage_options',
+			'id'             => 'custom-site-options',
+			'icon'           => 'icon-options-general',
+			'libraries'      => array (),
+			'disable_styles' => false,
+			'theme_page'     => false,
+			'network_page'   => false
 		);
-		$args = array_merge($defaults, $args);
-		parent::__construct($args['id']);
-		foreach($args as $name => $value)
+		$args     = array_merge( $defaults, $args );
+		parent::__construct( $args['id'] );
+		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
+		}
 	}
 
 	public function build() {
-		add_action('admin_menu', array($this, 'build_page'));
-		add_action('admin_print_scripts', array($this, 'media_upload_scripts'));
-		add_action('admin_print_styles', array($this, 'media_upload_styles'));
-		//TODO - add if statement to determine if media uploader scripts should be enqueued or not
-		if(isset($_POST['submit']) && $_POST['submit'] )
-			add_action('admin_init', array($this, 'save_options'));
+		if ( $this->network_page ) {
+			// if the network_page is true, use the multisite network_admin_menu hook
+			add_action( 'network_admin_menu', array ( $this, 'build_page' ) );
+		} else {
+			add_action( 'admin_menu', array ( $this, 'build_page' ) );
+		}
+
+		add_action( 'admin_print_scripts', array ( $this, 'media_upload_scripts' ) );
+		add_action( 'admin_print_styles', array ( $this, 'media_upload_styles' ) );
+		// TODO - add if statement to determine if media uploader scripts should be enqueued or not
+		if ( isset( $_POST['submit'] ) && $_POST['submit'] ) {
+			add_action( 'admin_init', array ( $this, 'save_options' ) );
+		}
 	}
 
 	public function build_page() {
-		if($this->theme_page) add_theme_page($this->page_title, $this->menu_title, $this->capability, $this->id, array($this, 'build_parts'));
-		else add_submenu_page( $this->parent_id, $this->page_title, $this->menu_title, $this->capability, $this->id, array($this, 'build_parts') );
+		if ( $this->theme_page ) {
+			add_theme_page( $this->page_title, $this->menu_title, $this->capability, $this->id, array (
+				$this,
+				'build_parts'
+			) );
+		} else {
+			add_submenu_page( $this->parent_id, $this->page_title, $this->menu_title, $this->capability, $this->id, array (
+				$this,
+				'build_parts'
+			) );
+		}
 	}
 
 	public function build_parts() {
 		echo '<div id="smSiteOptions">';
-		if(!$this->disable_styles) $this->inline_styles();
+		if ( ! $this->disable_styles ) {
+			$this->inline_styles();
+		}
 
-		//build the header
-		if($this->icon && !empty($this->icon)) echo "<div class=\"icon32\" id=\"$this->icon\"><br></div>";
-		echo "<h2>$this->page_title</h2>";
+		// build the header
+		echo '<div class="wrap">';
+		echo '<h2>' . $this->page_title . '</h2>';
+		if ( isset( $_POST['submit'] ) && $_POST['submit'] ) {
+			$this->echo_notifications();
+		}
 		echo '<div id="smOptionsContent">';
 
-		//build the navigation menu if turned on for this page object
-		//TODO - convert if statement and its dependencies to allow javascript navigation to be disabled using libraries array
-		if(true) {
+		// build the navigation menu if turned on for this page object
+		// @TODO - convert if statement and its dependencies to allow javascript navigation to be disabled using libraries array
+		if ( true ) {
 			echo '<div id="smOptionsNav"><ul>';
-			foreach($this->parts as $key => $part) {
-				dbug($part);
-				if(((intval($key)+1) % 2) == 0) $part->classes[] = 'even';
-				echo '<li id="'.$part->id.'-nav"><a href="#'.$part->id.'">'.$part->title.'</a></li>';
+			foreach ( $this->parts as $key => $part ) {
+				dbug( $part );
+				if ( ( ( intval( $key ) + 1 ) % 2 ) == 0 ) {
+					$part->classes[] = 'even';
+				}
+				echo '<li id="' . $part->id . '-nav"><a href="#' . $part->id . '">' . $part->title . '</a></li>';
 			}
 			echo '</ul></div>';
 		}
-
-		if(isset($_POST['submit']) && $_POST['submit'])
-			$this->echo_notifications();
 		echo '<div id="smOptions"><form method="post" onReset="return confirm(\'Do you really want to reset ALL site options? (You will still need to click save changes)\')"><ul style="list-style: none;">';
-		//build the content parts
-		foreach($this->parts as $key => $part) {
-			if(((intval($key)+1) % 2) == 0) $part->classes[] = 'even';
-			if(defined('SM_SITEOP_DEBUG') && SM_SITEOP_DEBUG) echo $part->id.'[$part->echo_html()]->['.__CLASS__.'->echo_html()]<br />';
+		// build the content parts
+		foreach ( $this->parts as $key => $part ) {
+			if ( defined( 'SM_SITEOP_DEBUG' ) && SM_SITEOP_DEBUG ) {
+				echo $part->id . '[$part->echo_html()]->[' . __CLASS__ . '->echo_html()]<br />';
+			}
 			$part->echo_html();
 		}
 		echo '<li><p class="submit"><input type="submit" value="Save Changes" class="button-primary" name="submit" style="margin-right:10px;"><input type="reset" value="Reset" class="button-primary" name="reset"></p>'
-			.wp_nonce_field($this->id, '_wpnonce', true, false).'</li>'.'</ul></form></div>';
-		echo '<div class="clear"></div></div>';//end of #smOptionsContent
-		echo '</div>';//end of #smSiteOptions;
+			. wp_nonce_field( $this->id, '_wpnonce', true, false ) . '</li>' . '</ul></form></div>';
+		echo '<div class="clear"></div></div>';// end of #smOptionsContent
+		echo '</div>';// end of #smSiteOptions;
+		echo '</div>'; // end .wrap
 	}
 
 	public function inline_styles() {
@@ -409,17 +436,17 @@ class sm_options_page extends sm_options_container
 	}
 
 	public function media_upload_scripts() {
-		//media uploader
-		wp_enqueue_script('media-upload');
-		wp_enqueue_script('thickbox');
-		//colorpicker
+		// media uploader
+		wp_enqueue_script( 'media-upload' );
+		wp_enqueue_script( 'thickbox' );
+		// colorpicker
 		wp_enqueue_script( 'farbtastic' );
 	}
 
 	public function media_upload_styles() {
-		//media uploader
-		wp_enqueue_style('thickbox');
-		//colorpicker
+		// media uploader
+		wp_enqueue_style( 'thickbox' );
+		// colorpicker
 		wp_enqueue_style( 'farbtastic' );
 	}
 
