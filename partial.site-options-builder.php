@@ -851,6 +851,59 @@ class sm_dropdown extends sm_option {
 	}
 }
 
+class sm_multiselect extends sm_option {
+
+	public $values;
+	public $meta;
+
+	public function __construct( $i, $v, $m ) {
+		parent::__construct( $i );
+		$this->values = ( ! empty( $v ) ) ? $v : array ();
+		$this->meta   = ( ! empty( $m ) ) ? $m : array ();
+
+		if ( isset( $this->meta['network_option'] ) ) {
+			$this->network_option = $this->meta['network_option'];
+		} else {
+			$this->network_option = false;
+		}
+	}
+
+	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
+
+		// if $option_val is empty it needs set to an empty array since we use in_array later
+		if ( empty( $option_val ) ) {
+			$option_val = array();
+		}
+
+		$html = $this->wrapper[0];
+		$html .= "<label>" . $this->meta['label'] . "</label>";
+		$html .= '<select multiple="multiple" id="' . $this->id . '" name="' . $this->id . '[]" class="fs-multiselect" style="width:280px;"  />';
+		$html .= '<option value="">Select a Value</option>';
+		foreach ( $this->values as $key => $value ) {
+			if ( in_array( $key, $option_val ) ) {
+				$selected = 'selected="selected"';
+			} else {
+				$selected = '';
+			}
+			$html .= '<option value="' . $key . '" ' . $selected . '>' . $value . '</option>';
+		}
+		$html .= '</select>';
+		$html .= "<div class=\"clear\"></div>";
+		$html .= $this->wrapper[1];
+
+		return $html;
+	}
+
+	public function echo_html() {
+		$html = $this->get_html();
+		echo apply_filters( 'echo_html_option', $html );
+	}
+}
 
 class sm_checkbox extends sm_option
 {
