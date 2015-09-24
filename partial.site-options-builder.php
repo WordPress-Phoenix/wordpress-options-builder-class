@@ -657,21 +657,34 @@ class sm_numberfield extends sm_option {
 	}
 } // end class sm_numberfield
 
-class sm_textfield extends sm_option
-{
+class sm_textfield extends sm_option {
+
 	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if($this->atts['disabled']) $disabled = 'disabled="disabled"'; else $disabled = '';
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" ".$disabled." />";
-		if($this->description) $html .= '<div class="description clear">'.$this->description.'</div>';
-		$html .= "<div class=\"clear\"></div>";
+		if ( $this->atts['disabled'] ) {
+			$disabled = 'disabled="disabled"';
+		} else {
+			$disabled = '';
+		}
+		$html .= '<input id="' . $this->id . '" name="' . $this->id . '" type="text" value="' . $option_val . '" ' . $this->get_classes() . ' ' . $disabled . ' />';
+		if ( $this->description ) {
+			$html .= '<div class="description clear">' . $this->description . '</div>';
+		}
+		$html .= '<div class="clear"></div>';
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
+
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 }
 
