@@ -905,47 +905,60 @@ class sm_multiselect extends sm_option {
 	}
 }
 
-class sm_checkbox extends sm_option
-{
+class sm_checkbox extends sm_option {
 
 	public $value;
 
-	public function __construct($i, $args=array()) {
-		parent::__construct($i, $args);
-		$defaults = array(
+	public function __construct( $i, $args = array () ) {
+		parent::__construct( $i, $args );
+		$defaults = array (
 			'value' => ''
 		);
-		$args = array_merge($defaults, $args);
+		$args     = array_merge( $defaults, $args );
 
-		foreach($args as $name => $value)
+		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
+		}
 	}
 
 	public function get_html() {
-		if(!isset($display)) $display ='';
+		if ( ! isset( $display ) ) {
+			$display = '';
+		}
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$html = $this->wrapper[0];
-		if(get_option(SM_SITEOP_PREFIX.$this->id) == $this->value) { $checked=" checked=\"checked\""; } else { $checked=""; }
+		if ( $option_val == $this->value ) {
+			$checked = " checked=\"checked\"";
+		} else {
+			$checked = "";
+		}
 		$html .= "<label>$this->label</label>";
-		$html .= "<input type=\"checkbox\" value=\"$this->value\" id=\"$this->id\" name=\"$this->id\"".$checked.$display.$this->get_classes().">";
+		$html .= "<input type=\"checkbox\" value=\"$this->value\" id=\"$this->id\" name=\"$this->id\"" . $checked . $display . $this->get_classes() . ">";
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
+
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 
 }
 
 
-class sm_radio_buttons extends sm_option
-{
+class sm_radio_buttons extends sm_option {
+
 	public $values;
 
-	public function __construct($i, $v) {
-		parent::__construct($i);
-		$this->values = ( !empty($v) ) ?  $v : array();
+	public function __construct( $i, $v ) {
+		parent::__construct( $i );
+		$this->values = ( ! empty( $v ) ) ? $v : array ();
 	}
 
 	public function get_html() {
@@ -953,109 +966,161 @@ class sm_radio_buttons extends sm_option
 		$html .= "<label>$this->label</label>";
 
 		$html .= "<div style=\"float:left;\">";
-		foreach($this->values as $key => $value) {
-			if( !is_numeric($key) ) { $radioLabel = $key; } else { $radioLabel = $value; }
+		foreach ( $this->values as $key => $value ) {
 
-			if( get_option(SM_SITEOP_PREFIX.$this->id) ) { $selectedVal = get_option(SM_SITEOP_PREFIX.$this->id); }
-			else if( isset( $this->default_value) ) { $selectedVal = $this->default_value; }
-			else { $selectedVal =''; }
+			if ( $this->network_option ) {
+				$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+			} else {
+				$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+			}
+			if ( ! is_numeric( $key ) ) {
+				$radioLabel = $key;
+			} else {
+				$radioLabel = $value;
+			}
 
-			if($selectedVal == $value) { $checked=" checked=\"checked\""; } else { $checked=""; }
+			if ( $option_val ) {
+				$selectedVal = $option_val;
+			} else if ( isset( $this->default_value ) ) {
+				$selectedVal = $this->default_value;
+			} else {
+				$selectedVal = '';
+			}
+
+			if ( $selectedVal == $value ) {
+				$checked = " checked=\"checked\"";
+			} else {
+				$checked = "";
+			}
 
 			$html .= "<label class=\"option-label\"><input type=\"radio\" name=\"$this->id\" value=\"$value\" id=\"$this->id\" $checked /> $radioLabel</label>";
 			$html .= "<div class=\"clear\"></div>";
 		}
 		$html .= "</div>";
 		$html .= "<div class=\"clear\"></div>";
-		if($this->description) $html .= '<br /><div class="description clear">'.$this->description.'</div>';
+		if ( $this->description ) {
+			$html .= '<br /><div class="description clear">' . $this->description . '</div>';
+		}
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
 
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 }
 
-class sm_media_upload extends sm_option
-{
+class sm_media_upload extends sm_option {
+
 	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$disabled = '';
-		$html = $this->wrapper[0];
+		$html     = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if($this->atts['disabled']) $disabled = 'disabled="disabled"';
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" ".$disabled." />";
-		$html .= '<input id="'.$this->id.'_button" type="button" value="Upload Image" onclick="sm_option_media_uploader('.$this->id.')"'.$disabled.'/><input id="'.$this->id.'_reset" type="button" value="X" onclick="jQuery(\'#'.$this->id.'\').val(\'\');" />';
-		if($this->description) $html .= '<div class="description clear">'.$this->description.'</div>';
-		if(get_option(SM_SITEOP_PREFIX.$this->id)) $html .= "<div class=\"clear\"></div><div class=\"img-preview description collapsed\"><img id=\"image_$this->id\" src=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" /></div>";
+		if ( $this->atts['disabled'] ) {
+			$disabled = 'disabled="disabled"';
+		}
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $option_val . "\" " . $disabled . " />";
+		$html .= '<input id="' . $this->id . '_button" type="button" value="Upload Image" onclick="sm_option_media_uploader(' . $this->id . ')"' . $disabled . '/><input id="' . $this->id . '_reset" type="button" value="X" onclick="jQuery(\'#' . $this->id . '\').val(\'\');" />';
+		if ( $this->description ) {
+			$html .= '<div class="description clear">' . $this->description . '</div>';
+		}
+		if ( $option_val ) {
+			$html .= "<div class=\"clear\"></div><div class=\"img-preview description collapsed\"><img id=\"image_$this->id\" src=\"" . $option_val . "\" /></div>";
+		}
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
+
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 }
 
-class sm_include_file extends sm_option
-{
+class sm_include_file extends sm_option {
+
 	public $filename;
 
-	public function __construct($i,$f,$v = array()) {
-		parent::__construct($i);
-		$this->values = ( !empty($v) ) ?  $v : array();
-		$this->filename = ( !empty($f) ) ?  $f : 'set_the_filename.php';
+	public function __construct( $i, $f, $v = array () ) {
+		parent::__construct( $i );
+		$this->values   = ( ! empty( $v ) ) ? $v : array ();
+		$this->filename = ( ! empty( $f ) ) ? $f : 'set_the_filename.php';
 	}
+
 	public function get_html() {
 		return false;
 	}
+
 	public function echo_html() {
-		if(!empty($this->filename)) include_once($this->filename);
+		if ( ! empty( $this->filename ) ) {
+			include_once( $this->filename );
+		}
 	}
 }
 
-class sm_color_picker extends sm_option
-{
+class sm_color_picker extends sm_option {
+
 	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$disabled = '';
-		$html = $this->wrapper[0];
+		$html     = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if($this->atts['disabled']) $disabled = 'disabled="disabled"';
-		if($the_color = get_option(SM_SITEOP_PREFIX.$this->id)) {} else $the_color = '#ffffff';
+		if ( $this->atts['disabled'] ) {
+			$disabled = 'disabled="disabled"';
+		}
+		if ( $the_color = $option_val ) {
+		} else {
+			$the_color = '#ffffff';
+		}
 		$colorpicker_icon = 'data:image/png;base64,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';
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"".$the_color."\" ".$disabled." /> <img style=\"width: 22px; height: auto;\" class=\"colorpicker\" src=\"".$colorpicker_icon."\" />";
-		$html .= '<div id="'.$this->id.'_palette" class="sm_palettes"></div>';
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $the_color . "\" " . $disabled . " /> <img style=\"width: 22px; height: auto;\" class=\"colorpicker\" src=\"" . $colorpicker_icon . "\" />";
+		$html .= '<div id="' . $this->id . '_palette" class="sm_palettes"></div>';
 		$html .= '
 <script type="text/javascript">
 var prev_palette = jQuery("");
 jQuery(document).ready(function() {
-	jQuery("#'.$this->id.'_palette").hide();
-	jQuery("#'.$this->id.'_palette").farbtastic("#'.$this->id.'");
-	jQuery("#'.$this->id.'").next().click(function(){
-		curr_palette = jQuery("#'.$this->id.'_palette");
+	jQuery("#' . $this->id . '_palette").hide();
+	jQuery("#' . $this->id . '_palette").farbtastic("#' . $this->id . '");
+	jQuery("#' . $this->id . '").next().click(function(){
+		curr_palette = jQuery("#' . $this->id . '_palette");
 		if(curr_palette.attr("id") == prev_palette.attr("id")) { curr_palette.slideToggle(); curr_palette.prev().toggleClass("active"); }
 		else {
 			jQuery(".sm_palettes").hide();
 			curr_palette.prev().addClass("active");
 			prev_palette.prev().removeClass("active");
 			var pos   = jQuery(this).offset();
-			var width = 0;//jQuery(this).width();
-			jQuery("#'.$this->id.'_palette").css({"position":"absolute", "left": (pos.left - 100 + width) + "px", "top":(pos.top - 100) + "px" });
+			var width = 0;// jQuery(this).width();
+			jQuery("#' . $this->id . '_palette").css({"position":"absolute", "left": (pos.left - 100 + width) + "px", "top":(pos.top - 100) + "px" });
 			curr_palette.slideDown();
 		}
 		prev_palette = curr_palette;
 	});
 });
 </script>';
-		if($this->description) $html .= '<div class="description clear">'.$this->description.'</div>';
+		if ( $this->description ) {
+			$html .= '<div class="description clear">' . $this->description . '</div>';
+		}
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
+
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
-}
+} // END class sm_color_picker
