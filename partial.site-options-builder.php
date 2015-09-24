@@ -688,59 +688,89 @@ class sm_textfield extends sm_option {
 	}
 }
 
-class sm_passwordfield extends sm_option
-{
+class sm_passwordfield extends sm_option {
 
-	public function __construct($i, $args = array()) {
-		parent::__construct($i, $args);
-		if(!defined('MYSECRETKEY')) define('MYSECRETKEY',sha1(basename(__FILE__),TRUE));
+	public function __construct( $i, $args = array () ) {
+		parent::__construct( $i, $args );
+		if ( ! defined( 'MYSECRETKEY' ) ) {
+			define( 'MYSECRETKEY', sha1( basename( __FILE__ ), true ) );
+		}
 	}
 
 	public function get_html() {
-		$option_val = get_option(SM_SITEOP_PREFIX.$this->id);
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if($this->atts['disabled']) $disabled = 'disabled="disabled"'; else $disabled = '';
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"password\" value=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" ".$disabled." />";
+		if ( $this->atts['disabled'] ) {
+			$disabled = 'disabled="disabled"';
+		} else {
+			$disabled = '';
+		}
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"password\" value=\"" . $option_val . "\" " . $disabled . " />";
 		$html .= '<a href="#" onClick="jQuery(this).prev().val(null); return false;">[clear]</a>';
-		if($this->description) $html .= '<div class="description clear">'.$this->description.'</div>';
-		$html .= "<input style=\"display:none;\" id=\"prev_$this->id\" name=\"prev_$this->id\" type=\"text\" value=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" readonly=\"readonly\" />";
-		//$html .= "<div class=\"pwhidden\">".$this->unencrypted_pass(get_option(SM_SITEOP_PREFIX.$this->id))."</div>";
+		if ( $this->description ) {
+			$html .= '<div class="description clear">' . $this->description . '</div>';
+		}
+		$html .= "<input style=\"display:none;\" id=\"prev_$this->id\" name=\"prev_$this->id\" type=\"text\" value=\"" . $option_val . "\" readonly=\"readonly\" />";
+		// $html .= "<div class=\"pwhidden\">".$this->unencrypted_pass(get_option(SM_SITEOP_PREFIX.$this->id))."</div>";
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
 
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 
-	//you should only call this function when passing password to the third party service,
-	//never display this password on an unsecured form or you risk password theft
-	public function unencrypted_pass($encrypted_encoded) {
-		$encrypted_decoded = base64_decode($encrypted_encoded);
-		return mcrypt_decrypt(MCRYPT_RIJNDAEL_256, MYSECRETKEY, $encrypted_decoded, MCRYPT_MODE_ECB);
+	// you should only call this function when passing password to the third party service,
+	// never display this password on an unsecured form or you risk password theft
+	public function unencrypted_pass( $encrypted_encoded ) {
+		$encrypted_decoded = base64_decode( $encrypted_encoded );
+
+		return mcrypt_decrypt( MCRYPT_RIJNDAEL_256, MYSECRETKEY, $encrypted_decoded, MCRYPT_MODE_ECB );
 	}
 
-	//lets override the default function to better secure the saved data
+	// lets override the default function to better secure the saved data
 	public function update_option() {
-		if(!isset($_POST[$this->id])) $_POST[$this->id] = '';
-		//if the password was not changed (the encrypted values match) don't update anything
-		if($_POST[$this->id] === $_POST['prev_'.$this->id]) {
+		if ( ! isset( $_POST[ $this->id ] ) ) {
+			$_POST[ $this->id ] = '';
+		}
+		// if the password was not changed (the encrypted values match) don't update anything
+		if ( $_POST[ $this->id ] === $_POST[ 'prev_' . $this->id ] ) {
 			return false;
 		}
-		if($_POST[$this->id] == '') {
-			$updated = delete_option(SM_SITEOP_PREFIX.$this->id);
+
+		if ( $this->network_option ) {
+			if ( $_POST[ $this->id ] == '' ) {
+				$updated = delete_site_option( SM_SITEOP_PREFIX . $this->id );
+			} else {
+				$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, MYSECRETKEY, $_POST[ $this->id ], MCRYPT_MODE_ECB );
+				// note base64 is required, not a part of any hack. Without it, storing the encryption
+				// into a wp_option value is most likely impossible, or at least very unreliable.
+				$encrypted_encoded = base64_encode( $encrypted );
+				$updated           = update_site_option( SM_SITEOP_PREFIX . $this->id, $encrypted_encoded );
+			}
+
+			return $updated;
+		} else {
+			if ( $_POST[ $this->id ] == '' ) {
+				$updated = delete_option( SM_SITEOP_PREFIX . $this->id );
+			} else {
+				$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, MYSECRETKEY, $_POST[ $this->id ], MCRYPT_MODE_ECB );
+				// note base64 is required, not a part of any hack. Without it, storing the encryption
+				// into a wp_option value is most likely impossible, or at least very unreliable.
+				$encrypted_encoded = base64_encode( $encrypted );
+				$updated           = update_option( SM_SITEOP_PREFIX . $this->id, $encrypted_encoded );
+			}
+
+			return $updated;
 		}
-		else {
-			$encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, MYSECRETKEY, $_POST[$this->id], MCRYPT_MODE_ECB);
-			//note base64 is required, not a part of any hack. Without it, storing the encryption
-			//into a wp_option value is most likely impossible, or at least very unreliable.
-			$encrypted_encoded = base64_encode($encrypted);
-			$updated = update_option(SM_SITEOP_PREFIX.$this->id, $encrypted_encoded);
-		}
-		return $updated;
 	}
 }
 
