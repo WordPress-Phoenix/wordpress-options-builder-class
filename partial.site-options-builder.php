@@ -774,52 +774,80 @@ class sm_passwordfield extends sm_option {
 	}
 }
 
+class sm_textarea extends sm_option {
 
-class sm_textarea extends sm_option
-{
 	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if($this->atts['disabled']) $disabled = 'disabled="disabled"';
-		$html .= "<textarea id=\"$this->id\" name=\"$this->id\" cols=\"50\" rows=\"10\" ".$disabled.">".stripslashes (get_option(SM_SITEOP_PREFIX.$this->id) )."</textarea>";
-		if($this->description) $html .= '<div class="description clear">'.$this->description.'</div>';
+		if ( $this->atts['disabled'] ) {
+			$disabled = 'disabled="disabled"';
+		}
+		$html .= "<textarea id=\"$this->id\" name=\"$this->id\" cols=\"50\" rows=\"10\" " . $disabled . ">" . stripslashes( $option_val ) . "</textarea>";
+		if ( $this->description ) {
+			$html .= '<div class="description clear">' . $this->description . '</div>';
+		}
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
+
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 }
 
-class sm_dropdown extends sm_option
-{
-	public $values;
+class sm_dropdown extends sm_option {
 
-	public function __construct($i, $v) {
-		parent::__construct($i);
-		$this->values = ( !empty($v) ) ?  $v : array();
+	public $values;
+	public $meta;
+
+	public function __construct( $i, $v, $m ) {
+		parent::__construct( $i );
+		$this->values = ( ! empty( $v ) ) ? $v : array ();
+		$this->meta   = ( ! empty( $m ) ) ? $m : array ();
+
+		if ( isset( $this->meta['network_option'] ) ) {
+			$this->network_option = $this->meta['network_option'];
+		} else {
+			$this->network_option = false;
+		}
 	}
 
 	public function get_html() {
+		if ( $this->network_option ) {
+			$option_val = get_site_option( SM_SITEOP_PREFIX . $this->id );
+		} else {
+			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
+		}
 		$html = $this->wrapper[0];
-		$html .= "<select id=\"$this->id\" name=\"$this->id\" value=\"".get_option(SM_SITEOP_PREFIX.$this->id)."\" />";
+		$html .= "<label>" . $this->meta['label'] . "</label>";
+		$html .= "<select id=\"$this->id\" name=\"$this->id\" value=\"" . $option_val . "\" />";
 		$html .= '<option value="">Select a Value</option>';
-		$stored_value = get_option(SM_SITEOP_PREFIX.$this->id);
-		foreach($this->values as $key => $value) {
-			if($value == $stored_value) $selected = 'selected="selected"'; else $selected='';
+		foreach ( $this->values as $key => $value ) {
+			if ( $value == $option_val ) {
+				$selected = 'selected="selected"';
+			} else {
+				$selected = '';
+			}
 			$html .= "<option value=\"$value\" $selected>$value</option>";
 		}
-		$html .= '</select> Value: '.get_option(SM_SITEOP_PREFIX.$this->id);
+		$html .= '</select>';
 		$html .= "<div class=\"clear\"></div>";
 		$html .= $this->wrapper[1];
+
 		return $html;
 	}
 
 	public function echo_html() {
 		$html = $this->get_html();
-		echo apply_filters('echo_html_option', $html);
+		echo apply_filters( 'echo_html_option', $html );
 	}
 }
 
