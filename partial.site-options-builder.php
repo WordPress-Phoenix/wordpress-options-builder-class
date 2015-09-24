@@ -450,48 +450,71 @@ class sm_options_page extends sm_options_container {
 		wp_enqueue_style( 'farbtastic' );
 	}
 
-}
+} // END class sm_options_container
 
 class sm_section extends sm_options_container {
-	public $wrapper;  public $type;
-	public $classes;  public $title;
 
-	public function __construct($i, $args = array() ) {
-		parent::__construct($i);
-		$defaults = array(
-			'wrapper' => array('<ul>','</ul><div class="hr-divider"></div>'),
-			'type' => 'default',
-			'classes' => array('section', 'active'),
-			'title' => 'My Custom Section'
+	public $wrapper;
+	public $type;
+	public $classes;
+	public $title;
+
+	public function __construct( $i, $args = array () ) {
+		parent::__construct( $i );
+		$defaults = array (
+			'wrapper' => array ( '<ul>', '</ul><div class="hr-divider"></div>' ),
+			'type'    => 'default',
+			'classes' => array ( 'section', 'active' ),
+			'title'   => 'My Custom Section'
 		);
-		$args = array_merge($defaults, $args);
-		foreach($args as $name => $value)
+		$args     = array_merge( $defaults, $args );
+		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
+		}
 	}
 
-	private function get_classes($echo = false) {
+	private function get_classes( $echo = false ) {
 		$the_classes = '';
-		foreach($this->classes as $class) {
-			if(!empty($the_classes)) $the_classes .= ' ';
+		foreach ( $this->classes as $class ) {
+			if ( ! empty( $the_classes ) ) {
+				$the_classes .= ' ';
+			}
 			$the_classes .= $class;
 		}
-		if(!empty($the_classes)) $the_classes = 'class="'.$the_classes.'"';
-		if($echo) echo $the_classes;
+		if ( ! empty( $the_classes ) ) {
+			$the_classes = 'class="' . $the_classes . '"';
+		}
+		if ( $echo ) {
+			echo $the_classes;
+		}
+
 		return $the_classes;
 	}
 
 	public function echo_html() {
-		$option = '<li id="'.$this->id.'" '.$this->get_classes().">";
-		if(!empty($this->title)) $option .= "<h3>$this->title</h3>";
-		$option .= $this->wrapper[0];
-		foreach($this->parts as $part) {
-			if($appendHTML = $part->get_html()) $option .= $appendHTML;
-			else {echo $option; unset($option); $part->echo_html();}
+		$option = '<li id="' . $this->id . '" ' . $this->get_classes() . '>';
+
+		if ( ! empty( $this->title ) ) {
+			$option .= "<h3>$this->title</h3>";
 		}
+
+		$option .= $this->wrapper[0];
+
+		foreach ( $this->parts as $part ) {
+			if ( $appendHTML = $part->get_html() ) {
+				$option .= $appendHTML;
+			} else {
+				echo $option;
+				unset( $option );
+				$part->echo_html();
+				$option = '';
+			}
+		}
+
 		$option .= $this->wrapper[1];
 		$option .= '</li>';
-		echo apply_filters('echo_html_option', $option);
-		unset($option);
+		echo apply_filters( 'echo_html_option', $option );
+		unset( $option );
 	}
 }
 
