@@ -518,61 +518,90 @@ class sm_section extends sm_options_container {
 	}
 }
 
-class sm_option
-{
-	// property declaration
-	public $id;       public $type;
-	public $label;      public $default_value;
-	public $classes;    public $rel;
-	public $atts;     public $width;
-	public $height;     public $length;
-	public $wrapper;    public $description;
+class sm_option {
 
+	// property declaration
+	public $id;
+	public $type;
+	public $label;
+	public $default_value;
+	public $classes;
+	public $rel;
+	public $atts;
+	public $width;
+	public $height;
+	public $length;
+	public $wrapper;
+	public $description;
 
 
 	// method declaration
-	public function __construct($i, $args = array() ) {
-		extract($args);
+	public function __construct( $i, $args = array () ) {
+		extract( $args );
 		$this->id = $i;
-		$defaults = array(
-			'type' => 'text',
-			'label' => 'Option 1',
-			'default_value' => '',
-			'classes' => array('option'),
-			'rel' => '',
-			'atts' => array(),
-			'width' => '',
-			'height' => '',
-			'length' => '',
-			'wrapper' => array('<li>','</li>'),
-			'description' => '',
-			'atts' => array('disabled' => NULL)
+		$defaults = array (
+			'type'           => 'text',
+			'label'          => 'Option 1',
+			'default_value'  => '',
+			'classes'        => array ( 'option' ),
+			'rel'            => '',
+			'atts'           => array (),
+			'width'          => '',
+			'height'         => '',
+			'length'         => '',
+			'wrapper'        => array ( '<li>', '</li>' ),
+			'description'    => '',
+			'atts'           => array ( 'disabled' => null ),
+			'network_option' => false
 		);
-		$args = array_merge($defaults, $args);
+		$args     = array_merge( $defaults, $args );
 
-		foreach($args as $name => $value)
+		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
+		}
 	}
 
-	public function get_classes($echo = false) {
+	public function get_classes( $echo = false ) {
 		$the_classes = '';
-		foreach($this->classes as $class) {
-			if(!empty($the_classes)) $the_classes .= ' ';
+		foreach ( $this->classes as $class ) {
+			if ( ! empty( $the_classes ) ) {
+				$the_classes .= ' ';
+			}
 			$the_classes .= $class;
 		}
-		if(!empty($the_classes)) $the_classes = 'class="'.$the_classes.'"';
-		if($echo) echo $the_classes;
+		if ( ! empty( $the_classes ) ) {
+			$the_classes = 'class="' . $the_classes . '"';
+		}
+		if ( $echo ) {
+			echo $the_classes;
+		}
+
 		return $the_classes;
 	}
 
 	public function update_option() {
-		if(!isset($_POST[$this->id])) $_POST[$this->id] = '';
+		if ( ! isset( $_POST[ $this->id ] ) ) {
+			$_POST[ $this->id ] = '';
+		}
 
-		if($_POST[$this->id] == '')
-			$updated = delete_option(SM_SITEOP_PREFIX.$this->id);
-		else
-			$updated = update_option(SM_SITEOP_PREFIX.$this->id, $_POST[$this->id]);
-		return $updated;
+		if ( $this->network_option ) {
+			if ( $_POST[ $this->id ] == '' ) {
+				$updated = delete_site_option( SM_SITEOP_PREFIX . $this->id );
+			} else {
+				$updated = update_site_option( SM_SITEOP_PREFIX . $this->id, $_POST[ $this->id ] );
+			}
+
+			return $updated;
+		} else {
+			if ( $_POST[ $this->id ] == '' ) {
+				$updated = delete_option( SM_SITEOP_PREFIX . $this->id );
+			} else {
+				$updated = update_option( SM_SITEOP_PREFIX . $this->id, $_POST[ $this->id ] );
+			}
+
+			return $updated;
+		}
+
 	}
 }
 
