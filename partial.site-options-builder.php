@@ -3,7 +3,7 @@
  * SiteOptions builder class
  * @author: Seth Carstens
  * @package: SM-Utilities
- * @version: 1.3.0
+ * @version: 1.4.0
  * @licence: GPL 2.0 - please retain comments that express original build of this file by the author.
  */
 
@@ -486,6 +486,18 @@ class sm_section extends sm_options_container {
 		}
 	}
 
+	public function html_process_atts( $atts ) {
+		$att_markup = [];
+
+		foreach ( $atts as $key => $att ) {
+			if ( false == empty( $att ) ) {
+				$att_markup[] = sprintf( '%s="%s"', $key, $att );
+			}
+		}
+
+		return implode( ' ', $att_markup );
+	}
+
 	private function get_classes( $echo = false ) {
 		$the_classes = '';
 		foreach ( $this->classes as $class ) {
@@ -649,12 +661,10 @@ class sm_numberfield extends sm_option {
 		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		} else {
-			$disabled = '';
-		}
-		$html .= '<input id="' . $this->id . '" name="' . $this->id . '" type="number" value="' . $option_val . '" ' . $this->get_classes() . ' ' . $disabled . ' />';
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
+		$html .= '<input id="' . $this->id . '" name="' . $this->id . '" type="number" value="' . $option_val . '" ' . $this->get_classes() . ' ' . $att_markup . ' />';
 		if ( $this->description ) {
 			$html .= '<div class="description clear">' . $this->description . '</div>';
 		}
@@ -680,12 +690,10 @@ class sm_textfield extends sm_option {
 		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		} else {
-			$disabled = '';
-		}
-		$html .= '<input id="' . $this->id . '" name="' . $this->id . '" type="text" value="' . $option_val . '" ' . $this->get_classes() . ' ' . $disabled . ' />';
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
+		$html .= '<input id="' . $this->id . '" name="' . $this->id . '" type="text" value="' . $option_val . '" ' . $this->get_classes() . ' ' . $att_markup . ' />';
 		if ( $this->description ) {
 			$html .= '<div class="description clear">' . $this->description . '</div>';
 		}
@@ -718,12 +726,10 @@ class sm_passwordfield extends sm_option {
 		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		} else {
-			$disabled = '';
-		}
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"password\" value=\"" . $option_val . "\" " . $disabled . " />";
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"password\" value=\"" . $option_val . "\" " . $att_markup . " />";
 		$html .= '<a href="#" onClick="jQuery(this).prev().val(null); return false;">[clear]</a>';
 		if ( $this->description ) {
 			$html .= '<div class="description clear">' . $this->description . '</div>';
@@ -797,10 +803,10 @@ class sm_textarea extends sm_option {
 		}
 		$html = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		}
-		$html .= "<textarea id=\"$this->id\" name=\"$this->id\" cols=\"50\" rows=\"10\" " . $disabled . ">" . stripslashes( $option_val ) . "</textarea>";
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
+		$html .= "<textarea id=\"$this->id\" name=\"$this->id\" cols=\"50\" rows=\"10\" " . $att_markup . ">" . stripslashes( $option_val ) . "</textarea>";
 		if ( $this->description ) {
 			$html .= '<div class="description clear">' . $this->description . '</div>';
 		}
@@ -1033,13 +1039,13 @@ class sm_media_upload extends sm_option {
 		} else {
 			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
 		}
-		$disabled = '';
+
 		$html     = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		}
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $option_val . "\" " . $disabled . " />";
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $option_val . "\" " . $att_markup . " />";
 		$html .= '<input id="' . $this->id . '_button" type="button" value="Upload Image" onclick="sm_option_media_uploader(' . $this->id . ')"' . $disabled . '/><input id="' . $this->id . '_reset" type="button" value="X" onclick="jQuery(\'#' . $this->id . '\').val(\'\');" />';
 		if ( $this->description ) {
 			$html .= '<div class="description clear">' . $this->description . '</div>';
@@ -1088,18 +1094,18 @@ class sm_color_picker extends sm_option {
 		} else {
 			$option_val = get_option( SM_SITEOP_PREFIX . $this->id );
 		}
-		$disabled = '';
+
 		$html     = $this->wrapper[0];
 		$html .= "<label>$this->label</label>";
-		if ( $this->atts['disabled'] ) {
-			$disabled = 'disabled="disabled"';
-		}
+
+		$att_markup = $this->html_process_atts( $this->atts );
+
 		if ( $the_color = $option_val ) {
 		} else {
 			$the_color = '#ffffff';
 		}
 		$colorpicker_icon = 'data:image/png;base64,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';
-		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $the_color . "\" " . $disabled . " /> <img style=\"width: 22px; height: auto;\" class=\"colorpicker\" src=\"" . $colorpicker_icon . "\" />";
+		$html .= "<input id=\"$this->id\" name=\"$this->id\" type=\"text\" value=\"" . $the_color . "\" " . $att_markup . " /> <img style=\"width: 22px; height: auto;\" class=\"colorpicker\" src=\"" . $colorpicker_icon . "\" />";
 		$html .= '<div id="' . $this->id . '_palette" class="sm_palettes"></div>';
 		$html .= '
 <script type="text/javascript">
