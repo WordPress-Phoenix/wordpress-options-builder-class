@@ -74,16 +74,17 @@ The following is example code which can be run to create a very basic site optio
 				'value'       => 'Custom Coming Soon Content',
 				'description' => 'Coming Soon content to be used on Custom Coming Soon page.',
 			) ) );
+			// recommended you move this build line into an init action hook priority 20+
 			$this->site_options_page->build();
 ```
 
 ## Network Options Page
 
-Simply set the `network_page` flag to true, and if you are on a multisite install, your options page will be in the mutlsite network admin navigation. Here is an example:
+Simply set the `network_page` flag to true, and if you are on a multisite install, your options page will be in the mutlsite network admin navigation. **Note: plugin must be network activated to show network settings.** Here is an example:
 ```php
 // create network-wide settings page
 	$this->network_options_page = new sm_options_page( array (
-		'parent_id'    => 'fansided_vip',
+		'parent_id'    => 'settings.php',
 		'id'           => 'network_settings',
 		'page_title'   => 'Network Options',
 		'menu_title'   => 'Network Options',
