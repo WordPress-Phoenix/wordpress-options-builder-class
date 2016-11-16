@@ -3,7 +3,7 @@
  * SiteOptions builder class
  * @author: Seth Carstens
  * @package: SM-Utilities
- * @version: 1.4.0
+ * @version: 1.5.0
  * @licence: GPL 2.0 - please retain comments that express original build of this file by the author.
  */
 
