@@ -12,10 +12,5 @@
             "homepage": "http://github.com/scarstens",
             "role": "Developer"
         }
-    ],
-    "autoload": {
-        "psr-0": {
-            "Monolog": "src"
-        }
-    }
+    ]
 }
