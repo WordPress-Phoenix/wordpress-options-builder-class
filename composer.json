@@ -12,5 +12,8 @@
             "homepage": "http://github.com/scarstens",
             "role": "Developer"
         }
-    ]
+    ],
+    "autoload": {
+        "classmap": ["vendor/wordpress-phoenix/wordpress-options-builder-class/"]
+    }
 }
