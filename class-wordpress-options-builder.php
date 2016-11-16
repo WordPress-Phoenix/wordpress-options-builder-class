@@ -3,7 +3,7 @@
  * SiteOptions builder class
  * @author : Seth Carstens
  * @package: SM-Utilities
- * @version: 1.5.2
+ * @version: 1.5.3
  * @license: GPL 2.0 - please retain comments that express original build of this file by the author.
  */
 
@@ -38,7 +38,6 @@ if ( ! function_exists( 'dbug' ) ) {
 	function dbug() {
 	}
 }
-dbug( 'Version 1.5.1' );
 
 class sm_options_container {
 
