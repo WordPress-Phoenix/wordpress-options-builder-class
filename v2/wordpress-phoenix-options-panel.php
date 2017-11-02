@@ -235,7 +235,150 @@ class page extends container {
 			 * Module: WP-JS-Hooks
 			 * Props: Carl Danley & 10up
 			 */
-			!function(t,o){"use strict";t.wp=t.wp||{},t.wp.hooks=t.wp.hooks||new function(){function t(t,o,i,e){var n,a,r;if(p[t][o])if(i)if(n=p[t][o],e)for(r=n.length;r--;)(a=n[r]).callback===i&&a.context===e&&n.splice(r,1);else for(r=n.length;r--;)n[r].callback===i&&n.splice(r,1);else p[t][o]=[]}function o(t,o,e,n,a){var r={callback:e,priority:n,context:a},c=p[t][o];c?(c.push(r),c=i(c)):c=[r],p[t][o]=c}function i(t){for(var o,i,e,n=1,a=t.length;n<a;n++){for(o=t[n],i=n;(e=t[i-1])&&e.priority>o.priority;)t[i]=t[i-1],--i;t[i]=o}return t}function e(t,o,i){var e,n,a=p[t][o];if(!a)return"filters"===t&&i[0];if(n=a.length,"filters"===t)for(e=0;e<n;e++)i[0]=a[e].callback.apply(a[e].context,i);else for(e=0;e<n;e++)a[e].callback.apply(a[e].context,i);return"filters"!==t||i[0]}var n=Array.prototype.slice,a={removeFilter:function(o,i){return"string"==typeof o&&t("filters",o,i),a},applyFilters:function(){var t=n.call(arguments),o=t.shift();return"string"==typeof o?e("filters",o,t):a},addFilter:function(t,i,e,n){return"string"==typeof t&&"function"==typeof i&&(e=parseInt(e||10,10),o("filters",t,i,e,n)),a},removeAction:function(o,i){return"string"==typeof o&&t("actions",o,i),a},doAction:function(){var t=n.call(arguments),o=t.shift();return"string"==typeof o&&e("actions",o,t),a},addAction:function(t,i,e,n){return"string"==typeof t&&"function"==typeof i&&(e=parseInt(e||10,10),o("actions",t,i,e,n)),a}},p={actions:{},filters:{}};return a}}(window),jQuery(document).ready(function(t){function o(o,i){i.preventDefault();var e=t(t(o).attr("href")).addClass("active"),n=t(t(o).attr("href")+"-nav").addClass("active wp-ui-primary opn");return window.location.hash=t(o).attr("href"),window.scrollTo(0,0),t(e).siblings().removeClass("active"),t(n).siblings().removeClass("active wp-ui-primary opn"),!1}function i(){t(".wpop-loader-wrapper").css("display","inherit")}function e(){(hash=window.location.hash)?t(hash+"-nav a").trigger("click"):t("#wpopNav li:first a").trigger("click")}function n(){t("html, body").animate({scrollTop:0})}function a(){"undefined"!=typeof iris&&t('[data-field="color_picker"]').iris({width:320,hide:!1})}function p(){t("[data-select]").selectize({allowEmptyOption:!1,placeholder:t(this).attr("data-placeholder")});t("[data-multiselect]").selectize({plugins:["restore_on_backspace","remove_button","drag_drop","optgroup_columns"]})}function r(o,i){i.preventDefault(),t(o).prev().val(null)}function c(o,i){i.preventDefault();var e=t(o).data();s||(s=wp.media.frames.wpModal||wp.media({title:e.title,button:{text:e.button},library:{type:"image"},multiple:!1})).on("select",function(){var i=s.state().get("selection").first().toJSON();if("object"==typeof i){var e=t(o).closest(".wpop-option");e.find('[type="hidden"]').val(i.id),e.find("img").attr("src",i.url).show(),t(o).attr("value","Replace "+t(o).attr("data-media-label")),e.find(".img-remove").show()}}),s.open()}function l(o,i){if(i.preventDefault(),confirm("Remove "+t(o).attr("data-media-label")+"?")){var e=t(o).closest(".wpop-option"),n=e.find(".blank-img").html();e.find('[type="hidden"]').val(null),e.find("img").attr("src",n),e.find(".button-hero").val("Set Image"),t(o).hide()}}var s;wp.hooks.addAction("wpopPreInit",n),wp.hooks.addAction("wpopInit",e),wp.hooks.addAction("wpopInit",a),wp.hooks.addAction("wpopInit",p),wp.hooks.addAction("wpopSectionNav",o),wp.hooks.addAction("wpopPwdClear",r),wp.hooks.addAction("wpopImgUpload",c),wp.hooks.addAction("wpopImgRemove",l),wp.hooks.addAction("wpopRepeaterAdd",doRepeaterAdd),wp.hooks.addAction("wpopSubmit",i),wp.hooks.doAction("wpopPreInit"),t("#wpopNav li a").click(function(t){wp.hooks.doAction("wpopSectionNav",this,t)}),wp.hooks.doAction("wpopInit"),t('input[type="submit"]').click(function(t){wp.hooks.doAction("wpopSubmit",this,t)}),t(".pwd-clear").click(function(t){wp.hooks.doAction("wpopPwdClear",this,t)}),t(".img-upload").on("click",function(t){wp.hooks.doAction("wpopImgUpload",this,t)}),t(".img-remove").on("click",function(t){wp.hooks.doAction("wpopImgRemove",this,t)}),t(".add-button").on("click",function(t){wp.hooks.doAction("wpopRepeaterAdd",this,t)})});
+			!function(t,n){"use strict";t.wp=t.wp||{},t.wp.hooks=t.wp.hooks||new function(){function t(t,n,r,i){var e,o,c;if(f[t][n])if(r)if(e=f[t][n],i)for(c=e.length;c--;)(o=e[c]).callback===r&&o.context===i&&e.splice(c,1);else for(c=e.length;c--;)e[c].callback===r&&e.splice(c,1);else f[t][n]=[]}function n(t,n,i,e,o){var c={callback:i,priority:e,context:o},l=f[t][n];l?(l.push(c),l=r(l)):l=[c],f[t][n]=l}function r(t){for(var n,r,i,e=1,o=t.length;e<o;e++){for(n=t[e],r=e;(i=t[r-1])&&i.priority>n.priority;)t[r]=t[r-1],--r;t[r]=n}return t}function i(t,n,r){var i,e,o=f[t][n];if(!o)return"filters"===t&&r[0];if(e=o.length,"filters"===t)for(i=0;i<e;i++)r[0]=o[i].callback.apply(o[i].context,r);else for(i=0;i<e;i++)o[i].callback.apply(o[i].context,r);return"filters"!==t||r[0]}var e=Array.prototype.slice,o={removeFilter:function(n,r){return"string"==typeof n&&t("filters",n,r),o},applyFilters:function(){var t=e.call(arguments),n=t.shift();return"string"==typeof n?i("filters",n,t):o},addFilter:function(t,r,i,e){return"string"==typeof t&&"function"==typeof r&&(i=parseInt(i||10,10),n("filters",t,r,i,e)),o},removeAction:function(n,r){return"string"==typeof n&&t("actions",n,r),o},doAction:function(){var t=e.call(arguments),n=t.shift();return"string"==typeof n&&i("actions",n,t),o},addAction:function(t,r,i,e){return"string"==typeof t&&"function"==typeof r&&(i=parseInt(i||10,10),n("actions",t,r,i,e)),o}},f={actions:{},filters:{}};return o}}(window);
+			// BEGIN JS
+			jQuery( document ).ready( function( $ ) {
+				var wpModal;
+				registerAllActions();
+				wp.hooks.doAction( 'wpopPreInit' );
+
+				$( '#wpopNav li a' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
+				} );
+
+				wp.hooks.doAction( 'wpopInit' ); // main init
+
+				$( 'input[type="submit"]' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopSubmit', this, evt );
+				} );
+
+				$( '.pwd-clear' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopPwdClear', this, evt );
+				} );
+
+				$( '.img-upload' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopImgUpload', this, event );
+				} );
+
+				$( '.img-remove' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopImgRemove', this, event );
+				} );
+
+				$( '.add-button' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopRepeaterAdd', this, event );
+				} );
+
+				function registerAllActions() {
+					wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
+					wp.hooks.addAction( 'wpopInit', handleInitHashSelection );
+					wp.hooks.addAction( 'wpopInit', initIrisColorSwatches );
+					wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
+
+					wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
+
+					wp.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
+					wp.hooks.addAction( 'wpopImgUpload', doImgUpload );
+					wp.hooks.addAction( 'wpopImgRemove', doImgRemove );
+
+					wp.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
+				}
+
+				/* CORE */
+				function handleSectionNavigation( elem, event ) {
+					event.preventDefault();
+					var page_active = $( ( $( elem ).attr( 'href' ) ) ).addClass( 'active' );
+					var menu_active = $( ($( elem ).attr( 'href' ) + '-nav') ).addClass( 'active wp-ui-primary opn' );
+
+					// add tab's location to URL but stay at the top of the page
+					window.location.hash = $( elem ).attr( 'href' );
+					window.scrollTo( 0, 0 );
+					$( page_active ).siblings().removeClass( 'active' );
+					$( menu_active ).siblings().removeClass( 'active wp-ui-primary opn' );
+
+					return false;
+				}
+
+				function wpopShowSpinner() {
+					$( '.wpop-loader-wrapper' ).css( 'display', 'inherit' );
+				}
+
+				function handleInitHashSelection() {
+					if ( hash = window.location.hash ) {
+						$( hash + '-nav a' ).trigger( 'click' );
+					} else {
+						$( '#wpopNav li:first a' ).trigger( 'click' );
+					}
+				}
+
+				function nixHashJumpJank() {
+					$( 'html, body' ).animate( { scrollTop: 0 } );
+				}
+
+				/* FIELDS JS */
+				function initIrisColorSwatches() {
+					if ( 'undefined' !== typeof iris ) {
+						$( '[data-field="color_picker"]' ).iris( { width: 320, hide: false } );
+					}
+				}
+
+				function initSelectizeInputs() {
+					var select = $( '[data-select]' ).selectize( {
+						allowEmptyOption: false,
+						placeholder: $( this ).attr( 'data-placeholder' )
+					} );
+					$( '[data-multiselect]' ).selectize( {
+						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
+					} );
+				}
+
+				function doPwdFieldClear( elem, event ) {
+					event.preventDefault();
+					$( elem ).prev().val( null );
+				}
+
+				function doImgUpload( elem, event ) {
+					event.preventDefault();
+					var config = $( elem ).data();
+					// Initialize the modal the first time.
+					if ( !wpModal ) {
+						wpModal = wp.media.frames.wpModal || wp.media( {
+							title: config.title,
+							button: { text: config.button },
+							library: { type: 'image' },
+							multiple: false
+						} );
+
+						// Picking an image
+						wpModal.on( 'select', function() {
+							// Get the image URL
+							var image = wpModal.state().get( 'selection' ).first().toJSON();
+							if ( 'object' === typeof image ) {
+								var closest = $( elem ).closest( '.wpop-option' );
+								closest.find( '[type="hidden"]' ).val( image.id );
+								closest.find( 'img' ).attr( 'src', image.url ).show();
+								$( elem ).attr( 'value', 'Replace ' + $( elem ).attr( 'data-media-label' ) );
+								closest.find( '.img-remove' ).show();
+							}
+						} );
+					}
+
+					// Open the modal
+					wpModal.open();
+				}
+
+				function doImgRemove( elem, event ) {
+					event.preventDefault();
+					var remove = confirm( 'Remove ' + $( elem ).attr( 'data-media-label' ) + '?' );
+					if ( remove ) {
+						var item = $( elem ).closest( '.wpop-option' );
+						var blank = item.find( '.blank-img' ).html();
+						item.find( '[type="hidden"]' ).val( null );
+						item.find( 'img' ).attr( 'src', blank );
+						item.find( '.button-hero' ).val( 'Set Image' );
+						$( elem ).hide();
+					}
+				}
+			} );
 		</script>
 		<?php
 		$js = ob_get_clean();
