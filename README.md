@@ -36,42 +36,58 @@ if( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
 
 # Usage
 
+## Site Options Page
 The following is example code which can be run to create a very basic site options page. You can use standard OOP principals shown in the below code to expand upon the sample. Please read through the class names in the library to find all the different types of fields you can include into your options page, or build your own field types by extending the existing classes.
 
 ```php
 			$this->site_options_page = new sm_options_page( array (
-				'parent_id'  => 'edit.php?post_type=fandom250',
-				'id'         => 'ranking-options',
-				'page_title' => 'Ranking Settings',
+				'parent_id'  => 'themes.php',
+				'id'         => 'custom-options',
+				'page_title' => 'Custom Settings',
 				'menu_title' => 'Settings',
 			) );
 			$this->site_options_page->add_part($section = new sm_section('branding_options', array('title'=>'Branding')) );
 			$section->add_part( $cpt_header_background = new sm_media_upload( 'cpt_header_bg_image', array(
 				'label'       => 'Header Background Image',
-				'description' => 'Background image to be used in the header on the Ranking archive page.'
+				'description' => 'Background image to be used in the header on the Custom archive page.'
 			) ) );
 			$section->add_part( $cpt_header_logo = new sm_textfield( 'cpt_header_logo', array(
 				'label'       => 'Header Logo',
-				'description' => 'Logo to be used in the header on the Ranking archive page.'
+				'description' => 'Logo to be used in the header on the Custom archive page.'
 			) ) );
 			$section->add_part( $cpt_description = new sm_textarea( 'cpt_description', array(
-				'label'       => 'Ranking Description',
-				'value'       => 'Ranking Description',
-				'description' => 'Description to be used in the header on the Ranking archive page.',
+				'label'       => 'Custom Description',
+				'value'       => 'Custom Description',
+				'description' => 'Description to be used in the header on the Custom archive page.',
 			) ) );
 			$section->add_part( $cpt_color_overlay = new sm_color_picker( 'cpt_color_overlay', array(
-				'label'       => 'Ranking Color Overlay',
-				'value'       => 'Ranking Color Overlay',
-				'description' => 'Color overlay to be used over header image only on the Ranking archive page.',
+				'label'       => 'Custom Color Overlay',
+				'value'       => 'Custom Color Overlay',
+				'description' => 'Color overlay to be used over header image only on the Custom archive page.',
 			) ) );
 			$section->add_part( $cpt_coming_soon_header = new sm_media_upload( 'cpt_coming_soon_header', array(
-				'label'       => 'Ranking Coming Soon Header Image',
-				'description' => 'Header image to be used on Ranking Coming Soon page.'
+				'label'       => 'Custom Coming Soon Header Image',
+				'description' => 'Header image to be used on Custom Coming Soon page.'
 			) ) );
 			$section->add_part( $cpt_coming_soon_content = new sm_textarea( 'cpt_coming_soon_content', array(
-				'label'       => 'Ranking Coming Soon Content',
-				'value'       => 'Ranking Coming Soon Content',
-				'description' => 'Coming Soon content to be used on Ranking Coming Soon page.',
+				'label'       => 'Custom Coming Soon Content',
+				'value'       => 'Custom Coming Soon Content',
+				'description' => 'Coming Soon content to be used on Custom Coming Soon page.',
 			) ) );
+			// recommended you move this build line into an init action hook priority 20+
 			$this->site_options_page->build();
+```
+
+## Network Options Page
+
+Simply set the `network_page` flag to true, and if you are on a multisite install, your options page will be in the mutlsite network admin navigation. **Note: plugin must be network activated to show network settings.** Here is an example:
+```php
+// create network-wide settings page
+	$this->network_options_page = new sm_options_page( array (
+		'parent_id'    => 'settings.php',
+		'id'           => 'network_settings',
+		'page_title'   => 'Network Options',
+		'menu_title'   => 'Network Options',
+		'network_page' => true
+	) );
 ```
