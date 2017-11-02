@@ -1,0 +1,388 @@
+.onOffSwitch {
+	position: relative;
+	width: 110px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	margin-left: auto;
+	margin-right: 12px
+}
+
+input[type=checkbox].onOffSwitch-checkbox {
+	display: none
+}
+
+.onOffSwitch-label {
+	display: block;
+	overflow: hidden;
+	cursor: pointer;
+	border: 2px solid #EEE;
+	border-radius: 28px
+}
+
+.onOffSwitch-inner {
+	display: block;
+	width: 200%;
+	margin-left: -100%;
+	transition:% s cubic-bezier(1, 0, 0, 1) 0s
+}
+
+.onOffSwitch-inner:after, .onOffSwitch-inner:before {
+	display: block;
+	float: left;
+	width: 50%;
+	height: 40px;
+	padding: 0;
+	line-height: 40px;
+	font-size: 17px;
+	font-family: Trebuchet, Arial, sans-serif;
+	font-weight: 700;
+	box-sizing: border-box
+}
+
+.onOffSwitch-inner:before {
+	content: "ON";
+	padding-left: 10px;
+	background-color: #21759B;
+	color: #FFF
+}
+
+.onOffSwitch-inner:after {
+	content: "OFF";
+	padding-right: 10px;
+	background-color: #EEE;
+	color: #BCBCBC;
+	text-align: right
+}
+
+.onOffSwitch-switch {
+	display: block;
+	width: 28px;
+	margin: 6px;
+	background: #BCBCBC;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 66px;
+	border: 2px solid #EEE;
+	border-radius: 20px;
+	transition: all .5s cubic-bezier(1, 0, 0, 1) 0s
+}
+
+.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
+	margin-left: 0
+}
+
+.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
+	right: 0;
+	background-color: #D54E21
+}
+
+.wpop-loader-wrapper {
+	position: fixed;
+	top: 45%;
+	right: 45%;
+	z-index: 99999;
+	display: none
+}
+
+.ball-clip-rotate-multiple {
+	position: relative
+}
+
+.ball-clip-rotate-multiple > div {
+	position: absolute;
+	left: -20px;
+	top: -20px;
+	border: 3px solid #cd1713;
+	border-bottom-color: transparent;
+	border-top-color: transparent;
+	border-radius: 100%;
+	height: 35px;
+	width: 35px;
+	-webkit-animation: rotate .99s 0s ease-in-out infinite;
+	animation: rotate 1s 0s ease-in-out infinite
+}
+
+.cb, .save-all, span.spacer {
+	position: relative
+}
+
+.ball-clip-rotate-multiple > div:last-child {
+	display: inline-block;
+	top: -10px;
+	left: -10px;
+	width: 15px;
+	height: 15px;
+	-webkit-animation-duration: .33s;
+	animation-duration: .33s;
+	border-color: #cd1713 transparent;
+	-webkit-animation-direction: reverse;
+	animation-direction: reverse
+}
+
+@keyframes rotate {
+	0% {
+		-webkit-transform: rotate(0) scale(1);
+		transform: rotate(0) scale(1)
+	}
+	50% {
+		-webkit-transform: rotate(180deg) scale(.6);
+		transform: rotate(180deg) scale(.6)
+	}
+	100% {
+		-webkit-transform: rotate(360deg) scale(1);
+		transform: rotate(360deg) scale(1)
+	}
+}
+
+#wpopMain {
+	background: #fff
+}
+
+#wpopOptNavUl {
+	margin-top: 0
+}
+
+.wpop-options-menu {
+	margin-bottom: 8em
+}
+
+#wpopContent {
+	background: #F1F1F1;
+	width: 100% !important;
+	border-top: 1px solid #D8D8D8
+}
+
+.pure-g [class*=pure-u] {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif
+}
+
+.pure-form select {
+	min-width: 320px
+}
+
+.selectize-control {
+	max-width: 98.5%
+}
+
+.pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
+	padding: 1.3em 2em
+}
+
+.pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+	background: inherit
+}
+
+#wpopOptions header {
+	overflow: hidden;
+	max-height: 88px
+}
+
+#wpopNav p.submit input {
+	width: 100%
+}
+
+#wpop {
+	border: 1px solid #D8D8D8;
+	background: #fff
+}
+
+.opn a.pure-menu-link {
+	color: #fff !important
+}
+
+.opn a.pure-menu-link:focus {
+	box-shadow: none;
+	-webkit-box-shadow: none
+}
+
+#wpopContent .section {
+	display: none;
+	width: 100%
+}
+
+#wpopContent .section.active {
+	display: inline-block
+}
+
+span.page-icon {
+	margin: 0 1.5vw 0 0;
+}
+
+span.menu-icon {
+	position: relative;
+	left: -0.5rem;
+}
+
+span.page-icon:before {
+	font-size: 2.5rem;
+	position: relative;
+	top: -4px;
+	right: 4px;
+	color: #777;
+}
+
+.clear {
+	clear: both
+}
+
+.section {
+	padding: 0 0 5px
+}
+
+.section h3 {
+	margin: 0 0 10px;
+	padding: 2vw 1.5vw
+}
+
+.section h4.label {
+	margin: 0;
+	display: table-cell;
+	border: 1px solid #e9e9e9;
+	background: #f1f1f1;
+	padding: .33vw .66vw .5vw;
+	font-weight: 500;
+	font-size: 16px
+}
+
+.section li.wpop-option {
+	margin-top: 1rem;
+	margin-left: 1rem;
+	margin-right: 1rem;
+	margin-bottom: 1.25rem
+}
+
+.twothirdfat {
+	width: 66.6%
+}
+
+span.spacer {
+	display: block;
+	width: 100%;
+	border: 0;
+	height: 0;
+	border-top: 1px solid rgba(0, 0, 0, .1);
+	border-bottom: 1px solid rgba(255, 255, 255, .3)
+}
+
+li.even.option {
+	background-color: #ccc
+}
+
+input[disabled=disabled] {
+	background-color: #CCC
+}
+
+.cb {
+	float: right;
+	right: 20px
+}
+
+.card-wrap {
+	width: 100%
+}
+
+.fullwidth {
+	width: 100% !important;
+	max-width: 100% !important
+}
+
+.wpop-head {
+	background: #f1f1f1
+}
+
+.wpop-head > .inner {
+	padding: 1vw 1.5vw 0
+}
+
+.save-all {
+	float: right;
+	top: -48px
+}
+
+.desc {
+	margin: .5rem 0 0 .25rem;
+	font-weight: 300;
+	font-size: 12px;
+	line-height: 16px;
+	transition: all 1s ease;
+	color: #888;
+	-webkit-transition: all 1s ease;
+	-moz-transition: all 1s ease;
+	-o-transition: all 1s ease
+}
+
+.desc:after {
+	display: block;
+	position: relative;
+	width: 98%;
+	border-top: 1px solid rgba(0, 0, 0, .1);
+	border-bottom: 1px solid rgba(255, 255, 255, .3)
+}
+
+.wpop-option input[type="text"] {
+	width: 90%;
+}
+
+input[data-assigned] {
+	width: 100% !important
+}
+
+.add-button {
+	margin: 3em auto;
+	display: block;
+	width: 100%;
+	text-align: center
+}
+
+.img-preview {
+	max-width: 320px;
+	display: block;
+	margin: 0 0 1rem
+}
+
+.img-remove {
+	border: 2px solid #cd1713 !important;
+	background: #f1f1f1 !important;
+	color: #cd1713 !important;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+	margin-left: 1rem !important
+}
+
+.pwd-clear {
+	margin-left: 0.5rem !important;
+	position: relative;
+	top: 1px;
+}
+
+.pure-form footer {
+	background: #f1f1f1;
+	border-top: 1px solid #D8D8D8;
+}
+
+.pure-form footer div div > * {
+	padding: 1rem 0.33rem;
+}
+
+.wpop-option .wp-editor-wrap {
+	margin-top: 0.5rem;
+}
+
+.wpop-option.color_picker input {
+	width: 50%;
+}
+
+.wpop-option.color_picker .iris-picker {
+	float: right;
+}
+
+.cb-wrap {
+	position: relative;
+	display: block;
+	right: 1.33vw;
+	max-width: 110px;
+	margin-left: auto;
+	top: -1.66rem;
+}
