@@ -1,3 +1,6 @@
+#### 2.0.0
+* New, namespaced fields and class cleanup.
+
 #### 1.5.3
 * Fixed new autoload path to be relative to library
 
