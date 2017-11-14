@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.0.0
+ * @version 2.1.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_0;
+namespace WPOP\V_2_1;
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 	header( 'Status: 403 Forbidden' );
@@ -550,9 +550,11 @@ class input extends option {
 		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 		$type       = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 		ob_start();
-		echo '<input id="' . $this->field_id . '" name="' . $this->field_id . '" type="' . $type . '" value="'
-		     . $option_val . '" data-field="' . $this->get_clean_classname() . '" ' . $this->get_classes( 'twothirdfat' )
-		     . ' ' . $this->html_process_atts( $this->atts ) . ' />';
+		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
+			esc_attr( $type )  . '" value="'
+		     . esc_attr( $option_val ) . '" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' .
+																$this->get_classes(	'twothirdfat' )
+		     . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -595,8 +597,8 @@ class password extends input {
 	public function pwd_clear_and_hidden_field() {
 		ob_start();
 		echo '<a href="#" class="button button-secondary pwd-clear">clear</a>';
-		echo '<input id="prev_' . $this->id . '" name="prev_' . $this->id . '" type="hidden" value="'
-		     . $this->get_saved() . '" readonly="readonly" />';
+		echo '<input id="'. esc_attr( 'prev_' . $this->id ) .'" name="'. esc_attr( 'prev_' . $this->id ) . '" type="hidden" value="'
+		     . esc_attr( $this->get_saved() ) . '" readonly="readonly" />';
 
 
 		return ob_get_clean();
@@ -672,8 +674,8 @@ class textarea extends option {
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
 
 		ob_start();
-		echo '<textarea id="' . $this->id . '" name="' . $this->id . '" cols="' . $this->cols . '" rows="' .
-		     $this->rows . '" ' . $att_markup . '>' . stripslashes( $option_val ) . '</textarea>';
+		echo '<textarea id="' . esc_attr( $this->id ) . '" name="' . esc_attr( $this->id ) . '" cols="' .
+			 esc_attr( $this->cols ) . '" rows="' . esc_attr( $this->rows ) . '" ' . $att_markup . '>' . stripslashes( $option_val ) . '</textarea>';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}

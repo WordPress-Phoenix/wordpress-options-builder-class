@@ -1,3 +1,6 @@
+#### 2.1.0
+* Removing duplicate dependency
+
 #### 2.0.0
 * New, namespaced fields and class cleanup.
 
