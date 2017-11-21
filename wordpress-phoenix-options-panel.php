@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.1.0
+ * @version 2.3.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_4;
+namespace WPOP\V_2_3;
 
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
@@ -18,8 +18,7 @@ if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 }
 
 if ( apply_filters( 'wpop_custom_option_enabled', false )
-     && defined( 'SITEOPTION_PREFIX' )
-     && ! function_exists( 'get_custom_option' ) ) {
+     && defined( 'SITEOPTION_PREFIX' ) ) {
 	function get_custom_option( $s = '', $network_option = false ) {
 		return $network_option ? get_site_option( SITEOPTION_PREFIX . $s ) : get_option( SITEOPTION_PREFIX . $s );
 	}
