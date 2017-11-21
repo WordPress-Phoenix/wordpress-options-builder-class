@@ -8,7 +8,8 @@
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_1;
+namespace WPOP\V_2_4;
+
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 	header( 'Status: 403 Forbidden' );
@@ -83,7 +84,12 @@ class container {
 		// note $_POST[ $part->id ] that taps the key's value from the submit array
 		foreach( $this->parts as $section ) {
 			foreach( $section->parts as $part ) {
-				$updated     = $this->do_options_save( $part->id, $_POST[ $part->id ], $this->network_page );
+				// todo: cleanup, but shim to get passwords working
+				if ( isset( $part->password ) && $part->password ) {
+					$updated = $part->save_password( $part->id, $this->network_page  );
+				} else {
+					$updated     = $this->do_options_save( $part->id, $_POST[ $part->id ], $this->network_page );
+				}
 				$any_updated = ( $updated && ! $any_updated ) ? true : $any_updated;
 			}
 		}
@@ -144,7 +150,7 @@ class page extends container {
 
 	public function initialize_panel() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-		add_action( 'admin_menu', array( $this, 'add_settings_submenu_page' ) );
+		add_action ( 'admin_menu', array( $this, 'add_settings_submenu_page' ) );
 		add_action( 'admin_init', array( $this, 'run_options_save_process' ) );
 	}
 
@@ -392,6 +398,7 @@ class page extends container {
 	}
 
 	public function enqueue_dependencies() {
+//		die( 'runn');
 		$unpkg = 'https://unpkg.com/purecss@1.0.0/build/';
 		wp_register_style( 'wpop-pure-base', $unpkg . 'base-min.css' );
 		wp_register_style( 'wpop-pure-grids', $unpkg . 'grids-min.css', array( 'wpop-pure-base' ) );
@@ -526,7 +533,6 @@ class option {
 		} else {
 			return get_option( $pre_ . $this->id );
 		}
-
 	}
 
 	public function get_clean_classname() {
@@ -551,9 +557,18 @@ class section_desc extends option {
 
 class input extends option {
 	public $input_type;
+	public $password = false;
 
 	public function get_html() {
-		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
+		$option_val_raw = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value :
+			$this->get_saved();
+
+		if ( $this->password ) {
+			$option_val = password::decrypt( $option_val_raw );
+		} else {
+			$option_val = $option_val_raw;
+		}
+
 		$type       = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 		ob_start();
 		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
@@ -593,10 +608,12 @@ class password extends input {
 	public function __construct( $i, $args = array() ) {
 		parent::__construct( $i, $args );
 		$this->field_after = $this->pwd_clear_and_hidden_field();
+		$this->password = true;
 		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
 			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
 			// effectively locking the encrypted value to the current environment.
-			define( 'WPOP_ENCRYPTION_KEY', static::pad_key( sha1( wp_salt(), true ) ) );
+			$trimmed_key = substr( wp_salt(), 0, 15 );
+			define( 'WPOP_ENCRYPTION_KEY', static::pad_key( sha1( $trimmed_key, true ) ) );
 		}
 	}
 
@@ -606,7 +623,6 @@ class password extends input {
 		echo '<input id="'. esc_attr( 'prev_' . $this->id ) .'" name="'. esc_attr( 'prev_' . $this->id ) . '" type="hidden" value="'
 		     . esc_attr( $this->get_saved() ) . '" readonly="readonly" />';
 
-
 		return ob_get_clean();
 	}
 
@@ -614,23 +630,21 @@ class password extends input {
 		return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, base64_decode( $encrypted_encoded ), MCRYPT_MODE_ECB ) );
 	}
 
-	public function update_option() { // overriding default
-		if ( ! isset( $_POST[ $this->id ] ) ) {
-			$_POST[ $this->id ] = '';
-		}
-		if ( $_POST[ $this->id ] === $_POST[ 'prev_' . $this->id ] ) { // if pwd not modified, don't update anything
+	public function save_password( $key, $network = false ) { // overriding default
+		// make sure we have an option
+		if ( empty( $key ) || ! is_string( $key ) ) {
 			return false;
 		}
 
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 
-		if ( $_POST[ $this->id ] == '' ) {
-			$updated = $this->parent_network_options ? delete_site_option( $pre_ . $this->id ) : delete_option( $pre_ . $this->id );
+		if ( $_POST[ $key ] == '' ) {
+			$updated = $network ? delete_site_option( $pre_ . $this->id ) : delete_option( $pre_ . $this->id );
 		} else {
 			$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $_POST[ $this->id ], MCRYPT_MODE_ECB );
 			// base64 is required, not a hack. Without, storing encryption in option isn't reliable cross env.
 			$prepd   = base64_encode( $encrypted );
-			$updated = $this->parent_network_options ? update_site_option( $pre_ . $this->id, $prepd )
+			$updated = $network ? update_site_option( $pre_ . $this->id, $prepd )
 				: update_option( $pre_ . $this->id, $prepd );
 		}
 
