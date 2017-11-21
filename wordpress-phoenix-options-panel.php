@@ -142,6 +142,12 @@ class page extends container {
 		}
 	}
 
+	public function initialize_panel() {
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
+		add_action( 'admin_menu', array( $this, 'add_settings_submenu_page' ) );
+		add_action( 'admin_init', array( $this, 'run_options_save_process' ) );
+	}
+
 	public function add_settings_submenu_page() {
 		add_submenu_page(
 			$this->theme_page ? 'themes.php' : $this->parent_id, // file.php to hook into
