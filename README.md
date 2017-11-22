@@ -36,6 +36,8 @@ if( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
 
 # Usage
 
+### WARNING: This documentation isn't yet current to v2 -- coming soon!
+
 ## Site Options Page
 The following is example code which can be run to create a very basic site options page. You can use standard OOP principals shown in the below code to expand upon the sample. Please read through the class names in the library to find all the different types of fields you can include into your options page, or build your own field types by extending the existing classes.
 
