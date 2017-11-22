@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.4.0
+ * @version 2.5.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_4;
+namespace WPOP\V_2_5;
 
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
@@ -560,22 +560,13 @@ class input extends option {
 	public $password = false;
 
 	public function get_html() {
-		$option_val_raw = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value :
-			$this->get_saved();
-
-		if ( $this->password ) {
-			$option_val = password::decrypt( $option_val_raw );
-		} else {
-			$option_val = $option_val_raw;
-		}
+		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 
 		$type       = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 		ob_start();
 		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
-			esc_attr( $type )  . '" value="'
-		     . esc_attr( $option_val ) . '" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' .
-																$this->get_classes(	'twothirdfat' )
-		     . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
+			esc_attr( $type )  . '" value="' . esc_attr( $option_val ) . 
+			'" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' . esc_html( $this->get_classes() ) . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -620,35 +611,36 @@ class password extends input {
 	public function pwd_clear_and_hidden_field() {
 		ob_start();
 		echo '<a href="#" class="button button-secondary pwd-clear">clear</a>';
-		echo '<input id="'. esc_attr( 'prev_' . $this->id ) .'" name="'. esc_attr( 'prev_' . $this->id ) . '" type="hidden" value="'
-		     . esc_attr( $this->get_saved() ) . '" readonly="readonly" />';
+		echo '<input id="'. esc_attr( 'stored_' . $this->id ) .'" name="'. esc_attr( 'stored_' . $this->id ) . '" type="hidden"' .
+			 ' value="' . esc_attr( $this->get_saved() ) . '" readonly="readonly" />';
 
 		return ob_get_clean();
 	}
 
-	public static function decrypt( $encrypted_encoded ) { // ONLY call, never print in markup or risk theft
+	public static function decrypt( $encrypted_encoded ) { // Only call in server actions -- never use to print in markup or risk theft
 		return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, base64_decode( $encrypted_encoded ), MCRYPT_MODE_ECB ) );
 	}
 
 	public function save_password( $key, $network = false ) { // overriding default
-		// make sure we have an option
-		if ( empty( $key ) || ! is_string( $key ) ) {
+		if ( empty( $key ) // don't save empty values
+			|| ! is_string( $key ) // whatchu doin?
+			|| $_POST[ $key ] === $_POST[ 'stored_' . $key ] // do nothing when field input matches stored db value
+		) { // make sure we have an option
 			return false;
 		}
 
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 
-		if ( $_POST[ $key ] == '' ) {
-			$updated = $network ? delete_site_option( $pre_ . $this->id ) : delete_option( $pre_ . $this->id );
+		$current_value = $_POST[ $key ];
+
+		if ( empty( $_POST[ $key ] ) ) {
+			return $network ? delete_site_option( $pre_ . $key ) : delete_option( $pre_ . $key );
 		} else {
-			$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $_POST[ $this->id ], MCRYPT_MODE_ECB );
-			// base64 is required, not a hack. Without, storing encryption in option isn't reliable cross env.
-			$prepd   = base64_encode( $encrypted );
-			$updated = $network ? update_site_option( $pre_ . $this->id, $prepd )
-				: update_option( $pre_ . $this->id, $prepd );
+			$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $_POST[ $key ], MCRYPT_MODE_ECB );
+			$base64_encrypted   = base64_encode( $encrypted ); // base64 is req'd. Without, storing encryption in option value isn't reliable cross-env.
+			return $network ? update_site_option( $pre_ . $key, $base64_encrypted ): update_option( $pre_ . $key, $base64_encrypted );
 		}
 
-		return $updated;
 	}
 
 	/**
