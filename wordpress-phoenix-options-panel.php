@@ -69,6 +69,32 @@ class container {
 		return $part;
 	}
 
+	public function run_legacy_values_wipe() {
+		if ( ! isset( $_GET['wipe-defaults'] ) || ! isset( $_GET['page'] ) ) {
+			return false;
+		}
+
+		$deleted_something = false;
+		foreach( $this->parts as $section ) {
+			foreach ( $section->parts as $part ) {
+				if ( isset( $part->legacy_key ) && ! empty( $part->legacy_key ) ) {
+					$network = is_multisite() && is_network_admin() && is_super_admin();
+					$delete_key = $network ? delete_site_option( $part->legacy_key ) : delete_option( $part->legacy_key );
+					$deleted_something = ! $deleted_something && $delete_key ? $delete_key : false;
+				}
+			}
+		}
+		if ( $deleted_something ) {
+			$this->notifications['update'] = implode( '', array(
+				'<div class="notice notice-success"><p>',
+				__( 'Successfully deleted legacy options. Please remove the `legacy_key` parameter and any old field registration code.',	'wpop' ),
+				'</p></div>',
+			) );
+		}
+
+		return $deleted_something;
+	}
+
 	public function run_options_save_process() {
 		if ( ! isset( $_POST['submit'] )
 		     || ! is_string( $_POST['submit'] )
@@ -86,7 +112,7 @@ class container {
 			foreach( $section->parts as $part ) {
 				// todo: cleanup, but shim to get passwords working
 				if ( isset( $part->password ) && $part->password ) {
-					$updated = $part->save_password( $part->id, $this->network_page  );
+					$updated = $part->save_password( $this->network_page  );
 				} else {
 					$updated     = $this->do_options_save( $part->id, $_POST[ $part->id ], $this->network_page );
 				}
@@ -152,6 +178,7 @@ class page extends container {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
 		add_action ( 'admin_menu', array( $this, 'add_settings_submenu_page' ) );
 		add_action( 'admin_init', array( $this, 'run_options_save_process' ) );
+		add_action( 'admin_init', array( $this, 'run_legacy_values_wipe' ) );
 	}
 
 	public function add_settings_submenu_page() {
@@ -222,8 +249,20 @@ class page extends container {
 										<span>Stored in: <code><?php echo $this->get_storage_table(); ?></code></span>
 									</div>
 								</div>
-								<div class="pure-u-1 pure-u-md-1-3"><div></div></div>
-								<div class="pure-u-1 pure-u-md-1-3"><div></div></div>
+								<div class="pure-u-1 pure-u-md-1-3">
+									<div>
+
+									</div>
+								</div>
+								<div class="pure-u-1 pure-u-md-1-3">
+								<?php 	$func = is_multisite() && is_network_admin() ? 'network_admin_url' : 'admin_url';
+										$page = $this->theme_page ? 'themes.php' : $this->parent_id; ?>
+									<div>
+										<a href="<?php echo $func( $page . '?page=' . $this->id . '&wipe-defaults=all'); ?>"
+										   id="wipe-all-legacy" name="wipe-all-legacy" class="button">Wipe
+											Legacy Values</a>
+									</div>
+								</div>
 							</div>
 						</footer>
 					</div>
@@ -249,148 +288,7 @@ class page extends container {
 			 */
 			!function(t,n){"use strict";t.wp=t.wp||{},t.wp.hooks=t.wp.hooks||new function(){function t(t,n,r,i){var e,o,c;if(f[t][n])if(r)if(e=f[t][n],i)for(c=e.length;c--;)(o=e[c]).callback===r&&o.context===i&&e.splice(c,1);else for(c=e.length;c--;)e[c].callback===r&&e.splice(c,1);else f[t][n]=[]}function n(t,n,i,e,o){var c={callback:i,priority:e,context:o},l=f[t][n];l?(l.push(c),l=r(l)):l=[c],f[t][n]=l}function r(t){for(var n,r,i,e=1,o=t.length;e<o;e++){for(n=t[e],r=e;(i=t[r-1])&&i.priority>n.priority;)t[r]=t[r-1],--r;t[r]=n}return t}function i(t,n,r){var i,e,o=f[t][n];if(!o)return"filters"===t&&r[0];if(e=o.length,"filters"===t)for(i=0;i<e;i++)r[0]=o[i].callback.apply(o[i].context,r);else for(i=0;i<e;i++)o[i].callback.apply(o[i].context,r);return"filters"!==t||r[0]}var e=Array.prototype.slice,o={removeFilter:function(n,r){return"string"==typeof n&&t("filters",n,r),o},applyFilters:function(){var t=e.call(arguments),n=t.shift();return"string"==typeof n?i("filters",n,t):o},addFilter:function(t,r,i,e){return"string"==typeof t&&"function"==typeof r&&(i=parseInt(i||10,10),n("filters",t,r,i,e)),o},removeAction:function(n,r){return"string"==typeof n&&t("actions",n,r),o},doAction:function(){var t=e.call(arguments),n=t.shift();return"string"==typeof n&&i("actions",n,t),o},addAction:function(t,r,i,e){return"string"==typeof t&&"function"==typeof r&&(i=parseInt(i||10,10),n("actions",t,r,i,e)),o}},f={actions:{},filters:{}};return o}}(window);
 			// BEGIN JS
-			jQuery( document ).ready( function( $ ) {
-				var wpModal;
-				registerAllActions();
-				wp.hooks.doAction( 'wpopPreInit' );
-
-				$( '#wpopNav li a' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
-				} );
-
-				wp.hooks.doAction( 'wpopInit' ); // main init
-
-				$( 'input[type="submit"]' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopSubmit', this, evt );
-				} );
-
-				$( '.pwd-clear' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopPwdClear', this, evt );
-				} );
-
-				$( '.img-upload' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgUpload', this, event );
-				} );
-
-				$( '.img-remove' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgRemove', this, event );
-				} );
-
-				$( '.add-button' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopRepeaterAdd', this, event );
-				} );
-
-				function registerAllActions() {
-					wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
-					wp.hooks.addAction( 'wpopInit', handleInitHashSelection );
-					wp.hooks.addAction( 'wpopInit', initIrisColorSwatches );
-					wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
-
-					wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
-
-					wp.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
-					wp.hooks.addAction( 'wpopImgUpload', doImgUpload );
-					wp.hooks.addAction( 'wpopImgRemove', doImgRemove );
-
-					wp.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
-				}
-
-				/* CORE */
-				function handleSectionNavigation( elem, event ) {
-					event.preventDefault();
-					var page_active = $( ( $( elem ).attr( 'href' ) ) ).addClass( 'active' );
-					var menu_active = $( ($( elem ).attr( 'href' ) + '-nav') ).addClass( 'active wp-ui-primary opn' );
-
-					// add tab's location to URL but stay at the top of the page
-					window.location.hash = $( elem ).attr( 'href' );
-					window.scrollTo( 0, 0 );
-					$( page_active ).siblings().removeClass( 'active' );
-					$( menu_active ).siblings().removeClass( 'active wp-ui-primary opn' );
-
-					return false;
-				}
-
-				function wpopShowSpinner() {
-					$( '.wpop-loader-wrapper' ).css( 'display', 'inherit' );
-				}
-
-				function handleInitHashSelection() {
-					if ( hash = window.location.hash ) {
-						$( hash + '-nav a' ).trigger( 'click' );
-					} else {
-						$( '#wpopNav li:first a' ).trigger( 'click' );
-					}
-				}
-
-				function nixHashJumpJank() {
-					$( 'html, body' ).animate( { scrollTop: 0 } );
-				}
-
-				/* FIELDS JS */
-				function initIrisColorSwatches() {
-					if ( 'undefined' !== typeof iris ) {
-						$( '[data-field="color_picker"]' ).iris( { width: 320, hide: false } );
-					}
-				}
-
-				function initSelectizeInputs() {
-					var select = $( '[data-select]' ).selectize( {
-						allowEmptyOption: false,
-						placeholder: $( this ).attr( 'data-placeholder' )
-					} );
-					$( '[data-multiselect]' ).selectize( {
-						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
-					} );
-				}
-
-				function doPwdFieldClear( elem, event ) {
-					event.preventDefault();
-					$( elem ).prev().val( '' );
-				}
-
-				function doImgUpload( elem, event ) {
-					event.preventDefault();
-					var config = $( elem ).data();
-					// Initialize the modal the first time.
-					if ( !wpModal ) {
-						wpModal = wp.media.frames.wpModal || wp.media( {
-							title: config.title,
-							button: { text: config.button },
-							library: { type: 'image' },
-							multiple: false
-						} );
-
-						// Picking an image
-						wpModal.on( 'select', function() {
-							// Get the image URL
-							var image = wpModal.state().get( 'selection' ).first().toJSON();
-							if ( 'object' === typeof image ) {
-								var closest = $( elem ).closest( '.wpop-option' );
-								closest.find( '[type="hidden"]' ).val( image.id );
-								closest.find( 'img' ).attr( 'src', image.url ).show();
-								$( elem ).attr( 'value', 'Replace ' + $( elem ).attr( 'data-media-label' ) );
-								closest.find( '.img-remove' ).show();
-							}
-						} );
-					}
-
-					// Open the modal
-					wpModal.open();
-				}
-
-				function doImgRemove( elem, event ) {
-					event.preventDefault();
-					var remove = confirm( 'Remove ' + $( elem ).attr( 'data-media-label' ) + '?' );
-					if ( remove ) {
-						var item = $( elem ).closest( '.wpop-option' );
-						var blank = item.find( '.blank-img' ).html();
-						item.find( '[type="hidden"]' ).val( null );
-						item.find( 'img' ).attr( 'src', blank );
-						item.find( '.button-hero' ).val( 'Set Image' );
-						$( elem ).hide();
-					}
-				}
-			} );
+			jQuery(document).ready(function(o){function t(t,i){i.preventDefault();var e=o(o(t).attr("href")).addClass("active"),n=o(o(t).attr("href")+"-nav").addClass("active wp-ui-primary opn");return window.location.hash=o(t).attr("href"),window.scrollTo(0,0),o(e).siblings().removeClass("active"),o(n).siblings().removeClass("active wp-ui-primary opn"),!1}function i(){o(".wpop-loader-wrapper").css("display","inherit")}function e(){(hash=window.location.hash)?o(hash+"-nav a").trigger("click"):o("#wpopNav li:first a").trigger("click")}function n(){o("html, body").animate({scrollTop:0})}function a(){"undefined"!=typeof iris&&o('[data-field="color_picker"]').iris({width:320,hide:!1})}function p(){o("[data-select]").selectize({allowEmptyOption:!1,placeholder:o(this).attr("data-placeholder")});o("[data-multiselect]").selectize({plugins:["restore_on_backspace","remove_button","drag_drop","optgroup_columns"]})}function c(t,i){i.preventDefault(),o(t).prev().val("")}function d(t,i){i.preventDefault();var e=o(t).data();r||(r=wp.media.frames.wpModal||wp.media({title:e.title,button:{text:e.button},library:{type:"image"},multiple:!1})).on("select",function(){var i=r.state().get("selection").first().toJSON();if("object"==typeof i){var e=o(t).closest(".wpop-option");e.find('[type="hidden"]').val(i.id),e.find("img").attr("src",i.url).show(),o(t).attr("value","Replace "+o(t).attr("data-media-label")),e.find(".img-remove").show()}}),r.open()}function l(t,i){if(i.preventDefault(),confirm("Remove "+o(t).attr("data-media-label")+"?")){var e=o(t).closest(".wpop-option"),n=e.find(".blank-img").html();e.find('[type="hidden"]').val(null),e.find("img").attr("src",n),e.find(".button-hero").val("Set Image"),o(t).hide()}}var r;wp.hooks.addAction("wpopPreInit",n),wp.hooks.addAction("wpopInit",e),wp.hooks.addAction("wpopInit",a),wp.hooks.addAction("wpopInit",p),wp.hooks.addAction("wpopSectionNav",t),wp.hooks.addAction("wpopPwdClear",c),wp.hooks.addAction("wpopImgUpload",d),wp.hooks.addAction("wpopImgRemove",l),wp.hooks.addAction("wpopSubmit",i),wp.hooks.doAction("wpopPreInit"),o("#wpopNav li a").click(function(o){wp.hooks.doAction("wpopSectionNav",this,o)}),wp.hooks.doAction("wpopInit"),o('input[type="submit"]').click(function(o){wp.hooks.doAction("wpopSubmit",this,o)}),o(".pwd-clear").click(function(o){wp.hooks.doAction("wpopPwdClear",this,o)}),o(".img-upload").on("click",function(o){wp.hooks.doAction("wpopImgUpload",this,o)}),o(".img-remove").on("click",function(o){wp.hooks.doAction("wpopImgRemove",this,o)}),o(".add-button").on("click",function(o){wp.hooks.doAction("wpopRepeaterAdd",this,o)})});
 		</script>
 		<?php
 		$js = ob_get_clean();
@@ -544,9 +442,11 @@ class option {
 		) {
 			$legacy_pwd = isset( $this->legacy_pwd ) ? $this->legacy_pwd : false;
 			$stored = $network ? get_site_option( $this->legacy_key ) : get_option( $this->legacy_key );
+			
 			if ( $legacy_pwd && ! empty( $stored ) ) {
 				return $stored;
-			} elseif ( ! $legacy_pwd && ! empty( $stored ) ) {
+
+			} elseif ( false === $legacy_pwd && ! empty( $stored ) ) {
 				return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $stored, MCRYPT_MODE_ECB ) );
 			} else {
 				return false;
@@ -591,7 +491,7 @@ class input extends option {
 		ob_start();
 		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
 		     esc_attr( $type )  . '" value="' . esc_attr( $option_val ) .
-		     '" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' . esc_html( $this->get_classes() ) . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
+		     '" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' . $this->get_classes() . ' ' . $this->html_process_atts( $this->atts ) . ' />';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -635,9 +535,9 @@ class password extends input {
 
 	public function pwd_clear_and_hidden_field() {
 		if ( isset( $this->legacy_key )
-			 && ! empty( $this->get_legacy_value() )
-			 && $this->get_saved() === $this->get_legacy_value()
-			 && ! isset( $this->legacy_pwd )
+		     && ! empty( $this->get_legacy_value() )
+		     && $this->get_saved() === $this->get_legacy_value()
+		     && ! isset( $this->legacy_pwd )
 		) {
 			$hidden_val = ''; // when importing legacy
 		} else {
@@ -655,24 +555,21 @@ class password extends input {
 		return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, base64_decode( $encrypted_encoded ), MCRYPT_MODE_ECB ) );
 	}
 
-	public function save_password( $key, $network = false ) { // overriding default
-		if ( empty( $key ) // don't save empty values
-		     || ! is_string( $key ) // whatchu doin?
-		     || $_POST[ $key ] === $_POST[ 'stored_' . $key ] // do nothing when field input matches stored db value
-		) { // make sure we have an option
+	public function save_password( $network = false ) { // overriding default
+		if ( $_POST[ $this->id ] === $_POST[ 'stored_' . $this->id ] ) {
 			return false;
 		}
 
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 
-		$current_value = $_POST[ $key ];
-
-		if ( empty( $_POST[ $key ] ) ) {
-			return $network ? delete_site_option( $pre_ . $key ) : delete_option( $pre_ . $key );
+		if ( empty( $_POST[ $this->id ] ) ) {
+			return $network ? delete_site_option( $pre_ . $this->id ) : delete_option( $pre_ . $this->id );
+		} elseif ( isset( $this->legacy_key ) && ! empty( $this->get_legacy_value() ) ) {
+			return $network ? update_site_option( $pre_ . $this->id, $_POST[ $this->id ] ): update_option( $pre_ . $this->id, $_POST[ $this->id ] );
 		} else {
-			$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $_POST[ $key ], MCRYPT_MODE_ECB );
+			$encrypted = mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $_POST[ $this->id ], MCRYPT_MODE_ECB );
 			$base64_encrypted   = base64_encode( $encrypted ); // base64 is req'd. Without, storing encryption in option value isn't reliable cross-env.
-			return $network ? update_site_option( $pre_ . $key, $base64_encrypted ): update_option( $pre_ . $key, $base64_encrypted );
+			return $network ? update_site_option( $pre_ . $this->id, $base64_encrypted ): update_option( $pre_ . $this->id, $base64_encrypted );
 		}
 
 	}
@@ -837,7 +734,8 @@ class checkbox extends option {
 		$classes = ! empty( $this->label_markup ) ? 'onOffSwitch-checkbox' : 'cb';
 		ob_start();
 		echo '<div class="cb-wrap"><input type="checkbox" name="' . $this->id . '" id="' . $this->id . '" '
-		     . $checked . ' class="' . $classes . '" />' . $this->label_markup . '</div>';
+		     . $checked . ' 
+class="' . $classes . '" value="' . $this->value .'" />' . $this->label_markup . '</div>';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
