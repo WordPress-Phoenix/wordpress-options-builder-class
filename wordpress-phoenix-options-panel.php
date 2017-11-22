@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.5.0
+ * @version 2.6.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_5;
+namespace WPOP\V_2_6;
 
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
@@ -181,9 +181,9 @@ class page extends container {
 						<div class="inner">
 							<h1><?php echo $dashicon . $this->page_title; ?></h1>
 							<input type="submit"
-							       class="button button-primary button-hero save-all"
-							       value="Save All"
-							       name="submit">
+								   class="button button-primary button-hero save-all"
+								   value="Save All"
+								   name="submit">
 						</div>
 					</header>
 					<?php if ( isset( $_POST['submit'] ) && $_POST['submit'] ) {
@@ -237,7 +237,7 @@ class page extends container {
 	public function inline_styles_and_scripts() {
 		ob_start(); ?>
 		<style>
-			.onOffSwitch{position:relative;width:110px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;margin-left:auto;margin-right:12px}input[type=checkbox].onOffSwitch-checkbox{display:none}.onOffSwitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #EEE;border-radius:28px}.onOffSwitch-inner{display:block;width:200%;margin-left:-100%;transition:% s cubic-bezier(1,0,0,1) 0}.onOffSwitch-inner:after,.onOffSwitch-inner:before{display:block;float:left;width:50%;height:40px;padding:0;line-height:40px;font-size:17px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.onOffSwitch-inner:before{content:"ON";padding-left:10px;background-color:#21759B;color:#FFF}.onOffSwitch-inner:after{content:"OFF";padding-right:10px;background-color:#EEE;color:#BCBCBC;text-align:right}.onOffSwitch-switch{display:block;width:28px;margin:6px;background:#BCBCBC;position:absolute;top:0;bottom:0;right:66px;border:2px solid #EEE;border-radius:20px;transition:all .5s cubic-bezier(1,0,0,1) 0}.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner{margin-left:0}.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch{right:0;background-color:#D54E21}.wpop-loader-wrapper{position:fixed;top:45%;right:45%;z-index:99999;display:none}.ball-clip-rotate-multiple{position:relative}.ball-clip-rotate-multiple > div{position:absolute;left:-20px;top:-20px;border:3px solid #cd1713;border-bottom-color:transparent;border-top-color:transparent;border-radius:100%;height:35px;width:35px;-webkit-animation:rotate .99s 0 ease-in-out infinite;animation:rotate 1s 0 ease-in-out infinite}.cb,.save-all,span.spacer{position:relative}.ball-clip-rotate-multiple > div:last-child{display:inline-block;top:-10px;left:-10px;width:15px;height:15px;-webkit-animation-duration:.33s;animation-duration:.33s;border-color:#cd1713 transparent;-webkit-animation-direction:reverse;animation-direction:reverse}@keyframes rotate{0%{-webkit-transform:rotate(0) scale(1);transform:rotate(0) scale(1)}50%{-webkit-transform:rotate(180deg) scale(.6);transform:rotate(180deg) scale(.6)}100%{-webkit-transform:rotate(360deg) scale(1);transform:rotate(360deg) scale(1)}}#wpopMain{background:#fff}#wpopOptNavUl{margin-top:0}.wpop-options-menu{margin-bottom:8em}#wpopContent{background:#F1F1F1;width:100%!important;border-top:1px solid #D8D8D8}.pure-g [class*=pure-u]{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.pure-form select{min-width:320px}.selectize-control{max-width:98.5%}.pure-menu-disabled,.pure-menu-heading,.pure-menu-link{padding:1.3em 2em}.pure-menu-active > .pure-menu-link,.pure-menu-link:focus,.pure-menu-link:hover{background:inherit}#wpopOptions header{overflow:hidden;max-height:88px}#wpopNav p.submit input{width:100%}#wpop{border:1px solid #D8D8D8;background:#fff}.opn a.pure-menu-link{color:#fff!important}.opn a.pure-menu-link:focus{box-shadow:none;-webkit-box-shadow:none}#wpopContent .section{display:none;width:100%}#wpopContent .section.active{display:inline-block}span.page-icon{margin:0 1.5vw 0 0}span.menu-icon{position:relative;left:-.5rem}span.page-icon:before{font-size:2.5rem;position:relative;top:-4px;right:4px;color:#777}.clear{clear:both}.section{padding:0 0 5px}.section h3{margin:0 0 10px;padding:2vw 1.5vw}.section h4.label{margin:0;display:table-cell;border:1px solid #e9e9e9;background:#f1f1f1;padding:.33vw .66vw .5vw;font-weight:500;font-size:16px}.section li.wpop-option{margin:1rem 1rem 1.25rem}.twothirdfat{width:66.6%}span.spacer{display:block;width:100%;border:0;height:0;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}li.even.option{background-color:#ccc}input[disabled=disabled]{background-color:#CCC}.cb{float:right;right:20px}.card-wrap{width:100%}.fullwidth{width:100%!important;max-width:100%!important}.wpop-head{background:#f1f1f1}.wpop-head > .inner{padding:1vw 1.5vw 0}.save-all{float:right;top:-48px}.desc{margin:.5rem 0 0 .25rem;font-weight:300;font-size:12px;line-height:16px;transition:all 1s ease;color:#888;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;-o-transition:all 1s ease}.desc:after{display:block;position:relative;width:98%;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}.wpop-option input[type="text"]{width:90%}input[data-assigned]{width:100%!important}.add-button{margin:3em auto;display:block;width:100%;text-align:center}.img-preview{max-width:320px;display:block;margin:0 0 1rem}.img-remove{border:2px solid #cd1713!important;background:#f1f1f1!important;color:#cd1713!important;box-shadow:none;-webkit-box-shadow:none;margin-left:1rem!important}.pwd-clear{margin-left:.5rem!important;position:relative;top:1px}.pure-form footer{background:#f1f1f1;border-top:1px solid #D8D8D8}.pure-form footer div div > *{padding:1rem .33rem}.wpop-option .wp-editor-wrap{margin-top:.5rem}.wpop-option.color_picker input{width:50%}.wpop-option.color_picker .iris-picker{float:right}.cb-wrap{position:relative;display:block;right:1.33vw;max-width:110px;margin-left:auto;top:-1.66rem}
+			.onOffSwitch{position:relative;width:110px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;margin-left:auto;margin-right:12px}input[type=checkbox].onOffSwitch-checkbox{display:none}.onOffSwitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #EEE;border-radius:28px}.onOffSwitch-inner{display:block;width:200%;margin-left:-100%;transition:% s cubic-bezier(1,0,0,1) 0}.onOffSwitch-inner:after,.onOffSwitch-inner:before{display:block;float:left;width:50%;height:40px;padding:0;line-height:40px;font-size:17px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.onOffSwitch-inner:before{content:"ON";padding-left:10px;background-color:#21759B;color:#FFF}.onOffSwitch-inner:after{content:"OFF";padding-right:10px;background-color:#EEE;color:#BCBCBC;text-align:right}.onOffSwitch-switch{display:block;width:28px;margin:6px;background:#BCBCBC;position:absolute;top:0;bottom:0;right:66px;border:2px solid #EEE;border-radius:20px;transition:all .5s cubic-bezier(1,0,0,1) 0}.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner{margin-left:0}.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch{right:0;background-color:#D54E21}.wpop-loader-wrapper{position:fixed;top:45%;right:45%;z-index:99999;display:none}.ball-clip-rotate-multiple{position:relative}.ball-clip-rotate-multiple > div{position:absolute;left:-20px;top:-20px;border:3px solid #cd1713;border-bottom-color:transparent;border-top-color:transparent;border-radius:100%;height:35px;width:35px;-webkit-animation:rotate .99s 0 ease-in-out infinite;animation:rotate 1s 0 ease-in-out infinite}.cb,.save-all,span.spacer{position:relative}.ball-clip-rotate-multiple > div:last-child{display:inline-block;top:-10px;left:-10px;width:15px;height:15px;-webkit-animation-duration:.33s;animation-duration:.33s;border-color:#cd1713 transparent;-webkit-animation-direction:reverse;animation-direction:reverse}@keyframes rotate{0%{-webkit-transform:rotate(0) scale(1);transform:rotate(0) scale(1)}50%{-webkit-transform:rotate(180deg) scale(.6);transform:rotate(180deg) scale(.6)}100%{-webkit-transform:rotate(360deg) scale(1);transform:rotate(360deg) scale(1)}}#wpopMain{background:#fff}#wpopOptNavUl{margin-top:0}.wpop-options-menu{margin-bottom:8em}#wpopContent{background:#F1F1F1;width:100%!important;border-top:1px solid #D8D8D8}.pure-g [class*=pure-u]{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.pure-form select{min-width:320px}.selectize-control{max-width:98.5%}.pure-menu-disabled,.pure-menu-heading,.pure-menu-link{padding:1.3em 2em}.pure-menu-active > .pure-menu-link,.pure-menu-link:focus,.pure-menu-link:hover{background:inherit}#wpopOptions header{overflow:hidden;max-height:88px}#wpopNav p.submit input{width:100%}#wpop{border:1px solid #D8D8D8;background:#fff}.opn a.pure-menu-link{color:#fff!important}.opn a.pure-menu-link:focus{box-shadow:none;-webkit-box-shadow:none}#wpopContent .section{display:none;width:100%}#wpopContent .section.active{display:inline-block}span.page-icon{margin:0 1.5vw 0 0}span.menu-icon{position:relative;left:-.5rem}span.page-icon:before{font-size:2.5rem;position:relative;top:-4px;right:4px;color:#777}.clear{clear:both}.section{padding:0 0 5px}.section h3{margin:0 0 10px;padding:2vw 1.5vw}.section h4.label{margin:0;display:table-cell;border:1px solid #e9e9e9;background:#f1f1f1;padding:.33vw .66vw .5vw;font-weight:500;font-size:16px}.section li.wpop-option{margin:1rem 1rem 1.25rem}.twothirdfat{width:66.6%}span.spacer{display:block;width:100%;border:0;height:0;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}li.even.option{background-color:#ccc}input[disabled=disabled]{background-color:#CCC}.cb{float:right;right:20px}.card-wrap{width:100%}.fullwidth{width:100%!important;max-width:100%!important}.wpop-head{background:#f1f1f1}.wpop-head > .inner{padding:1vw 1.5vw 0}.save-all{float:right;top:-48px}.desc{margin:.5rem 0 0 .25rem;font-weight:300;font-size:12px;line-height:16px;transition:all 1s ease;color:#888;-webkit-transition:all 1s ease;-moz-transition:all 1s ease;-o-transition:all 1s ease}.desc:after{display:block;position:relative;width:98%;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}.wpop-option input[type="text"],.wpop-option input[type="password"]{width:90%}input[data-assigned]{width:100%!important}.add-button{margin:3em auto;display:block;width:100%;text-align:center}.img-preview{max-width:320px;display:block;margin:0 0 1rem}.img-remove{border:2px solid #cd1713!important;background:#f1f1f1!important;color:#cd1713!important;box-shadow:none;-webkit-box-shadow:none;margin-left:1rem!important}.pwd-clear{margin-left:.5rem!important;position:relative;top:1px}.pure-form footer{background:#f1f1f1;border-top:1px solid #D8D8D8}.pure-form footer div div > *{padding:1rem .33rem}.wpop-option .wp-editor-wrap{margin-top:.5rem}.wpop-option.color_picker input{width:50%}.wpop-option.color_picker .iris-picker{float:right}.cb-wrap{position:relative;display:block;right:1.33vw;max-width:110px;margin-left:auto;top:-1.66rem}
 		</style>
 		<?php
 		$css = ob_get_clean();
@@ -345,7 +345,7 @@ class page extends container {
 
 				function doPwdFieldClear( elem, event ) {
 					event.preventDefault();
-					$( elem ).prev().val( null );
+					$( elem ).prev().val( '' );
 				}
 
 				function doImgUpload( elem, event ) {
@@ -529,9 +529,34 @@ class option {
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 
 		if ( $network ) {
-			return get_site_option( $pre_ . $this->id );
+			return get_site_option( $pre_ . $this->id, $this->get_legacy_value() );
 		} else {
-			return get_option( $pre_ . $this->id );
+			return get_option( $pre_ . $this->id, $this->get_legacy_value() );
+		}
+	}
+
+	public function get_legacy_value() {
+		$network = is_multisite() && is_network_admin();
+		if ( isset( $this->legacy_key )
+		     && ! empty( $this->legacy_key )
+		     && isset( $this->input_type )
+		     && 'password' === $this->input_type
+		) {
+			$legacy_pwd = isset( $this->legacy_pwd ) ? $this->legacy_pwd : false;
+			$stored = $network ? get_site_option( $this->legacy_key ) : get_option( $this->legacy_key );
+			if ( $legacy_pwd && ! empty( $stored ) ) {
+				return $stored;
+			} elseif ( ! $legacy_pwd && ! empty( $stored ) ) {
+				return base64_encode( mcrypt_encrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, $stored, MCRYPT_MODE_ECB ) );
+			} else {
+				return false;
+			}
+		} elseif ( isset( $this->legacy_key )
+		           && ! empty( $this->legacy_key )
+		) {
+			return $network ? get_site_option( $this->legacy_key ) : get_option( $this->legacy_key );
+		} else {
+			return false;
 		}
 	}
 
@@ -565,8 +590,8 @@ class input extends option {
 		$type       = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 		ob_start();
 		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
-			esc_attr( $type )  . '" value="' . esc_attr( $option_val ) . 
-			'" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' . esc_html( $this->get_classes() ) . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
+		     esc_attr( $type )  . '" value="' . esc_attr( $option_val ) .
+		     '" data-field="' . esc_attr( $this->get_clean_classname() ). '" ' . esc_html( $this->get_classes() ) . ' ' . esc_html( $this->html_process_atts( $this->atts ) ) . ' />';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -609,10 +634,19 @@ class password extends input {
 	}
 
 	public function pwd_clear_and_hidden_field() {
+		if ( isset( $this->legacy_key )
+			 && ! empty( $this->get_legacy_value() )
+			 && $this->get_saved() === $this->get_legacy_value()
+			 && ! isset( $this->legacy_pwd )
+		) {
+			$hidden_val = ''; // when importing legacy
+		} else {
+			$hidden_val = $this->get_saved();
+		}
 		ob_start();
 		echo '<a href="#" class="button button-secondary pwd-clear">clear</a>';
 		echo '<input id="'. esc_attr( 'stored_' . $this->id ) .'" name="'. esc_attr( 'stored_' . $this->id ) . '" type="hidden"' .
-			 ' value="' . esc_attr( $this->get_saved() ) . '" readonly="readonly" />';
+		     ' value="' . esc_attr( $hidden_val ) . '" readonly="readonly" />';
 
 		return ob_get_clean();
 	}
@@ -623,8 +657,8 @@ class password extends input {
 
 	public function save_password( $key, $network = false ) { // overriding default
 		if ( empty( $key ) // don't save empty values
-			|| ! is_string( $key ) // whatchu doin?
-			|| $_POST[ $key ] === $_POST[ 'stored_' . $key ] // do nothing when field input matches stored db value
+		     || ! is_string( $key ) // whatchu doin?
+		     || $_POST[ $key ] === $_POST[ 'stored_' . $key ] // do nothing when field input matches stored db value
 		) { // make sure we have an option
 			return false;
 		}
@@ -687,7 +721,7 @@ class textarea extends option {
 
 		ob_start();
 		echo '<textarea id="' . esc_attr( $this->id ) . '" name="' . esc_attr( $this->id ) . '" cols="' .
-			 esc_attr( $this->cols ) . '" rows="' . esc_attr( $this->rows ) . '" ' . $att_markup . '>' . stripslashes( $option_val ) . '</textarea>';
+		     esc_attr( $this->cols ) . '" rows="' . esc_attr( $this->rows ) . '" ' . $att_markup . '>' . stripslashes( $option_val ) . '</textarea>';
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
