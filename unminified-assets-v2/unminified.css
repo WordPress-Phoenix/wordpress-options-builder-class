@@ -24,10 +24,11 @@ input[type=checkbox].onOffSwitch-checkbox {
 	display: block;
 	width: 200%;
 	margin-left: -100%;
-	transition:% s cubic-bezier(1, 0, 0, 1) 0s
+	transition: all .5s cubic-bezier(1, 0, 0, 1);
 }
 
-.onOffSwitch-inner:after, .onOffSwitch-inner:before {
+.onOffSwitch-inner:after,
+.onOffSwitch-inner:before {
 	display: block;
 	float: left;
 	width: 50%;
@@ -66,7 +67,7 @@ input[type=checkbox].onOffSwitch-checkbox {
 	right: 66px;
 	border: 2px solid #EEE;
 	border-radius: 20px;
-	transition: all .5s cubic-bezier(1, 0, 0, 1) 0s
+	transition: all .5s cubic-bezier(1, 0, 0, 1);
 }
 
 .onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
@@ -100,11 +101,13 @@ input[type=checkbox].onOffSwitch-checkbox {
 	border-radius: 100%;
 	height: 35px;
 	width: 35px;
-	-webkit-animation: rotate .99s 0s ease-in-out infinite;
-	animation: rotate 1s 0s ease-in-out infinite
+	-webkit-animation: rotate .99s 0 ease-in-out infinite;
+	animation: rotate 1s 0 ease-in-out infinite
 }
 
-.cb, .save-all, span.spacer {
+.cb,
+.save-all,
+span.spacer {
 	position: relative
 }
 
@@ -150,7 +153,7 @@ input[type=checkbox].onOffSwitch-checkbox {
 
 #wpopContent {
 	background: #F1F1F1;
-	width: 100% !important;
+	width: 100%!important;
 	border-top: 1px solid #D8D8D8
 }
 
@@ -166,11 +169,15 @@ input[type=checkbox].onOffSwitch-checkbox {
 	max-width: 98.5%
 }
 
-.pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
+.pure-menu-disabled,
+.pure-menu-heading,
+.pure-menu-link {
 	padding: 1.3em 2em
 }
 
-.pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+.pure-menu-active > .pure-menu-link,
+.pure-menu-link:focus,
+.pure-menu-link:hover {
 	background: inherit
 }
 
@@ -189,7 +196,7 @@ input[type=checkbox].onOffSwitch-checkbox {
 }
 
 .opn a.pure-menu-link {
-	color: #fff !important
+	color: #fff!important
 }
 
 .opn a.pure-menu-link:focus {
@@ -207,12 +214,12 @@ input[type=checkbox].onOffSwitch-checkbox {
 }
 
 span.page-icon {
-	margin: 0 1.5vw 0 0;
+	margin: 0 1.5vw 0 0
 }
 
 span.menu-icon {
 	position: relative;
-	left: -0.5rem;
+	left: -.5rem
 }
 
 span.page-icon:before {
@@ -220,7 +227,7 @@ span.page-icon:before {
 	position: relative;
 	top: -4px;
 	right: 4px;
-	color: #777;
+	color: #777
 }
 
 .clear {
@@ -247,10 +254,7 @@ span.page-icon:before {
 }
 
 .section li.wpop-option {
-	margin-top: 1rem;
-	margin-left: 1rem;
-	margin-right: 1rem;
-	margin-bottom: 1.25rem
+	margin: 1rem 1rem 1.25rem
 }
 
 .twothirdfat {
@@ -284,8 +288,8 @@ input[disabled=disabled] {
 }
 
 .fullwidth {
-	width: 100% !important;
-	max-width: 100% !important
+	width: 100%!important;
+	max-width: 100%!important
 }
 
 .wpop-head {
@@ -322,11 +326,11 @@ input[disabled=disabled] {
 }
 
 .wpop-option input[type="text"] {
-	width: 90%;
+	width: 90%
 }
 
 input[data-assigned] {
-	width: 100% !important
+	width: 100%!important
 }
 
 .add-button {
@@ -343,39 +347,39 @@ input[data-assigned] {
 }
 
 .img-remove {
-	border: 2px solid #cd1713 !important;
-	background: #f1f1f1 !important;
-	color: #cd1713 !important;
+	border: 2px solid #cd1713!important;
+	background: #f1f1f1!important;
+	color: #cd1713!important;
 	box-shadow: none;
 	-webkit-box-shadow: none;
-	margin-left: 1rem !important
+	margin-left: 1rem!important
 }
 
 .pwd-clear {
-	margin-left: 0.5rem !important;
+	margin-left: .5rem!important;
 	position: relative;
-	top: 1px;
+	top: 1px
 }
 
 .pure-form footer {
 	background: #f1f1f1;
-	border-top: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8
 }
 
 .pure-form footer div div > * {
-	padding: 1rem 0.33rem;
+	padding: 1rem .33rem
 }
 
 .wpop-option .wp-editor-wrap {
-	margin-top: 0.5rem;
+	margin-top: .5rem
 }
 
 .wpop-option.color_picker input {
-	width: 50%;
+	width: 50%
 }
 
 .wpop-option.color_picker .iris-picker {
-	float: right;
+	float: right
 }
 
 .cb-wrap {
@@ -384,5 +388,5 @@ input[data-assigned] {
 	right: 1.33vw;
 	max-width: 110px;
 	margin-left: auto;
-	top: -1.66rem;
+	top: -1.66rem
 }
