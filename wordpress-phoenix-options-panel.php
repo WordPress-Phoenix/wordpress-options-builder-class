@@ -4,12 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.7.0
+ * @version 2.8.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_7;
-
+namespace WPOP\V_2_8;
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 	header( 'Status: 403 Forbidden' );
@@ -175,8 +174,9 @@ class page extends container {
 	}
 
 	public function initialize_panel() {
+		$decide_network_or_single_site_admin = $this->network_page ? 'network_admin_menu' : 'admin_menu';
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-		add_action ( 'admin_menu', array( $this, 'add_settings_submenu_page' ) );
+		add_action ( $decide_network_or_single_site_admin, array( $this, 'add_settings_submenu_page' ) );
 		add_action( 'admin_init', array( $this, 'run_options_save_process' ) );
 		add_action( 'admin_init', array( $this, 'run_legacy_values_wipe' ) );
 	}
