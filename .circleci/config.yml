@@ -11,3 +11,5 @@ jobs:
       - run: echo $PWD
       - run: ls -lart
       - run: sudo pear install PHP_CodeSniffer
+      - run: composer require --dev --no-update "wp-coding-standards/wpcs"
+      - run: composer install --dev --no-autoloader
