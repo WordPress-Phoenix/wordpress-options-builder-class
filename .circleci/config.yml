@@ -4,12 +4,13 @@ jobs:
   build:
     docker:
       - image: circleci/php:7.1-node-browsers
-    working_directory: ~/laravel
+    working_directory: ~/repo
     steps:
       - checkout
-      - run: sudo apt install -y libsqlite3-dev zlib1g-dev
       - run: sudo docker-php-ext-install zip
       - run: sudo composer self-update
+      - run: composer require-dev squizlabs/php_codesniffer
+      - run: composer require-dev wp-coding-standards/wpcs
       - restore_cache:
           keys:
             - composer-v1-{{ checksum "composer.lock" }}
@@ -19,16 +20,5 @@ jobs:
           key: composer-v1-{{ checksum "composer.lock" }}
           paths:
             - vendor
-      - restore_cache:
-          keys:
-            - node-v1-{{ checksum "package.json" }}
-            - node-v1-
-      - run: yarn install
-      - save_cache:
-          key: node-v1-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-      - run: touch storage/testing.sqlite
-      - run: php artisan migrate --env=testing --database=sqlite_testing --force
-      - run: ./vendor/bin/codecept build
-      - run: ./vendor/bin/codecept run
+      - run: vendor/bin/phpcs --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
+      - run:  - ./vendor/bin/phpcs -p -s -v -n --standard=./codesniffer.ruleset.xml .
