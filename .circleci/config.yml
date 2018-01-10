@@ -8,5 +8,6 @@ jobs:
     steps:
       - checkout
       - run: sudo composer self-update
+      - run: echo $PWD
+      - run: echo ls -lart
       - run: sudo composer require --dev "squizlabs/php_codesniffer"
-      - run: sudo composer require- -dev "wp-coding-standards/wpcs"
