@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.8.0
+ * @version 2.9.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_2_8;
+namespace WPOP\V_2_9;
 
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 	header( 'Status: 403 Forbidden' );
