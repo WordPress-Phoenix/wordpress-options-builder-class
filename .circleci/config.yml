@@ -9,5 +9,4 @@ jobs:
       - checkout
       - run: echo $PWD
       - run: ls -lart
-      - run: composer self-update
-      - run: composer require "squizlabs/php_codesniffer"
+      - run: pear install PHP_CodeSniffer
