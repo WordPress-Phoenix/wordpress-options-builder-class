@@ -10,4 +10,4 @@ jobs:
       - run: echo $PWD
       - run: ls -lart
       - run: composer self-update
-      - run: composer require --dev --no-autoloader "squizlabs/php_codesniffer"
+      - run: composer require "squizlabs/php_codesniffer"
