@@ -22,6 +22,7 @@ jobs:
       - run: echo $SLACK_WEBHOOK
       - run: curl $CURL_TEST
       - run: curl "$SLACK_WEBHOOK"
+      - run: curl -X POST --data-urlencode "payload={\"channel\": \"#wpphx-github\", \"text\": \"This is posted to wpphx-github and comes from a bot named webhookbot.\", \"icon_emoji\": \":ghost:\"}" https://hooks.slack.com/services/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
 workflows:  
   version: 2
   build_accept_deploy:
