@@ -2,6 +2,8 @@
 
 WordPress options builder class is a library that helps you setup theme or plugin options that store data in the database with just a line or two of code!
 
+Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Phoenix/wordpress-options-builder-class.svg?style=svg)](https://circleci.com/gh/WordPress-Phoenix/wordpress-options-builder-class)
+
 ## Table of Contents:
 - [Installation](#installation)
 - [Usage](#usage)
