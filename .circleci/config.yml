@@ -24,7 +24,12 @@ jobs:
 #      - run: curl --request POST --url "$SLACK_WEBHOOK" --data '{"text":"test"}' --header 'Content-type: application/json'
       - run: curl --request POST --url $POSTMAN_ECHO --data 'foo1=bar1&foo2=bar2'
       - run: sudo apt-get install httpie -y
-      - run: http POST $SLACK_WEBHOOK channel='#wpphx-github' username='CoreCMS-Bot' icon_emoji=':unicorn_face:' link_names:=1 attachments:='[{"fallback": "Required plain-text summary of the attachment.", "author_name": "Seth Carstens", "text": "Optional text that appears within the attachment"]'
+      - run: 
+          command: |
+              http POST $SLACK_WEBHOOK channel='#wpphx-github' username='CoreCMS-Bot' icon_emoji=':unicorn_face:' \ 
+              link_names:=1 \
+              attachments:='[{"fallback": "Required plain-text summary of the attachment.", "author_name": "Seth Carstens", "text": "Optional text that appears within the attachment"]'
+              
 workflows:  
   version: 2
   build_accept_deploy:
