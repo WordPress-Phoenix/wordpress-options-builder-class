@@ -14,4 +14,18 @@ jobs:
       - run: composer require --dev --no-update "wp-coding-standards/wpcs"
       - run: composer install --dev --no-autoloader
       - run: sudo phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
-      - run: phpcs -p -s -v -n --standard=~/repo/.circleci/codesniffer.ruleset.xml .
+#      - run: phpcs -p -s -v -n --standard=~/repo/.circleci/codesniffer.ruleset.xml .
+  notify:
+    docker:
+      - image: circleci/php:7.1-node-browsers
+    working_directory: ~/repo
+    steps:
+      - run: echo "Notification to Slack"
+      - run: curl -X POST --data-urlencode "payload={\"channel\": \"#wpphx-github\", \"username\": \"webhookbot\", \"text\": \"This is posted to #wpphx-github and comes from a bot named webhookbot.\", \"icon_emoji\": \":ghost:\"}" $SLACK_WEBHOOK
+  version: 2
+  build_accept_deploy:
+    jobs:
+      - build
+      - notify:
+          requires:
+            - build
