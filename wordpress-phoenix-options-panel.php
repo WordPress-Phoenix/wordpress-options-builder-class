@@ -4,7 +4,7 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 2.9.0
+ * @version 2.9.1
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 

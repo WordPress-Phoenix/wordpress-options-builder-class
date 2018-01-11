@@ -1,4 +1,7 @@
 #### 2.1.0
+* Build circleci slack deploybot configuration
+
+#### 2.1.0
 * Removing duplicate dependency
 
 #### 2.0.0
