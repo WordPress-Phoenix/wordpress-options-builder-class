@@ -21,8 +21,10 @@ jobs:
     steps:
       - run: echo $SLACK_WEBHOOK
       - run: curl $CURL_TEST
-      - run: curl --request POST --url "$SLACK_WEBHOOK" --data '{"text":"test"}' --header 'Content-type: application/json'
+#      - run: curl --request POST --url "$SLACK_WEBHOOK" --data '{"text":"test"}' --header 'Content-type: application/json'
       - run: curl --request POST --url $POSTMAN_ECHO --data 'foo1=bar1&foo2=bar2'
+      - run: sudo apt-get install httpie -y
+      - run: http POST $SLACK_WEBHOOK channel='#wpphx-github' text='test'
 workflows:  
   version: 2
   build_accept_deploy:
