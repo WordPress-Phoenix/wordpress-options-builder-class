@@ -58,6 +58,6 @@ workflows:
             - build
           filters:
             tags:
-              only: /^config-test.*/
+              only: /.*/
             branches:
               ignore: /.*/
