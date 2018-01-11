@@ -46,12 +46,12 @@ jobs:
               -v
 workflows:
   version: 2
-  build_accept_deploy:
+  build_accept_notify:
     jobs:
       - build:
           filters:
             tags:
-              only: /.*/
+              ignore: /^testing-.*/
       - notify:
           requires:
             - build
