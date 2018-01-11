@@ -22,6 +22,7 @@ jobs:
     steps:
       - run: echo "Notification to Slack"
       - run: curl -X POST --data-urlencode "payload={\"channel\": \"#wpphx-github\", \"username\": \"webhookbot\", \"text\": \"This is posted to #wpphx-github and comes from a bot named webhookbot.\", \"icon_emoji\": \":ghost:\"}" $SLACK_WEBHOOK
+workflows:  
   version: 2
   build_accept_deploy:
     jobs:
