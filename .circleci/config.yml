@@ -24,6 +24,7 @@ jobs:
           name: Notify Slack Channel
           command: |
               date=$(date +"%s $*")
+              if [ -z "${DEV_GROUP}" ]; then DEV_GROUP=${CIRCLE_PROJECT_USERNAME}; fi
               http POST $SLACK_WEBHOOK \
               channel='#wpphx-github' \
               username="${DEV_GROUP}-Deploybot" \
