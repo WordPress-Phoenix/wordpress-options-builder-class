@@ -21,13 +21,13 @@ jobs:
     steps:
       - run: echo $SLACK_WEBHOOK
       - run: curl $CURL_TEST
-      - run: curl "$SLACK_WEBHOOK"
+      - run: curl --request POST --url "$SLACK_WEBHOOK" --data 'text=test'
       - run: curl --request POST --url $POSTMAN_ECHO --data 'foo1=bar1&foo2=bar2'
 workflows:  
   version: 2
   build_accept_deploy:
     jobs:
-      - build
+#      - build
       - notify:
           requires:
             - build
