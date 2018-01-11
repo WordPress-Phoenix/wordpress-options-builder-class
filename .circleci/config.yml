@@ -25,11 +25,29 @@ jobs:
       - run: curl --request POST --url $POSTMAN_ECHO --data 'foo1=bar1&foo2=bar2'
       - run: sudo apt-get install httpie -y
       - run: 
+          name: Notify Slack Channel
           command: |
-              http POST $SLACK_WEBHOOK channel='#wpphx-github' username='CoreCMS-Bot' icon_emoji=':unicorn_face:' \ 
-              link_names:=1 \
-              attachments:='[{"fallback": "Required plain-text summary of the attachment.", "author_name": "Seth Carstens", "text": "Optional text that appears within the attachment"]'
-              
+              date=$(date +"%s $*")
+              http POST $SLACK_WEBHOOK \
+              channel='#wpphx-github' \
+              username="${DEV_GROUP}-Deploybot" \
+              icon_emoji=':octocat:' \
+              attachments:="
+              [{
+                  \"text\":\"Release notes coming soon.\",
+                  \"author_name\":\"${CIRCLE_USERNAME}\",
+                  \"ts\":\"${date}\",
+                  \"color\":\"'#36a64f'\",
+                  \"fallback\":\"'t'\",
+                  \"author_link\":\"'http://github.com/${CIRCLE_USERNAME}'\",
+                  \"author_icon\":\"''\",
+                  \"title\":\"'Released ${CIRCLE_PROJECT_REPONAME} version ${CIRCLE_TAG} '\",
+                  \"title_link\":\"'${CIRCLE_BUILD_URL}'\",
+                  \"footer\":\"'${DEV_GROUP} CircleCI Deployment'\",
+                  \"footer_icon\":\"https://logo.clearbit.com/circleci.com/?size=64\"
+              }]
+              " \
+              -v
 workflows:  
   version: 2
   build_accept_deploy:
