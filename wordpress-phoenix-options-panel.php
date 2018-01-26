@@ -10,6 +10,10 @@
 
 namespace WPOP\V_3_5;
 
+/**
+ * Some tips:
+ * * Panels/Pages contain Sections, Sections contain Parts (which are either option inputs or markup for display)
+ */
 if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 	header( 'Status: 403 Forbidden' );
 	header( 'HTTP/1.1 403 Forbidden' );
@@ -59,6 +63,16 @@ class Panel {
 	public $obj_id = null;
 
 	/**
+	 * @var
+	 */
+	public $page_title;
+
+	/**
+	 * @var
+	 */
+	public $panel_object;
+
+	/**
 	 * Container constructor.
 	 *
 	 * @param array $args
@@ -76,7 +90,10 @@ class Panel {
 			$this->$key = $val;
 		}
 
-		$this->api    = $this->detect_data_api_and_permissions();
+		// establish data storage api
+		$this->api = $this->detect_data_api_and_permissions();
+
+		// maybe establish wordpress object id when api is one of the metadata APIs
 		$this->obj_id = $this->maybe_capture_wp_object_id();
 
 		foreach ( $sections as $section_id => $section ) {
@@ -109,7 +126,9 @@ class Panel {
 		$api   = null;
 		if ( isset( $_GET['page'] ) ) {
 			if ( isset( $_GET['post'] ) && is_numeric( $_GET['post'] ) ) {
-				$api = 'post';
+				$api                = 'post';
+				$this->page_title   = $this->page_title . ' for ' . get_the_title( $_GET['post'] );
+				$this->panel_object = get_post( $_GET['post'] );
 			} elseif ( isset( $_GET['user'] ) && is_numeric( $_GET['user'] ) ) {
 				if ( is_multisite() && is_network_admin() ) {
 					$this->network_admin = true;
@@ -117,8 +136,17 @@ class Panel {
 				} else {
 					$api = 'user';
 				}
+				// TODO: insert user display name
+				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', $_GET['user'] ) );
+				$this->panel_object = get_user_by( 'id', $_GET['post'] );
 			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
 				$api = 'term';
+				// TODO: insert term name
+				$term = get_term( $_GET['term'] );
+				if ( is_object( $term ) && ! is_wp_error( $term ) && isset( $term->name ) ) {
+					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term->name );
+					$this->panel_object = $term;
+				}
 			} elseif ( is_multisite() && is_network_admin() ) {
 				$this->network_admin = true;
 				$api                 = 'network';
@@ -130,8 +158,9 @@ class Panel {
 		}
 
 		// allow api auto detection if not set in config, but if its set and doesn't match then ignore and use config
-		// value for safety (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent
-		// accidental API override)
+		// value for safety
+		//   (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent accidental API
+		//   override)
 		if ( isset( $this->api ) && $api !== $this->api ) {
 			return $this->api;
 		}
@@ -192,17 +221,17 @@ class Panel {
 
 		// note $_POST[ $part->id ] that taps the key's value from the submit array
 		foreach ( $this->parts as $section ) {
-			foreach ( $section->parts as $part ) {
-				$part             = get_object_Vars( $part );
-				$part['panel_id'] = $this->id;
-				$field_type       = ( isset( $part['field_type'] ) && ! empty( $part['field_type'] ) ) ? $part['field_type'] :
-					$part['input_type'];
-				$sanitize_input   = $this->sanitize_options_panel( $field_type, $part['id'], $_POST[ $part['id'] ] );
-				$obj_id           = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
+			foreach ( $section['parts'] as $part ) {
+				$updated = false;
+				$part    = get_object_vars( $part );
 
-				if ( 'wpop-encrypted-pwd-field-unchanged' !== $sanitize_input ) {
-					error_log( 'the part' );
-					error_log( var_export( $part, true ) );
+				$field_type = ( isset( $part['field_type'] ) && ! empty( $part['field_type'] ) ) ? $part['field_type'] : $part['input_type'];
+
+				if ( in_array( $part['id'], $_POST ) ) {
+					$sanitize_input = $this->sanitize_options_panel( $field_type, $part['id'], $_POST[ $part['id'] ] );
+
+					$obj_id = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
+
 					$updated = new Save_Single_Field(
 						$part['panel_id'],
 						$part['panel_api'],
@@ -211,6 +240,7 @@ class Panel {
 						$obj_id
 					);
 				}
+
 
 				$any_updated = ( $updated && ! $any_updated ) ? true : $any_updated;
 			}
@@ -250,6 +280,10 @@ class Panel {
 				break;
 			case 'textarea':
 				return sanitize_textarea_field( $value );
+				break;
+			case 'checkbox':
+			case 'switch':
+				return wp_validate_boolean( $value );
 				break;
 			case 'text':
 			default:
@@ -376,7 +410,7 @@ class Page extends Panel {
 			$this->parent_page_id, // file.php to hook into
 			$this->page_title,
 			$this->menu_title,
-			'read',
+			$this->capability,
 			$this->id,
 			array( $this, 'build_parts' )
 		);
@@ -828,133 +862,200 @@ class Page extends Panel {
 		$css = ob_get_clean();
 		ob_start(); ?>
 		<script type="text/javascript">
-			!function( t, o ) {
+			/**
+			 * Module: WP-JS-Hooks
+			 * Props: Carl Danley & 10up
+			 */
+			!function( t, n ) {
 				"use strict";
 				t.wp = t.wp || {}, t.wp.hooks = t.wp.hooks || new function() {
-					function t( t, o, i, n ) {
-						var e, a, p;
-						if ( r[t][o] ) if ( i ) if ( e = r[t][o], n ) for ( p = e.length; p--; ) (a = e[p]).callback === i && a.context === n && e.splice( p, 1 ); else for ( p = e.length; p--; ) e[p].callback === i && e.splice( p, 1 ); else r[t][o] = []
+					function t( t, n, r, i ) {
+						var e, o, c;
+						if ( f[t][n] ) if ( r ) if ( e = f[t][n], i ) for ( c = e.length; c--; ) (o = e[c]).callback === r && o.context === i && e.splice( c, 1 ); else for ( c = e.length; c--; ) e[c].callback === r && e.splice( c, 1 ); else f[t][n] = []
 					}
 
-					function o( t, o, n, e, a ) {
-						var p = { callback: n, priority: e, context: a }, c = r[t][o];
-						c ? (c.push( p ), c = i( c )) : c = [p], r[t][o] = c
+					function n( t, n, i, e, o ) {
+						var c = { callback: i, priority: e, context: o }, l = f[t][n];
+						l ? (l.push( c ), l = r( l )) : l = [c], f[t][n] = l
 					}
 
-					function i( t ) {
-						for ( var o, i, n, e = 1, a = t.length; a > e; e++ ) {
-							for ( o = t[e], i = e; (n = t[i - 1]) && n.priority > o.priority; ) t[i] = t[i - 1], --i;
-							t[i] = o
+					function r( t ) {
+						for ( var n, r, i, e = 1, o = t.length; e < o; e++ ) {
+							for ( n = t[e], r = e; (i = t[r - 1]) && i.priority > n.priority; ) t[r] = t[r - 1], --r;
+							t[r] = n
 						}
 						return t
 					}
 
-					function n( t, o, i ) {
-						var n, e, a = r[t][o];
-						if ( !a ) return "filters" === t && i[0];
-						if ( e = a.length, "filters" === t ) for ( n = 0; e > n; n++ ) i[0] = a[n].callback.apply( a[n].context, i ); else for ( n = 0; e > n; n++ ) a[n].callback.apply( a[n].context, i );
-						return "filters" !== t || i[0]
+					function i( t, n, r ) {
+						var i, e, o = f[t][n];
+						if ( !o ) return "filters" === t && r[0];
+						if ( e = o.length, "filters" === t ) for ( i = 0; i < e; i++ ) r[0] = o[i].callback.apply( o[i].context, r ); else for ( i = 0; i < e; i++ ) o[i].callback.apply( o[i].context, r );
+						return "filters" !== t || r[0]
 					}
 
-					var e = Array.prototype.slice, a = {
-						removeFilter: function( o, i ) {
-							return "string" == typeof o && t( "filters", o, i ), a
+					var e = Array.prototype.slice, o = {
+						removeFilter: function( n, r ) {
+							return "string" == typeof n && t( "filters", n, r ), o
 						}, applyFilters: function() {
-							var t = e.call( arguments ), o = t.shift();
-							return "string" == typeof o ? n( "filters", o, t ) : a
-						}, addFilter: function( t, i, n, e ) {
-							return "string" == typeof t && "function" == typeof i && (n = parseInt( n || 10, 10 ), o( "filters", t, i, n, e )), a
-						}, removeAction: function( o, i ) {
-							return "string" == typeof o && t( "actions", o, i ), a
+							var t = e.call( arguments ), n = t.shift();
+							return "string" == typeof n ? i( "filters", n, t ) : o
+						}, addFilter: function( t, r, i, e ) {
+							return "string" == typeof t && "function" == typeof r && (i = parseInt( i || 10, 10 ), n( "filters", t, r, i, e )), o
+						}, removeAction: function( n, r ) {
+							return "string" == typeof n && t( "actions", n, r ), o
 						}, doAction: function() {
-							var t = e.call( arguments ), o = t.shift();
-							return "string" == typeof o && n( "actions", o, t ), a
-						}, addAction: function( t, i, n, e ) {
-							return "string" == typeof t && "function" == typeof i && (n = parseInt( n || 10, 10 ), o( "actions", t, i, n, e )), a
+							var t = e.call( arguments ), n = t.shift();
+							return "string" == typeof n && i( "actions", n, t ), o
+						}, addAction: function( t, r, i, e ) {
+							return "string" == typeof t && "function" == typeof r && (i = parseInt( i || 10, 10 ), n( "actions", t, r, i, e )), o
 						}
-					}, r = { actions: {}, filters: {} };
-					return a
+					}, f = { actions: {}, filters: {} };
+					return o
 				}
-			}( window ), jQuery( document ).ready( function( t ) {
-				function o() {
-					wp.hooks.addAction( "wpopPreInit", a ), wp.hooks.addAction( "wpopInit", e ), wp.hooks.addAction( "wpopInit", r ), wp.hooks.addAction( "wpopInit", p ), wp.hooks.addAction( "wpopSectionNav", i ), wp.hooks.addAction( "wpopPwdClear", c ), wp.hooks.addAction( "wpopImgUpload", l ), wp.hooks.addAction( "wpopImgRemove", s ), wp.hooks.addAction( "wpopSubmit", n )
+			}( window );
+			// BEGIN JS
+			jQuery( document ).ready( function( $ ) {
+				var wpModal;
+				registerAllActions();
+				wp.hooks.doAction( 'wpopPreInit' );
+
+				$( '#wpopNav li a' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
+				} );
+
+				wp.hooks.doAction( 'wpopInit' ); // main init
+
+				$( 'input[type="submit"]' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopSubmit', this, evt );
+				} );
+
+				$( '.pwd-clear' ).click( function( evt ) {
+					wp.hooks.doAction( 'wpopPwdClear', this, evt );
+				} );
+
+				$( '.img-upload' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopImgUpload', this, event );
+				} );
+
+				$( '.img-remove' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopImgRemove', this, event );
+				} );
+
+				$( '.add-button' ).on( 'click', function( event ) {
+					wp.hooks.doAction( 'wpopRepeaterAdd', this, event );
+				} );
+
+				function registerAllActions() {
+					wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
+					wp.hooks.addAction( 'wpopInit', handleInitHashSelection );
+					wp.hooks.addAction( 'wpopInit', initIrisColorSwatches );
+					wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
+
+					wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
+
+					wp.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
+					wp.hooks.addAction( 'wpopImgUpload', doImgUpload );
+					wp.hooks.addAction( 'wpopImgRemove', doImgRemove );
+
+					wp.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
 				}
 
-				function i( o, i ) {
-					i.preventDefault();
-					var n = t( t( o ).attr( "href" ) ).addClass( "active" ),
-						e = t( t( o ).attr( "href" ) + "-nav" ).addClass( "active wp-ui-primary opn" );
-					return window.location.hash = t( o ).attr( "href" ), window.scrollTo( 0, 0 ), t( n ).siblings().removeClass( "active" ), t( e ).siblings().removeClass( "active wp-ui-primary opn" ), !1
+				/* CORE */
+				function handleSectionNavigation( elem, event ) {
+					event.preventDefault();
+					var page_active = $( ($( elem ).attr( 'href' )) ).addClass( 'active' );
+					var menu_active = $( ($( elem ).attr( 'href' ) + '-nav') ).addClass( 'active wp-ui-primary opn' );
+
+					// add tab's location to URL but stay at the top of the page
+					window.location.hash = $( elem ).attr( 'href' );
+					window.scrollTo( 0, 0 );
+					$( page_active ).siblings().removeClass( 'active' );
+					$( menu_active ).siblings().removeClass( 'active wp-ui-primary opn' );
+
+					return false;
 				}
 
-				function n() {
-					t( ".wpop-loader-wrapper" ).css( "display", "inherit" )
+				function wpopShowSpinner() {
+					$( '.wpop-loader-wrapper' ).css( 'display', 'inherit' );
 				}
 
-				function e() {
-					(hash = window.location.hash) ? t( hash + "-nav a" ).trigger( "click" ) : t( "#wpopNav li:first a" ).trigger( "click" )
-				}
-
-				function a() {
-					t( "html, body" ).animate( { scrollTop: 0 } )
-				}
-
-				function r() {
-					"undefined" != typeof iris && t( '[data-field="color_picker"]' ).iris( { width: 320, hide: !1 } )
-				}
-
-				function p() {
-					t( "[data-select]" ).selectize( {
-						allowEmptyOption: !1,
-						placeholder: t( this ).attr( "data-placeholder" )
-					} );
-					t( "[data-multiselect]" ).selectize( { plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"] } )
-				}
-
-				function c( o, i ) {
-					i.preventDefault(), t( o ).prev().val( null )
-				}
-
-				function l( o, i ) {
-					i.preventDefault();
-					var n = t( o ).data();
-					d || (d = wp.media.frames.wpModal || wp.media( {
-						title: n.title,
-						button: { text: n.button },
-						library: { type: "image" },
-						multiple: !1
-					} ), d.on( "select", function() {
-						var i = d.state().get( "selection" ).first().toJSON();
-						if ( "object" == typeof i ) {
-							var n = t( o ).closest( ".wpop-option" );
-							n.find( '[type="hidden"]' ).val( i.id ), n.find( "img" ).attr( "src", i.url ).show(), t( o ).attr( "value", "Replace " + t( o ).attr( "data-media-label" ) ), n.find( ".img-remove" ).show()
-						}
-					} )), d.open()
-				}
-
-				function s( o, i ) {
-					i.preventDefault();
-					var n = confirm( "Remove " + t( o ).attr( "data-media-label" ) + "?" );
-					if ( n ) {
-						var e = t( o ).closest( ".wpop-option" ), a = e.find( ".blank-img" ).html();
-						e.find( '[type="hidden"]' ).val( null ), e.find( "img" ).attr( "src", a ), e.find( ".button-hero" ).val( "Set Image" ), t( o ).hide()
+				function handleInitHashSelection() {
+					if ( hash = window.location.hash ) {
+						$( hash + '-nav a' ).trigger( 'click' );
+					} else {
+						$( '#wpopNav li:first a' ).trigger( 'click' );
 					}
 				}
 
-				var d;
-				o(), wp.hooks.doAction( "wpopPreInit" ), t( "#wpopNav li a" ).click( function( t ) {
-					wp.hooks.doAction( "wpopSectionNav", this, t )
-				} ), wp.hooks.doAction( "wpopInit" ), t( 'input[type="submit"]' ).click( function( t ) {
-					wp.hooks.doAction( "wpopSubmit", this, t )
-				} ), t( ".pwd-clear" ).click( function( t ) {
-					wp.hooks.doAction( "wpopPwdClear", this, t )
-				} ), t( ".img-upload" ).on( "click", function( t ) {
-					wp.hooks.doAction( "wpopImgUpload", this, t )
-				} ), t( ".img-remove" ).on( "click", function( t ) {
-					wp.hooks.doAction( "wpopImgRemove", this, t )
-				} ), t( ".add-button" ).on( "click", function( t ) {
-					wp.hooks.doAction( "wpopRepeaterAdd", this, t )
-				} )
+				function nixHashJumpJank() {
+					$( 'html, body' ).animate( { scrollTop: 0 } );
+				}
+
+				/* FIELDS JS */
+				function initIrisColorSwatches() {
+					if ( 'undefined' !== typeof iris ) {
+						$( '[data-field="color_picker"]' ).iris( { width: 320, hide: false } );
+					}
+				}
+
+				function initSelectizeInputs() {
+					// $( '[data-select]' ).selectize( {
+					// 	allowEmptyOption: false,
+					// 	placeholder: $( this ).attr( 'data-placeholder' )
+					// } );
+					$( '[data-multiselect]' ).selectize( {
+						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
+					} );
+				}
+
+				function doPwdFieldClear( elem, event ) {
+					event.preventDefault();
+					$( elem ).prev().val( null );
+				}
+
+				function doImgUpload( elem, event ) {
+					event.preventDefault();
+					var config = $( elem ).data();
+					// Initialize the modal the first time.
+					if ( !wpModal ) {
+						wpModal = wp.media.frames.wpModal || wp.media( {
+							title: config.title,
+							button: { text: config.button },
+							library: { type: 'image' },
+							multiple: false
+						} );
+
+						// Picking an image
+						wpModal.on( 'select', function() {
+							// Get the image URL
+							var image = wpModal.state().get( 'selection' ).first().toJSON();
+							if ( 'object' === typeof image ) {
+								var closest = $( elem ).closest( '.wpop-option' );
+								closest.find( '[type="hidden"]' ).val( image.id );
+								closest.find( 'img' ).attr( 'src', image.url ).show();
+								$( elem ).attr( 'value', 'Replace ' + $( elem ).attr( 'data-media-label' ) );
+								closest.find( '.img-remove' ).show();
+							}
+						} );
+					}
+
+					// Open the modal
+					wpModal.open();
+				}
+
+				function doImgRemove( elem, event ) {
+					event.preventDefault();
+					var remove = confirm( 'Remove ' + $( elem ).attr( 'data-media-label' ) + '?' );
+					if ( remove ) {
+						var item = $( elem ).closest( '.wpop-option' );
+						var blank = item.find( '.blank-img' ).html();
+						item.find( '[type="hidden"]' ).val( null );
+						item.find( 'img' ).attr( 'src', blank );
+						item.find( '.button-hero' ).val( 'Set Image' );
+						$( elem ).hide();
+					}
+				}
 			} );
 		</script>
 		<?php
@@ -1061,20 +1162,24 @@ class Section {
 	 */
 	public function echo_html() {
 		ob_start();
+
 		$section_content = '';
+
 		foreach ( $this->parts as $part ) {
 			$section_content .= $part->get_html();
 		}
+
 		echo HTML::tag( 'li', [
 			'id'    => $this->id,
 			'class' => implode( ' ', $this->classes )
 		], HTML::tag( 'ul', [], $section_content ) );
-		echo apply_filters( 'echo_html_option', ob_get_clean() );
+
+		echo ob_get_clean();
 	}
 }
 
 /**
- * Class Option
+ * Class Part
  * @package WPOP\V_3_0
  */
 class Part {
@@ -1086,8 +1191,7 @@ class Part {
 	public $description = '';
 	public $default_value = '';
 	public $classes = array( 'option' );
-	public $atts = array( 'disabled' => null );
-	public $wrapper;
+	public $atts = [];
 	public $field_before = null;
 	public $field_after = null;
 	public $panel_api = false;
@@ -1096,10 +1200,7 @@ class Part {
 	public function __construct( $i, $args = [] ) {
 		$this->id       = $i;
 		$this->field_id = $this->id;
-		$this->wrapper  = array(
-			'<li class="wpop-option ' . $this->get_clean_classname() . '">',
-			'</li><span class="spacer"></span>',
-		);
+
 		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
 		}
@@ -1129,10 +1230,13 @@ class Part {
 
 	public function build_base_markup( $field ) {
 		ob_start();
-		echo $this->wrapper[0] . '<h4 class="label">' . $this->label . '</h4>';
-		echo $this->field_before . $field . $this->field_after;
-		echo ( $this->description ) ? '<div class="desc clear">' . $this->description . '</div>' : '';
-		echo '<div class="clear"></div>' . $this->wrapper[1];
+		$desc = ( $this->description ) ? HTML::tag( 'div', [ 'class' => 'desc clear' ], $this->description ) : '';
+		echo HTML::tag(
+			'li',
+			[ 'class' => 'wpop-option ' . $this->get_clean_classname(), 'data-field' => $this->id ],
+			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field .
+			$this->field_after . $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
+		);
 
 		return ob_get_clean();
 	}
@@ -1141,42 +1245,32 @@ class Part {
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 		switch ( $this->panel_api ) {
 			case 'post':
-				return new Get_Single_Field(
-					$this->panel_id,
-					$this->panel_api,
-					$pre_ . $this->id,
-					sanitize_text_field( $_GET['post'] ) // if string condition exists, param already checked
-				);
+				$obj_id = sanitize_text_field( $_GET['post'] );
 				break;
 			case 'term':
-				return new Get_Single_Field(
-					$this->panel_id,
-					$this->panel_api,
-					$pre_ . $this->id,
-					sanitize_text_field( $_GET['term'] ) // if string condition exists, param already checked
-				);
+				$obj_id = sanitize_text_field( $_GET['term'] );
 				break;
 			case 'user-site':
 			case 'user':
 			case 'user-network':
-				return new Get_Single_Field(
-					$this->panel_id,
-					$this->panel_api,
-					$pre_ . $this->id,
-					sanitize_text_field( $_GET['user'] ) // if string condition exists, param already checked
-				);
+				$obj_id = sanitize_text_field( $_GET['user'] );
 				break;
 			case 'network':
 			case 'site':
 			default:
-				return new Get_Single_Field(
-					$this->panel_id,
-					$this->panel_api,
-					$pre_ . $this->id,
-					$this->default_value
-				);
+				$obj_id = null;
 				break;
 		}
+
+		$response = new Get_Single_Field(
+			$this->panel_id,
+			$this->panel_api,
+			$pre_ . $this->id,
+			$this->default_value,
+			$obj_id
+		);
+
+		return $response->response;
 	}
 
 }
@@ -1188,13 +1282,8 @@ class Part {
 class Section_Desc extends Part {
 
 	public function get_html() {
-		ob_start();
-		echo $this->wrapper[0];
-		echo $this->description;
-		echo $this->wrapper[1];
-		echo '<span class="spacer"></span>';
-
-		return ob_get_clean();
+		return HTML::tag( 'li', [ 'class' => 'wpop-option section_desc' ], $this->description ) .
+		       HTML::tag( 'span', [ 'class' => 'spacer' ] );
 	}
 
 }
@@ -1212,12 +1301,26 @@ class Input extends Part {
 		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 
 		$type = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
-		ob_start();
-		echo '<input id="' . esc_attr( $this->field_id ) . '" name="' . esc_attr( $this->field_id ) . '" type="' .
-		     esc_attr( $type ) . '" value="' . esc_attr( $option_val ) .
-		     '" data-field="' . esc_attr( $this->get_clean_classname() ) . '" ' . $this->get_classes() . ' ' . $this->html_process_atts( $this->atts ) . ' />';
 
-		return $this->build_base_markup( ob_get_clean() );
+		$input = [
+			'id'         => $this->field_id,
+			'name'       => $this->field_id,
+			'type'       => $type,
+			'value'      => $option_val,
+			'data-field' => $this->get_clean_classname(),
+		];
+
+		if ( ! empty( $this->classes ) ) {
+			$input['classes'] = implode( ' ', $this->classes );
+		}
+
+		if ( ! empty( $this->atts ) ) {
+			foreach ( $this->atts as $key => $val ) {
+				$input[ $key ] = $val;
+			}
+		}
+
+		return $this->build_base_markup( HTML::tag( 'input', $input ) );
 	}
 
 }
@@ -1245,6 +1348,14 @@ class Color_Picker extends Input {
  */
 class Number extends Input {
 	public $input_type = 'number';
+}
+
+/**
+ * Class Email
+ * @package WPOP\V_3_0
+ */
+class Email extends Input {
+	public $input_type = 'email';
 }
 
 /**
@@ -1276,13 +1387,14 @@ class Password extends Input {
 	}
 
 	public function pwd_clear_and_hidden_field() {
-		$hidden_val = $this->get_saved();
-		ob_start();
-		echo '<a href="#" class="button button-secondary pwd-clear">clear</a>';
-		echo '<input id="' . esc_attr( 'stored_' . $this->id ) . '" name="' . esc_attr( 'stored_' . $this->id ) . '" type="hidden"' .
-		     ' value="' . esc_attr( $hidden_val ) . '" readonly="readonly" />';
-
-		return ob_get_clean();
+		return HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' ) .
+		       HTML::tag( 'input', [
+			       'id'       => 'stored_' . $this->id,
+			       'name'     => 'stored_' . $this->id,
+			       'type'     => 'hidden',
+			       'value'    => $this->get_saved(),
+			       'readonly' => 'readonly',
+		       ] );
 	}
 
 	/**
@@ -1343,16 +1455,23 @@ class Textarea extends Part {
 	public $input_type = 'textarea';
 
 	public function get_html() {
-		$option_val = $this->get_saved();
-		$att_markup = $this->html_process_atts( $this->atts );
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
 
-		ob_start();
-		echo '<textarea id="' . esc_attr( $this->id ) . '" name="' . esc_attr( $this->id ) . '" cols="' .
-		     esc_attr( $this->cols ) . '" rows="' . esc_attr( $this->rows ) . '" ' . $att_markup . '>' . stripslashes( $option_val ) . '</textarea>';
+		$textarea = [
+			'id'   => $this->id,
+			'name' => $this->id,
+			'cols' => $this->cols,
+			'rows' => $this->rows,
+		];
 
-		return $this->build_base_markup( ob_get_clean() );
+		if ( ! empty( $this->atts ) && is_array( $this->atts ) ) {
+			foreach ( $this->atts as $key => $val ) {
+				$textarea[ $key ] = $val;
+			}
+		}
+
+		return $this->build_base_markup( HTML::tag( 'textarea', $textarea, stripslashes( $this->get_saved() ) ) );
 	}
 
 }
@@ -1400,22 +1519,37 @@ class Select extends Part {
 	}
 
 	public function get_html() {
-		$option_val     = $this->get_saved();
 		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option';
 
 		ob_start();
-		echo '<select id="' . $this->id . '" name="' . $this->id . '" value="' . $this->get_saved()
-		     . '" data-select data-placeholder="' . $default_option . '">';
-		if ( $this->empty_default ) {
-			echo '<option value=""></option>';
-		}
-		foreach ( $this->values as $label => $value ) {
-			$selected = ( $value === $option_val ) ? 'selected="selected"' : '';
-			echo '<option value="' . $value . '" ' . $selected . '>' . $label . '</option>';
-		}
-		echo '</select>';
 
-		return $this->build_base_markup( ob_get_clean() );
+		if ( $this->empty_default ) {
+			echo HTML::tag( 'option', [ 'value' => '' ] );
+		}
+
+		foreach ( $this->values as $value => $label ) {
+			$option = [ 'value' => $value ];
+			error_log( var_export( $this->id, true ) );
+			$var = $this->get_saved();
+			error_log( 'saved select value: ' . strval( var_export( $var, true ) ) );
+			if ( $value === $this->get_saved() ) {
+				$option['selected'] = 'selected';
+			}
+			echo HTML::tag( 'option', $option, $label );
+		}
+
+		return $this->build_base_markup(
+			HTML::tag(
+				'select',
+				[
+					'id'               => $this->id,
+					'name'             => $this->id,
+					'data-select'      => true,
+					'data-placeholder' => $default_option
+				],
+				ob_get_clean()
+			)
+		);
 	}
 
 }
@@ -1482,13 +1616,20 @@ class Checkbox extends Part {
 	}
 
 	public function get_html() {
-		$checked = ( $this->get_saved() === $this->value ) ? ' checked="checked"' : '';
 		$classes = ! empty( $this->label_markup ) ? 'onOffSwitch-checkbox' : 'cb';
-		ob_start();
-		echo '<div class="cb-wrap"><input type="checkbox" name="' . $this->id . '" id="' . $this->id . '" '
-		     . $checked . ' class="' . $classes . '" value="' . $this->value . '" />' . $this->label_markup . '</div>';
+		$input   = [
+			'type'  => 'checkbox',
+			'id'    => $this->id,
+			'name'  => $this->id,
+			'class' => $classes
+		];
+		if ( $this->get_saved() === $this->value ) {
+			$input['checked'] = 'checked';
+		}
 
-		return $this->build_base_markup( ob_get_clean() );
+		return $this->build_base_markup(
+			HTML::tag( 'div', [ 'class' => 'cb-wrap' ], HTML::tag( 'input', $input ) . $this->label_markup )
+		);
 	}
 
 }
@@ -1500,10 +1641,19 @@ class Checkbox extends Part {
 class Toggle_Switch extends Checkbox {
 	public $input_type = 'toggle_switch';
 
+	/**
+	 * Toggle_Switch constructor.
+	 *
+	 * @param string $i
+	 * @param array  $args
+	 */
 	function __construct( $i, array $args = [] ) {
 		parent::__construct( $i, $args );
-		$this->label_markup = '<label class="onOffSwitch-label" for="' . $this->id .
-		                      '"><div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span></label>';
+		$this->label_markup = HTML::tag(
+			'label',
+			[ 'class' => 'onOffSwitch-label', 'for' => $this->id ],
+			'<div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span>'
+		);
 	}
 }
 
@@ -1514,29 +1664,38 @@ class Toggle_Switch extends Checkbox {
 class Radio_Buttons extends Part {
 
 	public $values;
-	public $default_value;
+	public $default_value = '';
 	public $input_type = 'radio_buttons';
 
 	public function __construct( $i, $c ) {
 		parent::__construct( $i, $c );
-		$this->values        = ( ! empty( $c['values'] ) ) ? $c['values'] : [];
-		$this->default_value = ! empty( $this->default_value ) ? $this->default_value : '';
+		$this->values = ( ! empty( $c['values'] ) ) ? $c['values'] : [];
 	}
 
 	public function get_html() {
 		ob_start();
-		echo '<div class="radio-wrap">';
+		$radios_markup = '';
 		foreach ( $this->values as $key => $value ) {
 			$selected_val = $this->get_saved() ? $this->get_saved() : $this->default_value;
-			$checked      = ( $selected_val === $value ) ? ' checked="checked"' : '';
 			$echo         = ! is_numeric( $key ) ? $key : $value;
-			echo '<input type="radio" name="' . $this->field_id . '" value="' . $value . '"' . ' id="' . $this->id .
-			     '" ' . $checked . '/><label class="option-label" for="' . $this->field_id . '">' . $echo . '</label>';
-			echo '<div class="clear"></div>';
-		}
-		echo '</div>';
 
-		return $this->build_base_markup( ob_get_clean() );
+			$input = [
+				'type'  => 'radio',
+				'id'    => $this->id,
+				'name'  => $this->field_id,
+				'value' => $value,
+			];
+
+			if ( $selected_val === $value ) {
+				$input['checked'] = 'checked';
+			}
+
+			$radios_markup .= HTML::tag( 'input', $input ) .
+					  HTML::tag( 'label', [ 'class' => 'option-label', 'for' => $this->field_id ], $echo ) .
+					  HTML::tag( 'div', [ 'class' => 'clear' ] );
+		}
+
+		return $this->build_base_markup( HTML::tag( 'div', [ 'class' => 'radio-wrap' ], $radios_markup ) );
 	}
 
 }
@@ -1559,20 +1718,43 @@ class Media extends Part {
 			$saved        = array( 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $option_val );
 			$insert_label = 'Replace ' . $this->media_label;
 		}
-		$vis        = empty( $option_val ) ? ' style="display:none;"' : '';
-		$att_markup = $this->html_process_atts( $this->atts );
 
 		ob_start();
 		echo '<div class="blank-img" style="display:none;">' . $empty . '</div>';
-		echo '<img src="' . $saved['url'] . '" class="img-preview" />';
-		echo '<input id="' . $this->id . '_button" data-media-label="' . $this->media_label . '" '
-		     . 'type="button" class="button button-secondary button-hero img-upload" value="' . $insert_label
-		     . '" data-id="' . $this->id . '" data-button="Use ' . $this->media_label
-		     . '" data-title="Select or Upload ' . $this->media_label . '"' . $att_markup . '/>';
-		echo '<input id="' . $this->id . '" name="' . $this->id
-		     . '" type="hidden" value="' . $saved['id'] . '"' . $att_markup . ' />';
-		echo '<a href="#" class="button button-secondary img-remove" ' . ' data-media-label="'
-		     . $this->media_label . '" ' . $vis . '>Remove ' . $this->media_label . '</a>';
+
+		$image_btn = [
+			'id' => $this->id . '_button',
+			'data-media-label' => $this->media_label,
+			'type' => 'button',
+			'class' => 'button button-secondary button-hero img-upload',
+			'value' => $insert_label,
+			'data-id' => $this->id,
+			'data-button' => 'Use ' . $this->media_label,
+			'data-title' => 'Select or Upload ' . $this->media_label,
+		];
+
+		$hidden = [
+			'id' => $this->id,
+			'name' => $this->id,
+			'type' => 'hidden',
+			'value' => $saved['id']
+		];
+
+		if ( ! empty( $this->atts ) ) {
+			foreach( $this->atts as $key => $val ) {
+				$hidden[ $key ] = $val;
+			}
+		}
+
+		echo HTML::tag( 'image', [ 'url' => $saved['url'], 'class' => 'img-preview' ] );
+		echo HTML::tag( 'input', $image_btn );
+		echo HTML::tag( 'input', $hidden );
+		echo HTML::tag( 'a', [
+				'href' => '#',
+				'class' => 'button button-secondary img-remove',
+				'data-media-label' => $this->media_label
+			], 'Remove ' . $this->media_label
+		);
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -1606,6 +1788,9 @@ class Include_Partial extends Part {
 
 /**
  * Class Include_Markup
+ *
+ * Bringing clean, escaped markup to this
+ *
  * @package WPOP\V_3_0
  */
 class Include_Markup extends Part {
@@ -1614,7 +1799,7 @@ class Include_Markup extends Part {
 
 	public function __construct( $i, $v = [] ) {
 		parent::__construct( $i, $v );
-		$this->markup = ( ! empty( $v['markup'] ) ) ? $v['markup'] : null;
+		$this->markup = ( ! empty( $v['markup'] ) && is_string( $v[ 'markup' ]) ) ? $v['markup'] : null;
 	}
 
 	public function get_html() {
@@ -1699,6 +1884,9 @@ class HTML {
  * @package WPOP\V_3_0
  */
 class Get_Single_Field {
+
+	public $response;
+
 	protected $type;
 	protected $key;
 	protected $obj_id;
@@ -1715,48 +1903,45 @@ class Get_Single_Field {
 	 * @param bool $single
 	 */
 	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
-//		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $panel_id ) ) {
-//			return false; // check for nonce, only allow panel to use this class
-//		}
+		if ( false !== wp_verify_nonce( $panel_id, $panel_id ) ) {
+			return false; // check for nonce, only allow panel to use this class
+		}
 		$this->type   = $type;
 		$this->key    = $key;
 		$this->obj_id = $obj_id;
 		$this->single = $single;
 
-		return $this->get_data();
-	}
+		$this->get_data();
 
-	function __toString() {
-		return ! empty( $this->get_data() ) ? strval( $this->get_data() ) : '';
+		return $this->response;
 	}
 
 	function get_data() {
 		switch ( $this->type ) {
 			case 'single':
 			case 'site':
-				return get_option( $this->key, '' );
+				$this->response = get_option( $this->key, '' );
 				break;
 			case 'network':
-				return get_site_option( $this->key );
+				$this->response = get_site_option( $this->key );
 				break;
 			case 'user-site':
 			case 'user':
-				return is_multisite() ? get_user_option( $this->key, $this->obj_id )
-					: get_user_meta( $this->obj_id, $this->key, $this->single );
+				$this->response = is_multisite() ? get_user_option( $this->key, $this->obj_id ) : get_user_meta( $this->obj_id, $this->key, $this->single );
 				break; // traditional user meta
 			case 'user-network':
-				return get_user_meta( $this->obj_id, $this->key, $this->single );
+				$this->response = get_user_meta( $this->obj_id, $this->key, $this->single );
 				break;
 			case 'term':
 			case 'category':
 			case 'tag':
-				return get_metadata( 'term', $this->obj_id, $this->key, $this->single );
+				$this->response = get_metadata( 'term', $this->obj_id, $this->key, $this->single );
 				break;
 			case 'post':
-				return get_metadata( 'post', $this->obj_id, $this->key, $this->single );
+				$this->response = get_metadata( 'post', $this->obj_id, $this->key, $this->single );
 				break;
 			default:
-				return '';
+				$this->response = false;
 				break;
 		}
 	}
@@ -1782,6 +1967,24 @@ class Save_Single_Field {
 		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $panel_id ) ) {
 			return false; // check for nonce, only allow panel to use this class
 		}
+		if ( 'wpop-encrypted-pwd-field-val-unchanged' === $value ) {
+			return false; // when pwd fields have existing value and are unchanged, do nothing to database value
+		}
+
+		return $this->save_data( $panel_id, $type, $key, $value, $obj_id, $autoload );
+	}
+
+	/**
+	 * @param      $panel_id
+	 * @param      $type
+	 * @param      $key
+	 * @param      $value
+	 * @param null $obj_id
+	 * @param bool $autoload
+	 *
+	 * @return bool|int|\WP_Error
+	 */
+	private function save_data( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		switch ( $type ) {
 			case 'site':
 				return self::handle_site_option_save( $key, $value, $autoload );
