@@ -138,7 +138,7 @@ class Panel {
 				}
 				// TODO: insert user display name
 				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', $_GET['user'] ) );
-				$this->panel_object = get_user_by( 'id', $_GET['post'] );
+				$this->panel_object = get_user_by( 'id', $_GET['user'] );
 			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
 				$api = 'term';
 				// TODO: insert term name
@@ -225,9 +225,9 @@ class Panel {
 				$updated = false;
 				$part    = get_object_vars( $part );
 
-				$field_type = ( isset( $part['field_type'] ) && ! empty( $part['field_type'] ) ) ? $part['field_type'] : $part['input_type'];
+				$field_type = ( ! empty( $part['field_type'] ) ) ? $part['field_type'] : $part['input_type'];
 
-				if ( in_array( $part['id'], $_POST ) ) {
+				if ( isset( $_POST[ $part['id'] ] ) ) {
 					$sanitize_input = $this->sanitize_options_panel( $field_type, $part['id'], $_POST[ $part['id'] ] );
 
 					$obj_id = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
@@ -272,9 +272,6 @@ class Panel {
 			case 'color':
 				return sanitize_hex_color_no_hash( $value );
 				break;
-			case '':
-				return sanitize_key( $value );
-				break;
 			case 'editor':
 				return wp_kses_post( $value );
 				break;
@@ -284,6 +281,9 @@ class Panel {
 			case 'checkbox':
 			case 'switch':
 				return wp_validate_boolean( $value );
+				break;
+			case 'multiselect':
+				return maybe_serialize( $value );
 				break;
 			case 'text':
 			default:
@@ -456,9 +456,7 @@ class Page extends Panel {
 									<?php
 									foreach ( $this->parts as $section_id => $section ) {
 										$section_icon = ! empty( $section['dashicon'] ) ?
-											HTML::tag( 'span', [
-												'class' => 'dashicons ' . $section['dashicon'] . ' menu-icon'
-											] ) : '';
+											HTML::dashicon( $section['dashicon'] . ' menu-icon' ) : '';
 										echo HTML::tag(
 											'li',
 											[
@@ -798,7 +796,12 @@ class Page extends Panel {
 				border-bottom: 1px solid rgba(255, 255, 255, .3)
 			}
 
-			.wpop-option input[type=text] {
+			.wpop-option input[type=text],
+			.wpop-option input[type=url],
+			.wpop-option input[type=password],
+			.wpop-option input[type=email],
+			.wpop-option input[type=number],
+			.wpop-option input[type=range] {
 				width: 90%
 			}
 
@@ -1067,13 +1070,25 @@ class Page extends Panel {
 	 * @return string
 	 */
 	public function get_storage_table() {
-		switch ( is_multisite() ) {
-			case true:
-				return $this->network_admin ? 'wp_sitemeta' : $this->get_multisite_table( get_current_blog_id() );
+		global $wpdb;
+		switch ( $this->api ) {
+			case 'post':
+				return $wpdb->prefix . 'postmeta';
 				break;
-			case false:
+			case 'term':
+				return $wpdb->prefix . 'termmeta';
+				break;
+			case 'user':
+				$prefix = is_multisite() ? $wpdb->base_prefix : $wpdb->prefix;
+
+				return $prefix . 'usermeta'; // multisite always stores usermeta at root, hence base_prefix
+				break;
+			case 'network':
+				return $wpdb->prefix . 'sitemeta';
+				break;
+			case 'site':
 			default:
-				return 'wp_options';
+				return $wpdb->prefix . 'options';
 				break;
 		}
 	}
@@ -1573,18 +1588,21 @@ class Multiselect extends Part {
 	}
 
 	public function get_html() {
-		$save = $this->get_saved();
-		ob_start();
-		echo '<select multiple="multiple" id="' . $this->id . '" name="' . $this->id . '[]" data-multiselect />';
-		$ordered_vals = ! empty( $save ) ? $this->multi_atts( $this->values, $save ) + $this->values : $this->values;
+		$save         = maybe_unserialize( $this->get_saved() );
+		$ordered_vals = ! empty( $save ) && is_array( $save ) ? $this->multi_atts( $this->values, $save ) + $this->values : $this->values;
+		$opts_markup  = '';
 		foreach ( $ordered_vals as $key => $value ) {
-			$selected = in_array( $key, $save, true ) ? 'selected="selected"' : '';
-			echo '<option value="' . $key . '" ' . $selected . '>' . $value . '</option>';
+			$selected    = in_array( $key, $ordered_vals, true ) ? 'selected="selected"' : '';
+			$opts_markup .= '<option value="' . $key . '" ' . $selected . '>' . $value . '</option>';
 		}
-		echo '</select>'; ?>
-		<?php
 
-		return $this->build_base_markup( ob_get_clean() );
+		return $this->build_base_markup( HTML::tag( 'select', [
+			'id'               => $this->id,
+			'name'             => $this->id . '[]',
+			'multiple'         => 'multiple',
+			'data-multiselect' => '1'
+		], $opts_markup )
+		);
 	}
 
 	function multi_atts( $pairs, $atts ) {
@@ -1677,7 +1695,6 @@ class Radio_Buttons extends Part {
 		$radios_markup = '';
 		foreach ( $this->values as $key => $value ) {
 			$selected_val = $this->get_saved() ? $this->get_saved() : $this->default_value;
-			$echo         = ! is_numeric( $key ) ? $key : $value;
 
 			$input = [
 				'type'  => 'radio',
@@ -1691,8 +1708,8 @@ class Radio_Buttons extends Part {
 			}
 
 			$radios_markup .= HTML::tag( 'input', $input ) .
-					  HTML::tag( 'label', [ 'class' => 'option-label', 'for' => $this->field_id ], $echo ) .
-					  HTML::tag( 'div', [ 'class' => 'clear' ] );
+			                  HTML::tag( 'label', [ 'class' => 'option-label', 'for' => $key ], $value ) .
+			                  HTML::tag( 'div', [ 'class' => 'clear' ] );
 		}
 
 		return $this->build_base_markup( HTML::tag( 'div', [ 'class' => 'radio-wrap' ], $radios_markup ) );
@@ -1723,25 +1740,25 @@ class Media extends Part {
 		echo '<div class="blank-img" style="display:none;">' . $empty . '</div>';
 
 		$image_btn = [
-			'id' => $this->id . '_button',
+			'id'               => $this->id . '_button',
 			'data-media-label' => $this->media_label,
-			'type' => 'button',
-			'class' => 'button button-secondary button-hero img-upload',
-			'value' => $insert_label,
-			'data-id' => $this->id,
-			'data-button' => 'Use ' . $this->media_label,
-			'data-title' => 'Select or Upload ' . $this->media_label,
+			'type'             => 'button',
+			'class'            => 'button button-secondary button-hero img-upload',
+			'value'            => $insert_label,
+			'data-id'          => $this->id,
+			'data-button'      => 'Use ' . $this->media_label,
+			'data-title'       => 'Select or Upload ' . $this->media_label,
 		];
 
 		$hidden = [
-			'id' => $this->id,
-			'name' => $this->id,
-			'type' => 'hidden',
+			'id'    => $this->id,
+			'name'  => $this->id,
+			'type'  => 'hidden',
 			'value' => $saved['id']
 		];
 
 		if ( ! empty( $this->atts ) ) {
-			foreach( $this->atts as $key => $val ) {
+			foreach ( $this->atts as $key => $val ) {
 				$hidden[ $key ] = $val;
 			}
 		}
@@ -1750,10 +1767,10 @@ class Media extends Part {
 		echo HTML::tag( 'input', $image_btn );
 		echo HTML::tag( 'input', $hidden );
 		echo HTML::tag( 'a', [
-				'href' => '#',
-				'class' => 'button button-secondary img-remove',
-				'data-media-label' => $this->media_label
-			], 'Remove ' . $this->media_label
+			'href'             => '#',
+			'class'            => 'button button-secondary img-remove',
+			'data-media-label' => $this->media_label
+		], 'Remove ' . $this->media_label
 		);
 
 		return $this->build_base_markup( ob_get_clean() );
@@ -1799,7 +1816,7 @@ class Include_Markup extends Part {
 
 	public function __construct( $i, $v = [] ) {
 		parent::__construct( $i, $v );
-		$this->markup = ( ! empty( $v['markup'] ) && is_string( $v[ 'markup' ]) ) ? $v['markup'] : null;
+		$this->markup = ( ! empty( $v['markup'] ) && is_string( $v['markup'] ) ) ? $v['markup'] : null;
 	}
 
 	public function get_html() {
@@ -1970,6 +1987,8 @@ class Save_Single_Field {
 		if ( 'wpop-encrypted-pwd-field-val-unchanged' === $value ) {
 			return false; // when pwd fields have existing value and are unchanged, do nothing to database value
 		}
+
+		error_log( 'running save...' . var_export( $key, true ) . ': ' . var_export( $value, true ) );
 
 		return $this->save_data( $panel_id, $type, $key, $value, $obj_id, $autoload );
 	}
