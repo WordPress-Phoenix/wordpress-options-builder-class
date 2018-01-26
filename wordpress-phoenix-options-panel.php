@@ -1318,11 +1318,12 @@ class Input extends Part {
 		$type = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 
 		$input = [
-			'id'         => $this->field_id,
-			'name'       => $this->field_id,
-			'type'       => $type,
-			'value'      => $option_val,
-			'data-field' => $this->get_clean_classname(),
+			'id'           => $this->field_id,
+			'name'         => $this->field_id,
+			'type'         => $type,
+			'value'        => $option_val,
+			'data-field'   => $this->get_clean_classname(),
+			'autocomplete' => 'new-password', // prevents pwd field autofilling, among other things
 		];
 
 		if ( ! empty( $this->classes ) ) {
@@ -1391,24 +1392,25 @@ class Password extends Input {
 
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
-		$this->field_after = $this->pwd_clear_and_hidden_field();
-		$this->password    = true;
 		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
 			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
 			// effectively locking the encrypted value to the current environment.
 			$trimmed_key = substr( wp_salt(), 0, 15 );
 			define( 'WPOP_ENCRYPTION_KEY', static::pad_key( sha1( $trimmed_key, true ) ) );
 		}
+		$this->field_after = $this->pwd_clear_and_hidden_field();
+		$this->password    = true;
 	}
 
 	public function pwd_clear_and_hidden_field() {
 		return HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' ) .
 		       HTML::tag( 'input', [
-			       'id'       => 'stored_' . $this->id,
-			       'name'     => 'stored_' . $this->id,
-			       'type'     => 'hidden',
-			       'value'    => $this->get_saved(),
-			       'readonly' => 'readonly',
+			       'id'           => 'stored_' . $this->id,
+			       'name'         => 'stored_' . $this->id,
+			       'type'         => 'hidden',
+			       'value'        => $this->get_saved(),
+			       'readonly'     => 'readonly',
+			       'autocomplete' => 'off',
 		       ] );
 	}
 
@@ -1588,12 +1590,21 @@ class Multiselect extends Part {
 	}
 
 	public function get_html() {
-		$save         = maybe_unserialize( $this->get_saved() );
-		$ordered_vals = ! empty( $save ) && is_array( $save ) ? $this->multi_atts( $this->values, $save ) + $this->values : $this->values;
-		$opts_markup  = '';
-		foreach ( $ordered_vals as $key => $value ) {
-			$selected    = in_array( $key, $ordered_vals, true ) ? 'selected="selected"' : '';
-			$opts_markup .= '<option value="' . $key . '" ' . $selected . '>' . $value . '</option>';
+		$save = maybe_unserialize( $this->get_saved() );
+
+		$opts_markup = '';
+
+		if ( ! empty( $save ) && is_array( $save ) ) {
+			foreach ( $save as $key ) {
+				$opts_markup .= HTML::tag( 'option', [ 'value' => $key ], $this->values[ $key ] );
+				unset( $this->values[ $key ] );
+			}
+		}
+
+		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
+			foreach ( $this->values as $key => $value ) {
+				$opts_markup .= HTML::tag( 'option', [ 'value' => $key ], $value );
+			}
 		}
 
 		return $this->build_base_markup( HTML::tag( 'select', [
