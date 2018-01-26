@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 3.5.0
+ * @version 3.0.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_3_5;
+namespace WPOP\V_3_0;
 
 /**
  * Some tips:
@@ -1506,9 +1506,6 @@ class Select extends Part {
 
 		foreach ( $this->values as $value => $label ) {
 			$option = [ 'value' => $value ];
-			error_log( var_export( $this->id, true ) );
-			$var = $this->get_saved();
-			error_log( 'saved select value: ' . strval( var_export( $var, true ) ) );
 			if ( $value === $this->get_saved() ) {
 				$option['selected'] = 'selected';
 			}
@@ -1606,14 +1603,7 @@ class Checkbox extends Part {
 
 	public function get_html() {
 		$classes = ! empty( $this->label_markup ) ? 'onOffSwitch-checkbox' : 'cb';
-		$input   = [
-			'type'  => 'checkbox',
-			'id'    => $this->id,
-			'name'  => $this->id,
-			'class' => $classes
-		];
-		error_log( 'reading checkbox value... ' . var_export( $this->value, true ) );
-		error_log( 'reading saved value... ' . var_export( $this->get_saved(), true ) );
+		$input   = [ 'type' => 'checkbox', 'id' => $this->id, 'name' => $this->id, 'class' => $classes ];
 		if ( $this->get_saved() === $this->value ) {
 			$input['checked'] = 'checked';
 		}
