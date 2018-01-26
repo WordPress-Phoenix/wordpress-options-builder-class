@@ -1003,10 +1003,10 @@ class Page extends Panel {
 				}
 
 				function initSelectizeInputs() {
-					// $( '[data-select]' ).selectize( {
-					// 	allowEmptyOption: false,
-					// 	placeholder: $( this ).attr( 'data-placeholder' )
-					// } );
+					$( '[data-select]' ).selectize( {
+						allowEmptyOption: false,
+						placeholder: $( this ).attr( 'data-placeholder' )
+					} );
 					$( '[data-multiselect]' ).selectize( {
 						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
 					} );
