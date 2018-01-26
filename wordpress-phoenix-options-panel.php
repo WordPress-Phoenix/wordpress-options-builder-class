@@ -136,12 +136,10 @@ class Panel {
 				} else {
 					$api = 'user';
 				}
-				// TODO: insert user display name
 				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', $_GET['user'] ) );
 				$this->panel_object = get_user_by( 'id', $_GET['user'] );
 			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
-				$api = 'term';
-				// TODO: insert term name
+				$api  = 'term';
 				$term = get_term( $_GET['term'] );
 				if ( is_object( $term ) && ! is_wp_error( $term ) && isset( $term->name ) ) {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term->name );
@@ -222,25 +220,23 @@ class Panel {
 		// note $_POST[ $part->id ] that taps the key's value from the submit array
 		foreach ( $this->parts as $section ) {
 			foreach ( $section['parts'] as $part ) {
-				$updated = false;
-				$part    = get_object_vars( $part );
+				$part = get_object_vars( $part );
 
 				$field_type = ( ! empty( $part['field_type'] ) ) ? $part['field_type'] : $part['input_type'];
 
-				if ( isset( $_POST[ $part['id'] ] ) ) {
-					$sanitize_input = $this->sanitize_options_panel( $field_type, $part['id'], $_POST[ $part['id'] ] );
+				$field_input = isset( $_POST[ $part['id'] ] ) ? $_POST[ $part['id'] ] : false;
 
-					$obj_id = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
+				$sanitize_input = $this->sanitize_options_panel( $field_type, $part['id'], $field_input );
 
-					$updated = new Save_Single_Field(
-						$part['panel_id'],
-						$part['panel_api'],
-						$part['id'],
-						$sanitize_input,
-						$obj_id
-					);
-				}
+				$obj_id = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
 
+				$updated = new Save_Single_Field(
+					$part['panel_id'],
+					$part['panel_api'],
+					$part['id'],
+					$sanitize_input,
+					$obj_id
+				);
 
 				$any_updated = ( $updated && ! $any_updated ) ? true : $any_updated;
 			}
@@ -261,12 +257,12 @@ class Panel {
 						// unchanged password? do nothing
 						return 'wpop-encrypted-pwd-field-val-unchanged';
 					} else {
-						// stored password but field updated so overwrite
-						return Password::encrypt( $value );
+						// stored password but field updated/deleted so overwrite
+						return ! empty( $value ) ? Password::encrypt( $value ) : false;
 					}
 				} else {
 					// insert new password
-					return Password::encrypt( $value );
+					return ! empty( $value ) ? Password::encrypt( $value ) : false;
 				}
 				break;
 			case 'color':
@@ -280,7 +276,8 @@ class Panel {
 				break;
 			case 'checkbox':
 			case 'switch':
-				return wp_validate_boolean( $value );
+			case 'toggle_switch':
+				return sanitize_text_field( $value );
 				break;
 			case 'multiselect':
 				return maybe_serialize( $value );
@@ -315,30 +312,6 @@ class Panel {
 	 */
 	public function get_clean_classname() {
 		return strtolower( explode( '\\', get_called_class() )[2] );
-	}
-
-	/**
-	 *
-	 * @param      $key
-	 * @param      $value
-	 * @param bool $network
-	 * @param null $obj_id
-	 *
-	 * @return bool
-	 */
-	protected function do_options_save( $key, $value, $network = false, $obj_id = null ) {
-		if ( ! empty( $obj_id ) && absint( $obj_id ) ) {
-			return false; // TODO: build term meta API saving for multisite
-		}
-		switch ( $network ) {
-			case true:
-				return ! empty( $value ) ? update_site_option( $key, $value ) : delete_site_option( $key );
-				break;
-			case false:
-			default:
-				return ! empty( $value ) ? update_option( $key, $value ) : delete_option( $key );
-				break;
-		}
 	}
 } // END Container
 
@@ -397,8 +370,8 @@ class Page extends Panel {
 		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
 			$decide_network_or_single_site_admin = $this->network_admin ? 'network_admin_menu' : 'admin_menu';
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
+			$this->run_options_save_process();
 			add_action( $decide_network_or_single_site_admin, array( $this, 'add_settings_submenu_page' ) );
-			add_action( 'admin_init', array( $this, 'run_options_save_process' ) );
 		}
 	}
 
@@ -1079,9 +1052,7 @@ class Page extends Panel {
 				return $wpdb->prefix . 'termmeta';
 				break;
 			case 'user':
-				$prefix = is_multisite() ? $wpdb->base_prefix : $wpdb->prefix;
-
-				return $prefix . 'usermeta'; // multisite always stores usermeta at root, hence base_prefix
+				return is_multisite() ? $wpdb->base_prefix . 'usermeta' : $wpdb->prefix . 'usermeta';
 				break;
 			case 'network':
 				return $wpdb->prefix . 'sitemeta';
@@ -1091,15 +1062,6 @@ class Page extends Panel {
 				return $wpdb->prefix . 'options';
 				break;
 		}
-	}
-
-	/**
-	 * @param $blog_id
-	 *
-	 * @return string
-	 */
-	public function get_multisite_table( $blog_id ) {
-		return 1 === intval( $blog_id ) ? 'wp_options' : 'wp_' . $blog_id . '_options';
 	}
 
 	/**
@@ -1310,7 +1272,6 @@ class Section_Desc extends Part {
  */
 class Input extends Part {
 	public $input_type;
-	public $password = false;
 
 	public function get_html() {
 		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
@@ -1399,7 +1360,6 @@ class Password extends Input {
 			define( 'WPOP_ENCRYPTION_KEY', static::pad_key( sha1( $trimmed_key, true ) ) );
 		}
 		$this->field_after = $this->pwd_clear_and_hidden_field();
-		$this->password    = true;
 	}
 
 	public function pwd_clear_and_hidden_field() {
@@ -1633,7 +1593,7 @@ class Multiselect extends Part {
  */
 class Checkbox extends Part {
 
-	public $value;
+	public $value = 'on';
 	public $label_markup;
 	public $input_type = 'checkbox';
 
@@ -1652,6 +1612,8 @@ class Checkbox extends Part {
 			'name'  => $this->id,
 			'class' => $classes
 		];
+		error_log( 'reading checkbox value... ' . var_export( $this->value, true ) );
+		error_log( 'reading saved value... ' . var_export( $this->get_saved(), true ) );
 		if ( $this->get_saved() === $this->value ) {
 			$input['checked'] = 'checked';
 		}
@@ -1998,8 +1960,6 @@ class Save_Single_Field {
 		if ( 'wpop-encrypted-pwd-field-val-unchanged' === $value ) {
 			return false; // when pwd fields have existing value and are unchanged, do nothing to database value
 		}
-
-		error_log( 'running save...' . var_export( $key, true ) . ': ' . var_export( $value, true ) );
 
 		return $this->save_data( $panel_id, $type, $key, $value, $obj_id, $autoload );
 	}
