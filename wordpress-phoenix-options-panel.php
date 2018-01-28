@@ -4,11 +4,11 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 3.0.0
+ * @version 3.1.0
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_3_0;
+namespace WPOP\V_3_1;
 
 /**
  * Some tips:
@@ -395,6 +395,11 @@ class Page extends Panel {
 	 */
 	public function build_parts() {
 		$page_icon = ! empty( $this->dashicon ) ? HTML::dashicon( $this->dashicon . ' page-icon' ) . ' ' : '';
+		$screen    = get_current_screen();
+		$screen_id = $screen->id;
+		add_action( 'admin_print_footer_scripts-' . $screen_id, function () {
+			$this->footer_scripts();
+		} );
 		ob_start(); ?>
 		<div id="wpopOptions">
 			<?php
@@ -407,6 +412,11 @@ class Page extends Panel {
 				<header><h2></h2></header>
 			</section>
 			<section id="wpop" class="wrap">
+				<div id="panel-loader-positioning-wrap">
+					<div id="panel-loader-box">
+						<div class="wpcore-spin panel-spinner"></div>
+					</div>
+				</div>
 				<form method="post" class="pure-form wpop-form">
 					<header class="wpop-head">
 						<div class="inner">
@@ -493,6 +503,85 @@ class Page extends Panel {
 	public function inline_styles_and_scripts() {
 		ob_start(); ?>
 		<style>
+			/*!
+			 * WordPress CSS Spinner
+			 * @license GPL-2.0+
+			 * @author kuus <kunderikuus@gmail.com> (http://kunderikuus.net)
+			 */
+			@-webkit-keyframes wp-core-spinner {
+				from {
+					-webkit-transform: rotate(0deg);
+					transform: rotate(0deg);
+				}
+				to {
+					-webkit-transform: rotate(360deg);
+					transform: rotate(360deg);
+				}
+			}
+
+			@keyframes wp-core-spinner {
+				from {
+					-webkit-transform: rotate(0deg);
+					transform: rotate(0deg);
+				}
+				to {
+					-webkit-transform: rotate(360deg);
+					transform: rotate(360deg);
+				}
+			}
+
+			.wpcore-spin {
+				position: relative;
+				width: 20px;
+				height: 20px;
+				border-radius: 20px;
+				background: #A6A6A6;
+				-webkit-animation: wp-core-spinner 1.04s linear infinite;
+				animation: wp-core-spinner 1.04s linear infinite;
+			}
+
+			.wpcore-spin:after {
+				content: "";
+				position: absolute;
+				top: 2px;
+				left: 50%;
+				width: 4px;
+				height: 4px;
+				border-radius: 4px;
+				margin-left: -2px;
+				background: #fff;
+			}
+
+			#panel-loader-positioning-wrap {
+				background: #fff;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				height: 100%;
+				min-height: 10vw;
+				position: absolute !important;
+				width: 99%;
+				z-index: 50;
+			}
+
+			#panel-loader-box {
+				max-width: 50%;
+			}
+
+			#panel-loader-box .wpcore-spin {
+				width: 60px;
+				height: 60px;
+				border-radius: 60px;
+			}
+
+			#panel-loader-box .wpcore-spin:after {
+				top: 6px;
+				width: 12px;
+				height: 12px;
+				border-radius: 12px;
+				margin-left: -6px;
+			}
+
 			.onOffSwitch-inner, .onOffSwitch-switch {
 				transition: all .5s cubic-bezier(1, 0, 0, 1)
 			}
@@ -538,8 +627,18 @@ class Page extends Panel {
 				box-sizing: border-box
 			}
 
-			.cb, .save-all, .wpop-option.color_picker .iris-picker {
-				float: right
+			.cb, .save-all, .wpop-option.Color_Picker .iris-picker {
+				float: right;
+				position: relative;
+				top: -30px;
+			}
+
+			.wpop-option .selectize-control.multi .selectize-input:after {
+				content: 'Select one or more options...';
+			}
+
+			li.wpop-option.Color_Picker input[type="text"] {
+				height: 50px;
 			}
 
 			.onOffSwitch-inner:before {
@@ -585,6 +684,10 @@ class Page extends Panel {
 
 			.wpop-form {
 				margin-bottom: 0;
+			}
+
+			#wpop {
+				margin-top: 0 !important;
 			}
 
 			#wpopMain {
@@ -700,6 +803,10 @@ class Page extends Panel {
 				font-size: 16px
 			}
 
+			.section ul li:nth-child(even) h4.label {
+				background: #ddd;
+			}
+
 			.section li.wpop-option {
 				margin: 1rem 1rem 1.25rem
 			}
@@ -776,6 +883,10 @@ class Page extends Panel {
 			.wpop-option input[type=number],
 			.wpop-option input[type=range] {
 				width: 90%
+			}
+
+			.wpop-option input[data-field="Color_Picker"] {
+				width: 25%;
 			}
 
 			input[data-assigned] {
@@ -918,15 +1029,13 @@ class Page extends Panel {
 					wp.hooks.doAction( 'wpopImgRemove', this, event );
 				} );
 
-				$( '.add-button' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopRepeaterAdd', this, event );
-				} );
-
 				function registerAllActions() {
 					wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
-					wp.hooks.addAction( 'wpopInit', handleInitHashSelection );
-					wp.hooks.addAction( 'wpopInit', initIrisColorSwatches );
+					wp.hooks.addAction( 'wpopInit', handleInitHashSelection, 5 );
+					wp.hooks.addAction( 'wpopFooterScripts', initIrisColorSwatches );
 					wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
+
+					wp.hooks.addAction( 'wpopInit', wpopDisableSpinner, 100 );
 
 					wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
 
@@ -952,8 +1061,13 @@ class Page extends Panel {
 					return false;
 				}
 
+				function wpopDisableSpinner() {
+					console.log( 'i ran' );
+					$( '#panel-loader-positioning-wrap' ).fadeOut( 330 );
+				}
+
 				function wpopShowSpinner() {
-					$( '.wpop-loader-wrapper' ).css( 'display', 'inherit' );
+					$( '#panel-loader-positioning-wrap' ).fadeIn( 330 );
 				}
 
 				function handleInitHashSelection() {
@@ -970,9 +1084,24 @@ class Page extends Panel {
 
 				/* FIELDS JS */
 				function initIrisColorSwatches() {
-					if ( 'undefined' !== typeof iris ) {
-						$( '[data-field="color_picker"]' ).iris( { width: 320, hide: false } );
-					}
+					console.log( 'lkjsdlkfjklsdjf' );
+					var colorPickers = $( '[data-field="Color_Picker"]' );
+					colorPickers.iris( {
+						width: 215,
+						hide: false,
+						border: false,
+						create: function() {
+							var currentValue = $( this ).attr( 'value' );
+							if ( '' !== currentValue ) {
+								doColorFieldUpdate( $( this ).attr( 'name' ), $( this ).attr( 'value' ), new Color( $( this ).attr( 'value' ) ).getMaxContrastColor() );
+							}
+						},
+						change: function( event, ui ) {
+							// event = standard jQuery event, produced by whichever control was changed.
+							// ui = standard jQuery UI object, with a color member containing a Color.js object
+							doColorFieldUpdate( $( this ).attr( 'name' ), ui.color.toString(), new Color( ui.color.toString() ).getMaxContrastColor() );
+						}
+					} );
 				}
 
 				function initSelectizeInputs() {
@@ -983,6 +1112,11 @@ class Page extends Panel {
 					$( '[data-multiselect]' ).selectize( {
 						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
 					} );
+				}
+
+				function doColorFieldUpdate( id, color, contrast ) {
+					console.log( 'li[data-field="' + id + '"] h4.label' );
+					$( '#' + id ).css( 'background-color', color ).css( 'color', contrast );
 				}
 
 				function doPwdFieldClear( elem, event ) {
@@ -1032,11 +1166,23 @@ class Page extends Panel {
 						$( elem ).hide();
 					}
 				}
+
 			} );
 		</script>
 		<?php
 		$js = ob_get_clean();
 		echo PHP_EOL . $css . PHP_EOL . $js . PHP_EOL;
+	}
+
+	public function footer_scripts() {
+		ob_start(); ?>
+		<script type="text/javascript">
+			jQuery( document ).ready( function( $ ) {
+				wp.hooks.doAction( 'wpopFooterScripts' );
+			} );
+		</script>
+		<?php
+		echo PHP_EOL . ob_get_clean() . PHP_EOL;
 	}
 
 	/**
@@ -1143,7 +1289,7 @@ class Section {
 		$section_content = '';
 
 		foreach ( $this->parts as $part ) {
-			$section_content .= $part->get_html();
+			$section_content .= $part->get_html() . HTML::tag( 'span', [ 'class' => 'spacer' ] );
 		}
 
 		echo HTML::tag( 'li', [
@@ -1206,16 +1352,14 @@ class Part {
 	}
 
 	public function build_base_markup( $field ) {
-		ob_start();
 		$desc = ( $this->description ) ? HTML::tag( 'div', [ 'class' => 'desc clear' ], $this->description ) : '';
-		echo HTML::tag(
+
+		return HTML::tag(
 			'li',
 			[ 'class' => 'wpop-option ' . $this->get_clean_classname(), 'data-field' => $this->id ],
-			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field .
-			$this->field_after . $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
+			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field . $this->field_after
+			. $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
 		);
-
-		return ob_get_clean();
 	}
 
 	public function get_saved() {
@@ -1284,7 +1428,7 @@ class Input extends Part {
 			'type'         => $type,
 			'value'        => $option_val,
 			'data-field'   => $this->get_clean_classname(),
-			'autocomplete' => 'new-password', // prevents pwd field autofilling, among other things
+			'autocomplete' => 'false', // prevents pwd field autofilling, among other things
 		];
 
 		if ( ! empty( $this->classes ) ) {
@@ -1462,19 +1606,22 @@ class Editor extends Part {
 	public $input_type = 'editor';
 
 	public function get_html() {
-		return $this->build_base_markup(
+
+		ob_start();
 			wp_editor(
 				stripslashes( $this->get_saved() ),
 				$this->id . '_editor',
 				array(
 					'textarea_name'    => $this->id, // used for saving val
-					'drag_drop_upload' => false, // no work if multiple
 					'tinymce'          => array( 'min_height' => 300 ),
 					'editor_class'     => 'edit',
-					'quicktags'        => true,
+					'quicktags'        => isset( $this->no_quicktags ) ? false : true,
+					'teeny'			   => isset( $this->teeny ) ? true : false,
+					'media_buttons'	   => isset( $this->no_media ) ? false : true
 				)
-			)
-		);
+			);
+
+		return $this->build_base_markup( ob_get_clean() ); // no return param in wp_editor so buffer it is ¯\_//(ツ)_/¯
 	}
 }
 
