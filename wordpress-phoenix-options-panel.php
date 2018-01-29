@@ -47,11 +47,6 @@ class Panel {
 	public $parts = [];
 
 	/**
-	 * @var bool - abstract boolean used to toggle primary hooks (network options, network user metadata, etc use this)
-	 */
-	public $network_admin = false;
-
-	/**
 	 * @var array - string notifications to print at top of panel
 	 */
 	public $notifications = [];
@@ -99,6 +94,7 @@ class Panel {
 	 * @param array $sections
 	 */
 	public function __construct( $args = [], $sections = [] ) {
+		global $pagenow;
 		if ( ! isset( $args['id'] ) ) {
 			echo "Setting a panel ID is required";
 			exit;
@@ -182,13 +178,12 @@ class Panel {
 				$this->panel_object = get_post( $_GET['post'] );
 			} elseif ( isset( $_GET['user'] ) && is_numeric( $_GET['user'] ) ) {
 				if ( is_multisite() && is_network_admin() ) {
-					$this->network_admin = true;
 					$api                 = 'user-network';
 				} else {
 					$api = 'user';
 				}
-				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', $_GET['user'] ) );
-				$this->panel_object = get_user_by( 'id', $_GET['user'] );
+				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', absint( $_GET['user'] ) ) );
+				$this->panel_object = get_user_by( 'id', absint( $_GET['user'] ) );
 			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
 				$api  = 'term';
 				$term = get_term( $_GET['term'] );
@@ -197,7 +192,6 @@ class Panel {
 					$this->panel_object = $term;
 				}
 			} elseif ( is_multisite() && is_network_admin() ) {
-				$this->network_admin = true;
 				$api                 = 'network';
 			} else {
 				$api = 'site';
@@ -312,10 +306,6 @@ class Page extends Panel {
 	 */
 	public $disable_styles = false;
 
-	/**
-	 * @var bool
-	 */
-	public $theme_page = false;
 
 	public $initialized = false;
 
@@ -336,9 +326,12 @@ class Page extends Panel {
 	 */
 	public function initialize_panel() {
 		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
-			$decide_network_or_single_site_admin = $this->network_admin ? 'network_admin_menu' : 'admin_menu';
+			$dashboard = 'admin_menu';
+			if ( 'network' === $this->api || 'user-network' === $this->api ) {
+				$dashboard = 'network_admin_menu';
+			}
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-			add_action( $decide_network_or_single_site_admin, array( $this, 'add_settings_submenu_page' ) );
+			add_action( $dashboard, array( $this, 'add_settings_submenu_page' ) );
 		}
 	}
 
@@ -367,6 +360,11 @@ class Page extends Panel {
 		add_action( 'admin_print_footer_scripts-' . $screen_id, function () {
 			$this->footer_scripts();
 		} );
+		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
+			echo '<h1>Please select a ' . $this->api . '.</h1>';
+			echo '<code>?' . $this->api . '=ID</code>';
+			exit;
+		}
 		ob_start(); ?>
 		<div id="wpopOptions">
 			<?php
@@ -824,20 +822,6 @@ class Part {
 	}
 
 }
-
-/**
- * Class Description
- * @package WPOP\V_3_0
- */
-class Description extends Part {
-
-	public function get_html() {
-		return HTML::tag( 'li', [ 'class' => 'wpop-option section_desc' ], $this->description ) .
-		       HTML::tag( 'span', [ 'class' => 'spacer' ] );
-	}
-
-}
-
 
 /**
  * Class Input
