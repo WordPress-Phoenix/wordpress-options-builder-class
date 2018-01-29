@@ -73,6 +73,26 @@ class Panel {
 	public $panel_object;
 
 	/**
+	 * @var int
+	 */
+	public $part_count = 0;
+
+	/**
+	 * @var int
+	 */
+	public $section_count = 0;
+
+	/**
+	 * @var int
+	 */
+	public $data_count = 0;
+
+	/**
+	 * @var array used to track what happens during save process
+	 */
+	public $updated_counts = array( 'created' => 0, 'updated' => 0, 'deleted' => 0 );
+
+	/**
 	 * Container constructor.
 	 *
 	 * @param array $args
@@ -83,9 +103,16 @@ class Panel {
 			echo "Setting a panel ID is required";
 			exit;
 		}
+		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
+			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
+			// locking the encrypted value to the current environment.
+			$trimmed_key = substr( wp_salt(), 0, 15 );
+			define( 'WPOP_ENCRYPTION_KEY', Password::pad_key( sha1( $trimmed_key, true ) ) );
+		}
+		// establish panel id
 		$this->id = preg_replace( '/_/', '-', $args['id'] );
 
-
+		// magic-set class object vars from array
 		foreach ( $args as $key => $val ) {
 			$this->$key = $val;
 		}
@@ -96,20 +123,41 @@ class Panel {
 		// maybe establish wordpress object id when api is one of the metadata APIs
 		$this->obj_id = $this->maybe_capture_wp_object_id();
 
+		// loop over sections
 		foreach ( $sections as $section_id => $section ) {
 			if ( isset( $section['parts'] ) ) {
+				$this->section_count ++;
+				// loop over current section's parts
 				foreach ( $section['parts'] as $part_id => $part_config ) {
+					$this->part_count ++;
 					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['field'];
 					$part_config['panel_id']   = $this->id;
 					$part_config['section_id'] = $section_id;
 					$part_config['panel_api']  = $this->api;
 
+					// add part to panel/section
 					$this->add_part(
 						$section_id,
 						$section,
-						new $current_part_classname( $part_id, $part_config )
+						$current_part = new $current_part_classname( $part_id, $part_config )
 					);
+					if ( is_object( $current_part ) && $current_part->data_store ) {
+						$this->data_count ++;
+						if ( $current_part->updated ) {
+							if ( isset( $this->updated_counts[ $current_part->update_type ] ) ) {
+								$this->updated_counts[ $current_part->update_type ] ++;
+							}
+						}
+					}
+
 				}
+
+				$update_message = '';
+				foreach ( $this->updated_counts as $count_type => $count ) {
+					$update_message .= $count . ' ' . ucfirst( $count_type ) . '. ';
+				}
+
+				$this->notifications = [ 'notification' => $update_message ];
 			}
 		}
 	}
@@ -155,8 +203,8 @@ class Panel {
 			$api = '';
 		}
 
-		// allow api auto detection if not set in config, but if its set and doesn't match then ignore and use config
-		// value for safety
+		// allow api auto detection if 'api' not set in config array, but if its set and doesn't match then ignore and
+		// use config value for safety
 		//   (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent accidental API
 		//   override)
 		if ( isset( $this->api ) && $api !== $this->api ) {
@@ -166,6 +214,9 @@ class Panel {
 		return $api;
 	}
 
+	/**
+	 * @return int|null
+	 */
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
@@ -184,7 +235,9 @@ class Panel {
 	}
 
 	/**
-	 * Main external developer method used to add parts (sections/fields/markup/etc) to a Panel
+	 * Old external developer method used to add parts (sections/fields/markup/etc) to a Panel
+	 *
+	 * Now used internally, but still available public
 	 *
 	 * @param $section_id
 	 * @param $section
@@ -197,96 +250,6 @@ class Panel {
 		}
 
 		array_push( $this->parts[ $section_id ]['parts'], $part );
-	}
-
-
-	/**
-	 * @return bool
-	 */
-	public function run_options_save_process() {
-		if ( ! isset( $_POST['submit'] )
-		     || ! is_string( $_POST['submit'] )
-		     || 'Save All' !== $_POST['submit']
-		) {
-			return false; // only run logic if submiting
-		}
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->id ) ) {
-			return false; // check for nonce
-		}
-
-		$any_updated = false;
-
-
-		// note $_POST[ $part->id ] that taps the key's value from the submit array
-		foreach ( $this->parts as $section ) {
-			foreach ( $section['parts'] as $part ) {
-				$part = get_object_vars( $part );
-
-				$field_type = ( ! empty( $part['field_type'] ) ) ? $part['field_type'] : $part['input_type'];
-
-				$field_input = isset( $_POST[ $part['id'] ] ) ? $_POST[ $part['id'] ] : false;
-
-				$sanitize_input = $this->sanitize_options_panel( $field_type, $part['id'], $field_input );
-
-				$obj_id = isset( $part['obj_id'] ) ? $part['obj_id'] : null;
-
-				$updated = new Save_Single_Field(
-					$part['panel_id'],
-					$part['panel_api'],
-					$part['id'],
-					$sanitize_input,
-					$obj_id
-				);
-
-				$any_updated = ( $updated && ! $any_updated ) ? true : $any_updated;
-			}
-		}
-
-		if ( $any_updated ) {
-			$this->notifications[] = 'Some options were saved';
-		}
-
-		return $any_updated;
-	}
-
-	protected function sanitize_options_panel( $input_type, $id, $value ) {
-		switch ( $input_type ) {
-			case 'password':
-				if ( isset( $_POST[ 'stored_' . $id ] ) && ! empty( $_POST[ 'stored_' . $id ] ) ) {
-					if ( $_POST[ 'stored_' . $id ] === $_POST[ $id ] ) {
-						// unchanged password? do nothing
-						return 'wpop-encrypted-pwd-field-val-unchanged';
-					} else {
-						// stored password but field updated/deleted so overwrite
-						return ! empty( $value ) ? Password::encrypt( $value ) : false;
-					}
-				} else {
-					// insert new password
-					return ! empty( $value ) ? Password::encrypt( $value ) : false;
-				}
-				break;
-			case 'color':
-				return sanitize_hex_color_no_hash( $value );
-				break;
-			case 'editor':
-				return wp_kses_post( $value );
-				break;
-			case 'textarea':
-				return sanitize_textarea_field( $value );
-				break;
-			case 'checkbox':
-			case 'switch':
-			case 'toggle_switch':
-				return sanitize_text_field( $value );
-				break;
-			case 'multiselect':
-				return maybe_serialize( $value );
-				break;
-			case 'text':
-			default:
-				return sanitize_text_field( $value );
-				break;
-		}
 	}
 
 	/**
@@ -351,6 +314,8 @@ class Page extends Panel {
 	 */
 	public $theme_page = false;
 
+	public $initialized = false;
+
 	/**
 	 * Page constructor.
 	 *
@@ -370,7 +335,6 @@ class Page extends Panel {
 		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
 			$decide_network_or_single_site_admin = $this->network_admin ? 'network_admin_menu' : 'admin_menu';
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-			$this->run_options_save_process();
 			add_action( $decide_network_or_single_site_admin, array( $this, 'add_settings_submenu_page' ) );
 		}
 	}
@@ -440,6 +404,7 @@ class Page extends Panel {
 									foreach ( $this->parts as $section_id => $section ) {
 										$section_icon = ! empty( $section['dashicon'] ) ?
 											HTML::dashicon( $section['dashicon'] . ' menu-icon' ) : '';
+										$pcount       = count( $section['parts'] ) > 1 ? HTML::tag( 'span', [ 'class' => 'part-count' ], count( $section['parts'] ) ) : '';
 										echo HTML::tag(
 											'li',
 											[
@@ -452,8 +417,7 @@ class Page extends Panel {
 													'href'  => '#' . $section_id,
 													'class' => 'pure-menu-link',
 												],
-												$section_icon . $section['label']
-											)
+												$section_icon . $section['label'] . $pcount )
 										);
 									}
 									?>
@@ -474,7 +438,12 @@ class Page extends Panel {
 							<div class="pure-g">
 								<div class="pure-u-1 pure-u-md-1-3">
 									<div>
-										<span>Stored in: <?php echo HTML::tag( 'code', [], $this->get_storage_table() ); ?></span>
+										<ul>
+											<li>Sections: <?php echo HTML::tag( 'code', [], $this->section_count ); ?></li>
+											<li>Total Data Parts: <?php echo HTML::tag( 'code', [], $this->data_count ); ?></li>
+											<li>Total Parts: <?php echo HTML::tag( 'code', [], $this->part_count ); ?></li>
+											<li>Stored in: <?php echo HTML::tag( 'code', [], $this->get_storage_table() ); ?></li>
+										</ul>
 									</div>
 								</div>
 								<div class="pure-u-1 pure-u-md-1-3">
@@ -483,9 +452,8 @@ class Page extends Panel {
 									</div>
 								</div>
 								<div class="pure-u-1 pure-u-md-1-3">
-									<?php if ( is_super_admin() ) { ?>
 
-									<?php } ?>
+
 								</div>
 							</div>
 						</footer>
@@ -503,671 +471,13 @@ class Page extends Panel {
 	public function inline_styles_and_scripts() {
 		ob_start(); ?>
 		<style>
-			/*!
-			 * WordPress CSS Spinner
-			 * @license GPL-2.0+
-			 * @author kuus <kunderikuus@gmail.com> (http://kunderikuus.net)
-			 */
-			@-webkit-keyframes wp-core-spinner {
-				from {
-					-webkit-transform: rotate(0deg);
-					transform: rotate(0deg);
-				}
-				to {
-					-webkit-transform: rotate(360deg);
-					transform: rotate(360deg);
-				}
-			}
-
-			@keyframes wp-core-spinner {
-				from {
-					-webkit-transform: rotate(0deg);
-					transform: rotate(0deg);
-				}
-				to {
-					-webkit-transform: rotate(360deg);
-					transform: rotate(360deg);
-				}
-			}
-
-			.wpcore-spin {
-				position: relative;
-				width: 20px;
-				height: 20px;
-				border-radius: 20px;
-				background: #A6A6A6;
-				-webkit-animation: wp-core-spinner 1.04s linear infinite;
-				animation: wp-core-spinner 1.04s linear infinite;
-			}
-
-			.wpcore-spin:after {
-				content: "";
-				position: absolute;
-				top: 2px;
-				left: 50%;
-				width: 4px;
-				height: 4px;
-				border-radius: 4px;
-				margin-left: -2px;
-				background: #fff;
-			}
-
-			#panel-loader-positioning-wrap {
-				background: #fff;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				height: 100%;
-				min-height: 10vw;
-				position: absolute !important;
-				width: 99%;
-				z-index: 50;
-			}
-
-			#panel-loader-box {
-				max-width: 50%;
-			}
-
-			#panel-loader-box .wpcore-spin {
-				width: 60px;
-				height: 60px;
-				border-radius: 60px;
-			}
-
-			#panel-loader-box .wpcore-spin:after {
-				top: 6px;
-				width: 12px;
-				height: 12px;
-				border-radius: 12px;
-				margin-left: -6px;
-			}
-
-			.onOffSwitch-inner, .onOffSwitch-switch {
-				transition: all .5s cubic-bezier(1, 0, 0, 1)
-			}
-
-			.onOffSwitch {
-				position: relative;
-				width: 110px;
-				-webkit-user-select: none;
-				-moz-user-select: none;
-				-ms-user-select: none;
-				margin-left: auto;
-				margin-right: 12px
-			}
-
-			input[type=checkbox].onOffSwitch-checkbox {
-				display: none
-			}
-
-			.onOffSwitch-label {
-				display: block;
-				overflow: hidden;
-				cursor: pointer;
-				border: 2px solid #EEE;
-				border-radius: 28px
-			}
-
-			.onOffSwitch-inner {
-				display: block;
-				width: 200%;
-				margin-left: -100%
-			}
-
-			.onOffSwitch-inner:after, .onOffSwitch-inner:before {
-				display: block;
-				float: left;
-				width: 50%;
-				height: 40px;
-				padding: 0;
-				line-height: 40px;
-				font-size: 17px;
-				font-family: Trebuchet, Arial, sans-serif;
-				font-weight: 700;
-				box-sizing: border-box
-			}
-
-			.cb, .save-all, .wpop-option.Color_Picker .iris-picker {
-				float: right;
-				position: relative;
-				top: -30px;
-			}
-
-			.wpop-option .selectize-control.multi .selectize-input:after {
-				content: 'Select one or more options...';
-			}
-
-			li.wpop-option.Color_Picker input[type="text"] {
-				height: 50px;
-			}
-
-			.onOffSwitch-inner:before {
-				content: "ON";
-				padding-left: 10px;
-				background-color: #21759B;
-				color: #FFF
-			}
-
-			.onOffSwitch-inner:after {
-				content: "OFF";
-				padding-right: 10px;
-				background-color: #EEE;
-				color: #BCBCBC;
-				text-align: right
-			}
-
-			.onOffSwitch-switch {
-				display: block;
-				width: 28px;
-				margin: 6px;
-				background: #BCBCBC;
-				position: absolute;
-				top: 0;
-				bottom: 0;
-				right: 66px;
-				border: 2px solid #EEE;
-				border-radius: 20px
-			}
-
-			.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
-				margin-left: 0
-			}
-
-			.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
-				right: 0;
-				background-color: #D54E21
-			}
-
-			.cb, .cb-wrap, .desc:after, .pwd-clear, .save-all, span.menu-icon, span.spacer {
-				position: relative
-			}
-
-			.wpop-form {
-				margin-bottom: 0;
-			}
-
-			#wpop {
-				margin-top: 0 !important;
-			}
-
-			#wpopMain {
-				background: #fff
-			}
-
-			#wpopOptNavUl {
-				margin-top: 0
-			}
-
-			.wpop-options-menu {
-				margin-bottom: 8em
-			}
-
-			#wpopContent {
-				background: #F1F1F1;
-				width: 100% !important;
-				border-top: 1px solid #D8D8D8
-			}
-
-			.pure-g [class*=pure-u] {
-				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif
-			}
-
-			.pure-form select {
-				min-width: 320px
-			}
-
-			.selectize-control {
-				max-width: 98.5%
-			}
-
-			.pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
-				padding: 1.3em 2em
-			}
-
-			.pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
-				background: inherit
-			}
-
-			#wpopOptions header {
-				overflow: hidden;
-				max-height: 88px
-			}
-
-			#wpopNav li.pure-menu-item {
-				height: 55px;
-			}
-
-			#wpopNav p.submit input {
-				width: 100%
-			}
-
-			#wpop {
-				border: 1px solid #D8D8D8;
-				background: #fff
-			}
-
-			.opn a.pure-menu-link {
-				color: #fff !important
-			}
-
-			.opn a.pure-menu-link:focus {
-				box-shadow: none;
-				-webkit-box-shadow: none
-			}
-
-			#wpopContent .section {
-				display: none;
-				width: 100%
-			}
-
-			#wpopContent .section.active {
-				display: inline-block
-			}
-
-			span.page-icon {
-				margin: 0 1.5rem 0 0
-			}
-
-			span.menu-icon {
-				left: -.5rem
-			}
-
-			span.page-icon:before {
-				font-size: 2.5rem;
-				position: relative;
-				top: -4px;
-				right: 4px;
-				color: #777
-			}
-
-			.clear {
-				clear: both
-			}
-
-			.section {
-				padding: 0 0 5px
-			}
-
-			.section h3 {
-				margin: 0 0 10px;
-				padding: 2rem 1.5rem
-			}
-
-			.section h4.label {
-				margin: 0;
-				display: table-cell;
-				border: 1px solid #e9e9e9;
-				background: #f1f1f1;
-				padding: .33rem .66rem .5rem;
-				font-weight: 500;
-				font-size: 16px
-			}
-
-			.section ul li:nth-child(even) h4.label {
-				background: #ddd;
-			}
-
-			.section li.wpop-option {
-				margin: 1rem 1rem 1.25rem
-			}
-
-			.twothirdfat {
-				width: 66.6%
-			}
-
-			span.spacer {
-				display: block;
-				width: 100%;
-				border: 0;
-				height: 0;
-				border-top: 1px solid rgba(0, 0, 0, .1);
-				border-bottom: 1px solid rgba(255, 255, 255, .3)
-			}
-
-			li.even.option {
-				background-color: #ccc
-			}
-
-			input[disabled=disabled] {
-				background-color: #CCC
-			}
-
-			.cb {
-				right: 20px
-			}
-
-			.card-wrap {
-				width: 100%
-			}
-
-			.fullwidth {
-				width: 100% !important;
-				max-width: 100% !important
-			}
-
-			.wpop-head {
-				background: #f1f1f1
-			}
-
-			.wpop-head > .inner {
-				padding: 1rem 1.5rem 0
-			}
-
-			.save-all {
-				top: -48px
-			}
-
-			.desc {
-				margin: .5rem 0 0 .25rem;
-				font-weight: 300;
-				font-size: 12px;
-				line-height: 16px;
-				transition: all 1s ease;
-				color: #888;
-				-webkit-transition: all 1s ease;
-				-moz-transition: all 1s ease;
-				-o-transition: all 1s ease
-			}
-
-			.desc:after {
-				display: block;
-				width: 98%;
-				border-top: 1px solid rgba(0, 0, 0, .1);
-				border-bottom: 1px solid rgba(255, 255, 255, .3)
-			}
-
-			.wpop-option input[type=text],
-			.wpop-option input[type=url],
-			.wpop-option input[type=password],
-			.wpop-option input[type=email],
-			.wpop-option input[type=number],
-			.wpop-option input[type=range] {
-				width: 90%
-			}
-
-			.wpop-option input[data-field="Color_Picker"] {
-				width: 25%;
-			}
-
-			input[data-assigned] {
-				width: 100% !important
-			}
-
-			.add-button {
-				margin: 3em auto;
-				display: block;
-				width: 100%;
-				text-align: center
-			}
-
-			.img-preview {
-				max-width: 320px;
-				display: block;
-				margin: 0 0 1rem
-			}
-
-			.img-remove {
-				border: 2px solid #cd1713 !important;
-				background: #f1f1f1 !important;
-				color: #cd1713 !important;
-				box-shadow: none;
-				-webkit-box-shadow: none;
-				margin-left: 1rem !important
-			}
-
-			.pwd-clear {
-				margin-left: .5rem !important;
-				top: 1px
-			}
-
-			.pure-form footer {
-				background: #f1f1f1;
-				border-top: 1px solid #D8D8D8
-			}
-
-			.pure-form footer div div > * {
-				padding: 1rem .33rem
-			}
-
-			.wpop-option .wp-editor-wrap {
-				margin-top: .5rem
-			}
-
-			.wpop-option.color_picker input {
-				width: 50%
-			}
-
-			.cb-wrap {
-				display: block;
-				right: 1.33rem;
-				max-width: 110px;
-				margin-left: auto;
-				top: -1.66rem
-			}
+			*/@-webkit-keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}.wpcore-spin{position:relative;width:20px;height:20px;border-radius:20px;background:#A6A6A6;-webkit-animation:wp-core-spinner 1.04s linear infinite;animation:wp-core-spinner 1.04s linear infinite}.wpcore-spin:after{content:"";position:absolute;top:2px;left:50%;width:4px;height:4px;border-radius:4px;margin-left:-2px;background:#fff}#panel-loader-positioning-wrap{background:#fff;display:flex;align-items:center;justify-content:center;height:100%;min-height:10vw;position:absolute!important;width:99%;max-width:1600px;z-index:50}#panel-loader-box{max-width:50%}#panel-loader-box .wpcore-spin{width:60px;height:60px;border-radius:60px}#panel-loader-box .wpcore-spin:after{top:6px;width:12px;height:12px;border-radius:12px;margin-left:-6px}.onOffSwitch-inner,.onOffSwitch-switch{transition:all .5s cubic-bezier(1,0,0,1)}.onOffSwitch{position:relative;width:110px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;margin-left:auto;margin-right:12px}input[type=checkbox].onOffSwitch-checkbox{display:none}.onOffSwitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #EEE;border-radius:28px}.onOffSwitch-inner{display:block;width:200%;margin-left:-100%}.onOffSwitch-inner:after,.onOffSwitch-inner:before{display:block;float:left;width:50%;height:40px;padding:0;line-height:40px;font-size:17px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.pure-menu-link .part-count,.radio-wrap{float:right}.onOffSwitch-inner:before{content:"ON";padding-left:10px;background-color:#21759B;color:#FFF}.onOffSwitch-inner:after{content:"OFF";padding-right:10px;background-color:#EEE;color:#BCBCBC;text-align:right}.onOffSwitch-switch{display:block;width:28px;margin:6px;background:#BCBCBC;position:absolute;top:0;bottom:0;right:66px;border:2px solid #EEE;border-radius:20px}.cb,.cb-wrap,.desc:after,.pwd-clear,.radio-wrap,.save-all,span.menu-icon,span.page-icon:before,span.spacer{position:relative}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-inner{margin-left:0}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-switch{right:0;background-color:#D54E21}.radio-wrap{top:-1rem}.cb,.save-all,.wpop-option.Color .iris-picker{float:right;position:relative;top:-30px}.wpop-option .selectize-control.multi .selectize-input:after{content:'Select one or more options...'}li.wpop-option.Color input[type=text]{height:50px}.wpop-form{margin-bottom:0}#wpop{max-width:1600px;margin:0 auto 0 0!important}#wpopMain{background:#fff}#wpopOptNavUl{margin-top:0}.wpop-options-menu{margin-bottom:8em}#wpopContent{background:#F1F1F1;width:100%!important;border-top:1px solid #D8D8D8}.pure-g [class*=pure-u]{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.pure-form select{min-width:320px}.selectize-control{max-width:98.5%}.pure-menu-disabled,.pure-menu-heading,.pure-menu-link{padding:1.3em 2em}.pure-menu-active>.pure-menu-link,.pure-menu-link:focus,.pure-menu-link:hover{background:inherit}#wpopOptions header{overflow:hidden;max-height:88px}#wpopNav li.pure-menu-item{height:55px}#wpopNav p.submit input{width:100%}#wpop{border:1px solid #D8D8D8;background:#fff}.opn a.pure-menu-link{color:#fff!important}.opn a.pure-menu-link:focus{box-shadow:none;-webkit-box-shadow:none}#wpopContent .section{display:none;width:100%}#wpopContent .section.active{display:inline-block}span.page-icon{margin:0 1.5rem 0 0}span.menu-icon{left:-.5rem}span.page-icon:before{font-size:2.5rem;top:-4px;right:4px;color:#777}.clear{clear:both}.section{padding:0 0 5px}.section h3{margin:0 0 10px;padding:2rem 1.5rem}.section h4.label{margin:0;display:table-cell;border:1px solid #e9e9e9;background:#f1f1f1;padding:.33rem .66rem .5rem;font-weight:500;font-size:16px}.section ul li:nth-child(even) h4.label{background:#ddd}.section li.wpop-option{margin:1rem 1rem 1.25rem}.twothirdfat{width:66.6%}span.spacer{display:block;width:100%;border:0;height:0;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}li.even.option{background-color:#ccc}input[disabled=disabled]{background-color:#CCC}.cb{right:20px}.card-wrap{width:100%}.fullwidth{width:100%!important;max-width:100%!important}.wpop-head{background:#f1f1f1}.wpop-head>.inner{padding:1rem 1.5rem 0}.save-all{top:-48px}.desc{margin:.5rem 0 0 .25rem;font-weight:300;font-size:12px;line-height:16px;color:#888}.desc:after{display:block;width:98%;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}.wpop-option input[type=email],.wpop-option input[type=number],.wpop-option input[type=password],.wpop-option input[type=range],.wpop-option input[type=text],.wpop-option input[type=url]{width:90%}.wpop-option input[data-part=color]{width:25%}li[data-part=markdown]{padding:1rem}li[data-part=markdown]+span.spacer{display:none}li[data-part=markdown] p{margin:0!important}li[data-part=markdown] ol,li[data-part=markdown] p,li[data-part=markdown] ul{font-size:1rem}[data-part=markdown] h1{padding-top:1.33rem;padding-bottom:.33rem}[data-part=markdown] h1:first-of-type{padding-top:.33rem;padding-bottom:.33rem}[data-part=markdown] h1,[data-part=markdown] h2,[data-part=markdown] h3,[data-part=markdown] h4,[data-part=markdown] h5,[data-part=markdown] h6{padding-left:0!important}input[data-assigned]{width:100%!important}.add-button{margin:3em auto;display:block;width:100%;text-align:center}.img-preview{max-width:320px;display:block;margin:0 0 1rem}.img-remove{border:2px solid #cd1713!important;background:#f1f1f1!important;color:#cd1713!important;box-shadow:none;-webkit-box-shadow:none;margin-left:1rem!important}.pwd-clear{margin-left:.5rem!important;top:1px}.pure-form footer{background:#f1f1f1;border-top:1px solid #D8D8D8}.pure-form footer div div>*{padding:1rem .33rem}.wpop-option .wp-editor-wrap{margin-top:.5rem}.wpop-option.color input{width:50%}.cb-wrap{display:block;right:1.33rem;max-width:110px;margin-left:auto;top:-1.66rem}
 		</style>
 		<?php
 		$css = ob_get_clean();
 		ob_start(); ?>
 		<script type="text/javascript">
-			/**
-			 * Module: WP-JS-Hooks
-			 * Props: Carl Danley & 10up
-			 */
-			!function( t, n ) {
-				"use strict";
-				t.wp = t.wp || {}, t.wp.hooks = t.wp.hooks || new function() {
-					function t( t, n, r, i ) {
-						var e, o, c;
-						if ( f[t][n] ) if ( r ) if ( e = f[t][n], i ) for ( c = e.length; c--; ) (o = e[c]).callback === r && o.context === i && e.splice( c, 1 ); else for ( c = e.length; c--; ) e[c].callback === r && e.splice( c, 1 ); else f[t][n] = []
-					}
-
-					function n( t, n, i, e, o ) {
-						var c = { callback: i, priority: e, context: o }, l = f[t][n];
-						l ? (l.push( c ), l = r( l )) : l = [c], f[t][n] = l
-					}
-
-					function r( t ) {
-						for ( var n, r, i, e = 1, o = t.length; e < o; e++ ) {
-							for ( n = t[e], r = e; (i = t[r - 1]) && i.priority > n.priority; ) t[r] = t[r - 1], --r;
-							t[r] = n
-						}
-						return t
-					}
-
-					function i( t, n, r ) {
-						var i, e, o = f[t][n];
-						if ( !o ) return "filters" === t && r[0];
-						if ( e = o.length, "filters" === t ) for ( i = 0; i < e; i++ ) r[0] = o[i].callback.apply( o[i].context, r ); else for ( i = 0; i < e; i++ ) o[i].callback.apply( o[i].context, r );
-						return "filters" !== t || r[0]
-					}
-
-					var e = Array.prototype.slice, o = {
-						removeFilter: function( n, r ) {
-							return "string" == typeof n && t( "filters", n, r ), o
-						}, applyFilters: function() {
-							var t = e.call( arguments ), n = t.shift();
-							return "string" == typeof n ? i( "filters", n, t ) : o
-						}, addFilter: function( t, r, i, e ) {
-							return "string" == typeof t && "function" == typeof r && (i = parseInt( i || 10, 10 ), n( "filters", t, r, i, e )), o
-						}, removeAction: function( n, r ) {
-							return "string" == typeof n && t( "actions", n, r ), o
-						}, doAction: function() {
-							var t = e.call( arguments ), n = t.shift();
-							return "string" == typeof n && i( "actions", n, t ), o
-						}, addAction: function( t, r, i, e ) {
-							return "string" == typeof t && "function" == typeof r && (i = parseInt( i || 10, 10 ), n( "actions", t, r, i, e )), o
-						}
-					}, f = { actions: {}, filters: {} };
-					return o
-				}
-			}( window );
-			// BEGIN JS
-			jQuery( document ).ready( function( $ ) {
-				var wpModal;
-				registerAllActions();
-				wp.hooks.doAction( 'wpopPreInit' );
-
-				$( '#wpopNav li a' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
-				} );
-
-				wp.hooks.doAction( 'wpopInit' ); // main init
-
-				$( 'input[type="submit"]' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopSubmit', this, evt );
-				} );
-
-				$( '.pwd-clear' ).click( function( evt ) {
-					wp.hooks.doAction( 'wpopPwdClear', this, evt );
-				} );
-
-				$( '.img-upload' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgUpload', this, event );
-				} );
-
-				$( '.img-remove' ).on( 'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgRemove', this, event );
-				} );
-
-				function registerAllActions() {
-					wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
-					wp.hooks.addAction( 'wpopInit', handleInitHashSelection, 5 );
-					wp.hooks.addAction( 'wpopFooterScripts', initIrisColorSwatches );
-					wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
-
-					wp.hooks.addAction( 'wpopInit', wpopDisableSpinner, 100 );
-
-					wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
-
-					wp.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
-					wp.hooks.addAction( 'wpopImgUpload', doImgUpload );
-					wp.hooks.addAction( 'wpopImgRemove', doImgRemove );
-
-					wp.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
-				}
-
-				/* CORE */
-				function handleSectionNavigation( elem, event ) {
-					event.preventDefault();
-					var page_active = $( ($( elem ).attr( 'href' )) ).addClass( 'active' );
-					var menu_active = $( ($( elem ).attr( 'href' ) + '-nav') ).addClass( 'active wp-ui-primary opn' );
-
-					// add tab's location to URL but stay at the top of the page
-					window.location.hash = $( elem ).attr( 'href' );
-					window.scrollTo( 0, 0 );
-					$( page_active ).siblings().removeClass( 'active' );
-					$( menu_active ).siblings().removeClass( 'active wp-ui-primary opn' );
-
-					return false;
-				}
-
-				function wpopDisableSpinner() {
-					console.log( 'i ran' );
-					$( '#panel-loader-positioning-wrap' ).fadeOut( 330 );
-				}
-
-				function wpopShowSpinner() {
-					$( '#panel-loader-positioning-wrap' ).fadeIn( 330 );
-				}
-
-				function handleInitHashSelection() {
-					if ( hash = window.location.hash ) {
-						$( hash + '-nav a' ).trigger( 'click' );
-					} else {
-						$( '#wpopNav li:first a' ).trigger( 'click' );
-					}
-				}
-
-				function nixHashJumpJank() {
-					$( 'html, body' ).animate( { scrollTop: 0 } );
-				}
-
-				/* FIELDS JS */
-				function initIrisColorSwatches() {
-					console.log( 'lkjsdlkfjklsdjf' );
-					var colorPickers = $( '[data-field="Color_Picker"]' );
-					colorPickers.iris( {
-						width: 215,
-						hide: false,
-						border: false,
-						create: function() {
-							var currentValue = $( this ).attr( 'value' );
-							if ( '' !== currentValue ) {
-								doColorFieldUpdate( $( this ).attr( 'name' ), $( this ).attr( 'value' ), new Color( $( this ).attr( 'value' ) ).getMaxContrastColor() );
-							}
-						},
-						change: function( event, ui ) {
-							// event = standard jQuery event, produced by whichever control was changed.
-							// ui = standard jQuery UI object, with a color member containing a Color.js object
-							doColorFieldUpdate( $( this ).attr( 'name' ), ui.color.toString(), new Color( ui.color.toString() ).getMaxContrastColor() );
-						}
-					} );
-				}
-
-				function initSelectizeInputs() {
-					$( '[data-select]' ).selectize( {
-						allowEmptyOption: false,
-						placeholder: $( this ).attr( 'data-placeholder' )
-					} );
-					$( '[data-multiselect]' ).selectize( {
-						plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"]
-					} );
-				}
-
-				function doColorFieldUpdate( id, color, contrast ) {
-					console.log( 'li[data-field="' + id + '"] h4.label' );
-					$( '#' + id ).css( 'background-color', color ).css( 'color', contrast );
-				}
-
-				function doPwdFieldClear( elem, event ) {
-					event.preventDefault();
-					$( elem ).prev().val( null );
-				}
-
-				function doImgUpload( elem, event ) {
-					event.preventDefault();
-					var config = $( elem ).data();
-					// Initialize the modal the first time.
-					if ( !wpModal ) {
-						wpModal = wp.media.frames.wpModal || wp.media( {
-							title: config.title,
-							button: { text: config.button },
-							library: { type: 'image' },
-							multiple: false
-						} );
-
-						// Picking an image
-						wpModal.on( 'select', function() {
-							// Get the image URL
-							var image = wpModal.state().get( 'selection' ).first().toJSON();
-							if ( 'object' === typeof image ) {
-								var closest = $( elem ).closest( '.wpop-option' );
-								closest.find( '[type="hidden"]' ).val( image.id );
-								closest.find( 'img' ).attr( 'src', image.url ).show();
-								$( elem ).attr( 'value', 'Replace ' + $( elem ).attr( 'data-media-label' ) );
-								closest.find( '.img-remove' ).show();
-							}
-						} );
-					}
-
-					// Open the modal
-					wpModal.open();
-				}
-
-				function doImgRemove( elem, event ) {
-					event.preventDefault();
-					var remove = confirm( 'Remove ' + $( elem ).attr( 'data-media-label' ) + '?' );
-					if ( remove ) {
-						var item = $( elem ).closest( '.wpop-option' );
-						var blank = item.find( '.blank-img' ).html();
-						item.find( '[type="hidden"]' ).val( null );
-						item.find( 'img' ).attr( 'src', blank );
-						item.find( '.button-hero' ).val( 'Set Image' );
-						$( elem ).hide();
-					}
-				}
-
-			} );
+			!function(t,o){"use strict";t.wp=t.wp||{},t.wp.hooks=t.wp.hooks||new function(){function t(t,o,i,n){var e,a,p;if(r[t][o])if(i)if(e=r[t][o],n)for(p=e.length;p--;)(a=e[p]).callback===i&&a.context===n&&e.splice(p,1);else for(p=e.length;p--;)e[p].callback===i&&e.splice(p,1);else r[t][o]=[]}function o(t,o,n,e,a){var p={callback:n,priority:e,context:a},c=r[t][o];c?(c.push(p),c=i(c)):c=[p],r[t][o]=c}function i(t){for(var o,i,n,e=1,a=t.length;e<a;e++){for(o=t[e],i=e;(n=t[i-1])&&n.priority>o.priority;)t[i]=t[i-1],--i;t[i]=o}return t}function n(t,o,i){var n,e,a=r[t][o];if(!a)return"filters"===t&&i[0];if(e=a.length,"filters"===t)for(n=0;n<e;n++)i[0]=a[n].callback.apply(a[n].context,i);else for(n=0;n<e;n++)a[n].callback.apply(a[n].context,i);return"filters"!==t||i[0]}var e=Array.prototype.slice,a={removeFilter:function(o,i){return"string"==typeof o&&t("filters",o,i),a},applyFilters:function(){var t=e.call(arguments),o=t.shift();return"string"==typeof o?n("filters",o,t):a},addFilter:function(t,i,n,e){return"string"==typeof t&&"function"==typeof i&&(n=parseInt(n||10,10),o("filters",t,i,n,e)),a},removeAction:function(o,i){return"string"==typeof o&&t("actions",o,i),a},doAction:function(){var t=e.call(arguments),o=t.shift();return"string"==typeof o&&n("actions",o,t),a},addAction:function(t,i,n,e){return"string"==typeof t&&"function"==typeof i&&(n=parseInt(n||10,10),o("actions",t,i,n,e)),a}},r={actions:{},filters:{}};return a}}(window),jQuery(document).ready(function(t){function o(o,i,n){t("#"+o).css("background-color",i).css("color",n)}var i;wp.hooks.addAction("wpopPreInit",function(){t("html, body").animate({scrollTop:0})}),wp.hooks.addAction("wpopInit",function(){(hash=window.location.hash)?t(hash+"-nav a").trigger("click"):t("#wpopNav li:first a").trigger("click")},5),wp.hooks.addAction("wpopFooterScripts",function(){t('[data-part="color"]').iris({width:215,hide:!1,border:!1,create:function(){""!==t(this).attr("value")&&o(t(this).attr("name"),t(this).attr("value"),new Color(t(this).attr("value")).getMaxContrastColor())},change:function(i,n){o(t(this).attr("name"),n.color.toString(),new Color(n.color.toString()).getMaxContrastColor())}})}),wp.hooks.addAction("wpopInit",function(){t("[data-select]").selectize({allowEmptyOption:!1,placeholder:t(this).attr("data-placeholder")}),t("[data-multiselect]").selectize({plugins:["restore_on_backspace","remove_button","drag_drop","optgroup_columns"]})}),wp.hooks.addAction("wpopInit",function(){t("#panel-loader-positioning-wrap").fadeOut(345)},100),wp.hooks.addAction("wpopSectionNav",function(o,i){i.preventDefault();var n=t(t(o).attr("href")).addClass("active"),e=t(t(o).attr("href")+"-nav").addClass("active wp-ui-primary opn");return window.location.hash=t(o).attr("href"),window.scrollTo(0,0),t(n).siblings().removeClass("active"),t(e).siblings().removeClass("active wp-ui-primary opn"),!1}),wp.hooks.addAction("wpopPwdClear",function(o,i){i.preventDefault(),t(o).prev().val(null)}),wp.hooks.addAction("wpopImgUpload",function(o,n){n.preventDefault();var e=t(o).data();i||(i=wp.media.frames.wpModal||wp.media({title:e.title,button:{text:e.button},library:{type:"image"},multiple:!1})).on("select",function(){var n=i.state().get("selection").first().toJSON();if("object"==typeof n){var e=t(o).closest(".wpop-option");e.find('[type="hidden"]').val(n.id),e.find("img").attr("src",n.url).show(),t(o).attr("value","Replace "+t(o).attr("data-media-label")),e.find(".img-remove").show()}}),i.open()}),wp.hooks.addAction("wpopImgRemove",function(o,i){if(i.preventDefault(),confirm("Remove "+t(o).attr("data-media-label")+"?")){var n=t(o).closest(".wpop-option"),e=n.find(".blank-img").html();n.find('[type="hidden"]').val(null),n.find("img").attr("src",e),n.find(".button-hero").val("Set Image"),t(o).hide()}}),wp.hooks.addAction("wpopSubmit",function(){t("#panel-loader-positioning-wrap").fadeIn(345)}),wp.hooks.doAction("wpopPreInit"),t("#wpopNav li a").click(function(t){wp.hooks.doAction("wpopSectionNav",this,t)}),wp.hooks.doAction("wpopInit"),t('input[type="submit"]').click(function(t){wp.hooks.doAction("wpopSubmit",this,t)}),t(".pwd-clear").click(function(t){wp.hooks.doAction("wpopPwdClear",this,t)}),t(".img-upload").on("click",function(t){wp.hooks.doAction("wpopImgUpload",this,t)}),t(".img-remove").on("click",function(t){wp.hooks.doAction("wpopImgRemove",this,t)})});
 		</script>
 		<?php
 		$js = ob_get_clean();
@@ -1176,6 +486,40 @@ class Page extends Panel {
 
 	public function footer_scripts() {
 		ob_start(); ?>
+		<script type="text/html" id="tmpl-wpop-media-stats">
+			<div class="pure-g media-stats">
+				<div class="pure-u-17-24">
+					<table class="widefat striped">
+						<thead>
+						<tr>
+							<td colspan="2"><?php echo HTML::dashicon( 'dashicons-format-image' ); ?>
+								<a href="{{{ data.url }}}">{{{ data.filename }}}</a>
+								<a href="{{{ data.editLink }}}" class="button" style="float:right;">Edit Image</a>
+							</td>
+						</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td>uploaded</td>
+							<td>{{{ data.dateFormatted }}}</td>
+						</tr>
+						<tr>
+							<td>orientation</td>
+							<td>{{{ data.orientation }}}</td>
+						</tr>
+						<tr>
+							<td>size</td>
+							<td>{{{ data.width }}}x{{{ data.height }}} {{{ data.filesizeHumanReadable }}}</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="pure-u-7-24">
+					<img src="{{{ data.sizes.thumbnail.url }}}" class="img-preview"/>
+				</div>
+			</div>
+
+		</script>
 		<script type="text/javascript">
 			jQuery( document ).ready( function( $ ) {
 				wp.hooks.doAction( 'wpopFooterScripts' );
@@ -1225,7 +569,8 @@ class Page extends Panel {
 		// Enqueue media (needed for media modal)
 		wp_enqueue_media();
 
-		wp_enqueue_script( 'iris' ); // core color picker
+		wp_enqueue_script( array( 'iris', 'wp-util', 'wp-shortcode' ) );
+
 		$selectize_cdn = 'https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/';
 		wp_register_script( 'wpop-selectize', $selectize_cdn . 'js/standalone/selectize.min.js', array( 'jquery-ui-sortable' ) );
 		wp_enqueue_script( 'wpop-selectize' );
@@ -1288,7 +633,7 @@ class Section {
 
 		$section_content = '';
 
-		foreach ( $this->parts as $part ) {
+		foreach ( $this->parts as $part ) { // parts are wrapped in <li>'s
 			$section_content .= $part->get_html() . HTML::tag( 'span', [ 'class' => 'spacer' ] );
 		}
 
@@ -1309,16 +654,19 @@ class Part {
 
 	public $id;
 	public $field_id;
+	public $saved;
 	public $part_type = 'option';
 	public $label = 'Option';
 	public $description = '';
 	public $default_value = '';
-	public $classes = array( 'option' );
+	public $classes = array();
 	public $atts = [];
+	public $data_store = false;
 	public $field_before = null;
 	public $field_after = null;
 	public $panel_api = false;
 	public $panel_id = false;
+	public $update_type = '';
 
 	public function __construct( $i, $args = [] ) {
 		$this->id       = $i;
@@ -1327,28 +675,25 @@ class Part {
 		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
 		}
+
+		if ( $this->data_store ) {
+			$old_value     = $this->get_saved();
+			$this->updated = $this->run_save_process();
+			$this->saved   = $this->get_saved();
+			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
+				$this->update_type = 'created';
+			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
+			           && ( $old_value !== $this->saved )
+			) {
+				$this->update_type = 'updated';
+			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
+				$this->update_type = 'deleted';
+			}
+		}
 	}
 
 	public function get_clean_classname() {
 		return explode( '\\', get_called_class() )[2];
-	}
-
-	public function html_process_atts( $atts ) {
-		$att_markup = [];
-		foreach ( $atts as $key => $att ) {
-			if ( false === empty( $att ) ) {
-				$att_markup[] = sprintf( '%s="%s"', $key, $att );
-			}
-		}
-
-		return implode( ' ', $att_markup );
-	}
-
-	public function get_classes( $class_str = '' ) {
-		$maybe_classes = ! empty( $this->classes ) ? implode( ' ', $this->classes ) : null;
-		$clean_return  = ( ! empty( $maybe_classes ) || ! empty( $passed_str_classes ) ) ? 'class="' . $maybe_classes . $class_str . '"' : null;
-
-		return $clean_return;
 	}
 
 	public function build_base_markup( $field ) {
@@ -1356,14 +701,47 @@ class Part {
 
 		return HTML::tag(
 			'li',
-			[ 'class' => 'wpop-option ' . $this->get_clean_classname(), 'data-field' => $this->id ],
+			[ 'class' => 'wpop-option ' . $this->get_clean_classname(), 'data-part' => $this->id ],
 			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field . $this->field_after
 			. $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
 		);
 	}
 
+	public function run_save_process() {
+		if ( ! isset( $_POST['submit'] )
+		     || ! is_string( $_POST['submit'] )
+		     || 'Save All' !== $_POST['submit']
+		) {
+			return false; // only run logic if submiting
+		}
+		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->panel_id ) ) {
+			return false; // check for nonce
+		}
+
+		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
+
+		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
+
+		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
+
+		$updated = new Save_Single_Field(
+			$this->panel_id, // used to check nonce
+			$this->panel_api, // doing this way to allow multi-api saving from single panel down-the-road
+			$this->id, // this is the data storage key in the database
+			$sanitize_input, // sanitized input (maybe empty, triggering delete)
+			isset( $this->obj_id ) ? $this->obj_id : null // maybe an object ID needed for metadata API
+		);
+
+		if ( $updated ) {
+			return $this->id;
+		}
+
+		return false;
+	}
+
 	public function get_saved() {
 		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
+
 		switch ( $this->panel_api ) {
 			case 'post':
 				$obj_id = sanitize_text_field( $_GET['post'] );
@@ -1371,7 +749,6 @@ class Part {
 			case 'term':
 				$obj_id = sanitize_text_field( $_GET['term'] );
 				break;
-			case 'user-site':
 			case 'user':
 			case 'user-network':
 				$obj_id = sanitize_text_field( $_GET['user'] );
@@ -1394,13 +771,58 @@ class Part {
 		return $response->response;
 	}
 
+	protected function sanitize_data_input( $input_type, $id, $value ) {
+		switch ( $input_type ) {
+			case 'password':
+				if ( $_POST[ 'stored_' . $id ] === $value && ! empty( $value ) ) {
+					return '### wpop-encrypted-pwd-field-val-unchanged ###';
+				}
+
+				return ! empty( $value ) ? Password::encrypt( $value ) : false;
+				break;
+			case 'media':
+				return absint( $value );
+				break;
+			case 'color':
+				return sanitize_hex_color_no_hash( $value );
+				break;
+			case 'editor':
+				return wp_filter_post_kses( $value );
+				break;
+			case 'textarea':
+				return sanitize_textarea_field( $value );
+				break;
+			case 'checkbox':
+			case 'toggle_switch':
+				return sanitize_key( $value );
+				break;
+			case 'multiselect':
+				if ( ! empty( $value ) && is_array( $value ) ) {
+					return json_encode( array_map( 'sanitize_key', $value ) );
+				}
+
+				return false;
+				break;
+			case 'email':
+				return sanitize_email( $value );
+				break;
+			case 'url':
+				return esc_url_raw( $value );
+				break;
+			case 'text':
+			default:
+				return sanitize_text_field( $value );
+				break;
+		}
+	}
+
 }
 
 /**
- * Class Section_Desc
+ * Class Description
  * @package WPOP\V_3_0
  */
-class Section_Desc extends Part {
+class Description extends Part {
 
 	public function get_html() {
 		return HTML::tag( 'li', [ 'class' => 'wpop-option section_desc' ], $this->description ) .
@@ -1416,9 +838,10 @@ class Section_Desc extends Part {
  */
 class Input extends Part {
 	public $input_type;
+	public $data_store = true;
 
 	public function get_html() {
-		$option_val = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
+		$option_val = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
 
 		$type = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
 
@@ -1427,7 +850,7 @@ class Input extends Part {
 			'name'         => $this->field_id,
 			'type'         => $type,
 			'value'        => $option_val,
-			'data-field'   => $this->get_clean_classname(),
+			'data-part'    => strtolower( $this->get_clean_classname() ),
 			'autocomplete' => 'false', // prevents pwd field autofilling, among other things
 		];
 
@@ -1455,10 +878,10 @@ class Text extends Input {
 }
 
 /**
- * Class Color_Picker
+ * Class Color
  * @package WPOP\V_3_0
  */
-class Color_Picker extends Input {
+class Color extends Input {
 	public $input_type = 'text';
 	public $field_type = 'color';
 }
@@ -1497,29 +920,23 @@ class Password extends Input {
 
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
-		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
-			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
-			// effectively locking the encrypted value to the current environment.
-			$trimmed_key = substr( wp_salt(), 0, 15 );
-			define( 'WPOP_ENCRYPTION_KEY', static::pad_key( sha1( $trimmed_key, true ) ) );
-		}
+
 		$this->field_after = $this->pwd_clear_and_hidden_field();
 	}
 
-	public function pwd_clear_and_hidden_field() {
+	protected function pwd_clear_and_hidden_field() {
 		return HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' ) .
 		       HTML::tag( 'input', [
 			       'id'           => 'stored_' . $this->id,
 			       'name'         => 'stored_' . $this->id,
 			       'type'         => 'hidden',
-			       'value'        => $this->get_saved(),
-			       'readonly'     => 'readonly',
+			       'value'        => $this->saved,
 			       'autocomplete' => 'off',
 		       ] );
 	}
 
 	/**
-	 * Fixes PHP7 issues where mcrypt_decrypt expects a specific key size. Used on MYSECRETKEY constant.
+	 * Fixes PHP7 issues where mcrypt_decrypt expects a specific key size. Used on WPOP_ENCRYPTION_KEY constant.
 	 * You'll still have to run trim on the end result when decrypting,as seen in the "unencrypted_pass" function.
 	 *
 	 * @see http://stackoverflow.com/questions/27254432/mcrypt-decrypt-error-change-key-size
@@ -1548,6 +965,13 @@ class Password extends Input {
 		return $key;
 	}
 
+	/**
+	 * Field is encrypted using 256-bit encryption using mcrypt and then run through base64 for db env parity/safety
+	 *
+	 * @param $unencrypted_string
+	 *
+	 * @return string
+	 */
 	public static function encrypt( $unencrypted_string ) {
 		return base64_encode(
 			mcrypt_encrypt(
@@ -1559,9 +983,24 @@ class Password extends Input {
 		);
 	}
 
+	/**
+	 * 📢 ⚠️ NEVER USE TO PRINT IN MARKUP, IN INPUT VALUES -- ONLY CALL IN SERVER-SIDE ACTIONS OR RISK THEFT ⚠️ 📢
+	 *
+	 * Field is base64 decoded, then decrypted using mcrypt, then trimmed of any excess characters left from transforms
+	 *
+	 * @param $encrypted_encoded
+	 *
+	 * @return string
+	 */
 	public static function decrypt( $encrypted_encoded ) {
-		// Only call in server-side actions -- never use to print in markup or risk theft
-		return trim( mcrypt_decrypt( MCRYPT_RIJNDAEL_256, WPOP_ENCRYPTION_KEY, base64_decode( $encrypted_encoded ), MCRYPT_MODE_ECB ) );
+		return trim(
+			mcrypt_decrypt(
+				MCRYPT_RIJNDAEL_256,
+				WPOP_ENCRYPTION_KEY,
+				base64_decode( $encrypted_encoded ),
+				MCRYPT_MODE_ECB
+			)
+		);
 	}
 }
 
@@ -1574,25 +1013,24 @@ class Textarea extends Part {
 	public $cols;
 	public $rows;
 	public $input_type = 'textarea';
+	public $data_store = true;
 
+	/**
+	 * @return string
+	 */
 	public function get_html() {
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
 
-		$textarea = [
-			'id'   => $this->id,
-			'name' => $this->id,
-			'cols' => $this->cols,
-			'rows' => $this->rows,
-		];
+		$field = [ 'id' => $this->id, 'name' => $this->id, 'cols' => $this->cols, 'rows' => $this->rows ];
 
 		if ( ! empty( $this->atts ) && is_array( $this->atts ) ) {
 			foreach ( $this->atts as $key => $val ) {
-				$textarea[ $key ] = $val;
+				$field[ $key ] = $val;
 			}
 		}
 
-		return $this->build_base_markup( HTML::tag( 'textarea', $textarea, stripslashes( $this->get_saved() ) ) );
+		return $this->build_base_markup( HTML::tag( 'textarea', $field, stripslashes( $this->get_saved() ) ) );
 	}
 
 }
@@ -1604,22 +1042,23 @@ class Textarea extends Part {
 class Editor extends Part {
 
 	public $input_type = 'editor';
+	public $data_store = true;
 
 	public function get_html() {
 
 		ob_start();
-			wp_editor(
-				stripslashes( $this->get_saved() ),
-				$this->id . '_editor',
-				array(
-					'textarea_name'    => $this->id, // used for saving val
-					'tinymce'          => array( 'min_height' => 300 ),
-					'editor_class'     => 'edit',
-					'quicktags'        => isset( $this->no_quicktags ) ? false : true,
-					'teeny'			   => isset( $this->teeny ) ? true : false,
-					'media_buttons'	   => isset( $this->no_media ) ? false : true
-				)
-			);
+		wp_editor(
+			stripslashes( $this->get_saved() ),
+			$this->id . '_editor',
+			array(
+				'textarea_name' => $this->id, // used for saving value
+				'tinymce'       => array( 'min_height' => 300 ),
+				'editor_class'  => 'edit',
+				'quicktags'     => isset( $this->no_quicktags ) ? false : true,
+				'teeny'         => isset( $this->teeny ) ? true : false,
+				'media_buttons' => isset( $this->no_media ) ? false : true
+			)
+		);
 
 		return $this->build_base_markup( ob_get_clean() ); // no return param in wp_editor so buffer it is ¯\_//(ツ)_/¯
 	}
@@ -1635,6 +1074,7 @@ class Select extends Part {
 	public $meta;
 	public $empty_default = true;
 	public $input_type = 'select';
+	public $data_store = true;
 
 	public function __construct( $i, $m ) {
 		parent::__construct( $i, $m );
@@ -1686,6 +1126,8 @@ class Multiselect extends Part {
 	public $allow_reordering = false;
 	public $create_options = false;
 	public $input_type = 'multiselect';
+	public $data_store = true;
+
 
 	public function __construct( $i, $m ) {
 		parent::__construct( $i, $m );
@@ -1694,13 +1136,16 @@ class Multiselect extends Part {
 	}
 
 	public function get_html() {
-		$save = maybe_unserialize( $this->get_saved() );
+		$save = ! empty( $this->saved ) ? json_decode( $this->saved ) : false;
 
 		$opts_markup = '';
 
 		if ( ! empty( $save ) && is_array( $save ) ) {
 			foreach ( $save as $key ) {
-				$opts_markup .= HTML::tag( 'option', [ 'value' => $key ], $this->values[ $key ] );
+				$opts_markup .= HTML::tag( 'option', [
+					'value'    => $key,
+					'selected' => 'selected'
+				], $this->values[ $key ] );
 				unset( $this->values[ $key ] );
 			}
 		}
@@ -1716,8 +1161,8 @@ class Multiselect extends Part {
 			'name'             => $this->id . '[]',
 			'multiple'         => 'multiple',
 			'data-multiselect' => '1'
-		], $opts_markup )
-		);
+		], $opts_markup
+		) );
 	}
 
 	function multi_atts( $pairs, $atts ) {
@@ -1740,6 +1185,8 @@ class Checkbox extends Part {
 	public $value = 'on';
 	public $label_markup;
 	public $input_type = 'checkbox';
+	public $data_store = true;
+
 
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
@@ -1794,6 +1241,7 @@ class Radio_Buttons extends Part {
 	public $values;
 	public $default_value = '';
 	public $input_type = 'radio_buttons';
+	public $data_store = true;
 
 	public function __construct( $i, $c ) {
 		parent::__construct( $i, $c );
@@ -1801,28 +1249,35 @@ class Radio_Buttons extends Part {
 	}
 
 	public function get_html() {
-		ob_start();
-		$radios_markup = '';
+		$table_body = '';
 		foreach ( $this->values as $key => $value ) {
 			$selected_val = $this->get_saved() ? $this->get_saved() : $this->default_value;
 
 			$input = [
 				'type'  => 'radio',
-				'id'    => $this->id,
+				'id'    => $this->id . '_' . $key,
 				'name'  => $this->field_id,
 				'value' => $value,
+				'class' => 'radio-item'
 			];
 
 			if ( $selected_val === $value ) {
 				$input['checked'] = 'checked';
 			}
 
-			$radios_markup .= HTML::tag( 'input', $input ) .
-			                  HTML::tag( 'label', [ 'class' => 'option-label', 'for' => $key ], $value ) .
-			                  HTML::tag( 'div', [ 'class' => 'clear' ] );
+			$label      = HTML::tag( 'td', [], HTML::tag( 'label', [
+				'class' => 'opt-label',
+				'for'   => $this->id . '_' . $key
+			], $value )
+			);
+			$input_mark = HTML::tag( 'td', [], HTML::tag( 'input', $input ) );
+
+			$table_body .= HTML::tag( 'tr', [], $label . $input_mark );
 		}
 
-		return $this->build_base_markup( HTML::tag( 'div', [ 'class' => 'radio-wrap' ], $radios_markup ) );
+		$table = HTML::tag( 'table', [ 'class' => 'widefat striped' ], $table_body );
+
+		return $this->build_base_markup( HTML::tag( 'div', [ 'class' => 'radio-wrap' ], $table ) );
 	}
 
 }
@@ -1834,6 +1289,7 @@ class Radio_Buttons extends Part {
 class Media extends Part {
 	public $media_label = 'Image';
 	public $input_type = 'media';
+	public $data_store = true;
 
 	public function get_html() {
 		$empty        = ''; // TODO: REPLACE EMPTY IMAGE WITH CSS YO
@@ -1861,10 +1317,11 @@ class Media extends Part {
 		];
 
 		$hidden = [
-			'id'    => $this->id,
-			'name'  => $this->id,
-			'type'  => 'hidden',
-			'value' => $saved['id']
+			'id'        => $this->id,
+			'name'      => $this->id,
+			'type'      => 'hidden',
+			'value'     => $saved['id'],
+			'data-part' => strtolower( $this->get_clean_classname() )
 		];
 
 		if ( ! empty( $this->atts ) ) {
@@ -1873,7 +1330,6 @@ class Media extends Part {
 			}
 		}
 
-		echo HTML::tag( 'image', [ 'url' => $saved['url'], 'class' => 'img-preview' ] );
 		echo HTML::tag( 'input', $image_btn );
 		echo HTML::tag( 'input', $hidden );
 		echo HTML::tag( 'a', [
@@ -1908,34 +1364,35 @@ class Include_Partial extends Part {
 
 	public function echo_html() {
 		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) {
-			include_once $this->filename;
+			return HTML::tag( 'li', [ 'class' => $this->get_clean_classname() ], file_get_contents( $this->filename ) );
 		}
 	}
 }
 
 /**
- * Class Include_Markup
- *
- * Bringing clean, escaped markup to this
- *
- * @package WPOP\V_3_0
+ * Class Markdown
+ * @package WPOP\V_3_1
  */
-class Include_Markup extends Part {
-	public $markup;
-	public $input_type = 'include_markup';
-
-	public function __construct( $i, $v = [] ) {
-		parent::__construct( $i, $v );
-		$this->markup = ( ! empty( $v['markup'] ) && is_string( $v['markup'] ) ) ? $v['markup'] : null;
-	}
-
-	public function get_html() {
-		return $this->echo_html();
-	}
+class Markdown extends Include_Partial {
+	public $field_type = 'markdown_file';
 
 	public function echo_html() {
-		if ( is_string( $this->markup ) && ! empty( $this->markup ) ) {
-			echo $this->markup;
+		if ( is_file( $this->filename ) && class_exists( '\\Parsedown' ) ) {
+			$converter = new \Parsedown();
+			$markup    = file_get_contents( $this->filename );
+			if ( ! empty( $markup ) ) {
+				return HTML::tag(
+					'li',
+					[
+						'class'     => $this->get_clean_classname(),
+						'data-part' => strtolower( $this->get_clean_classname() )
+					],
+					$converter->text( do_shortcode( $markup ) )
+				);
+			}
+		} else {
+			return 'File Status: ' . strval( is_file( $this->filename ) ) .
+			       ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
 		}
 	}
 }
@@ -1982,7 +1439,7 @@ class HTML {
 	public static function build_attributes_string( $attributes ) {
 		$string = array();
 		foreach ( $attributes as $name => $value ) {
-			if ( '' === $value ) {
+			if ( empty( $value ) ) {
 				$string[] = sprintf( '%s', sanitize_key( $name ) );
 			} else {
 				$string[] = sprintf( '%s="%s"', sanitize_key( $name ), esc_attr( $value ) );
@@ -2045,23 +1502,19 @@ class Get_Single_Field {
 
 	function get_data() {
 		switch ( $this->type ) {
-			case 'single':
 			case 'site':
 				$this->response = get_option( $this->key, '' );
 				break;
 			case 'network':
 				$this->response = get_site_option( $this->key );
 				break;
-			case 'user-site':
-			case 'user':
+			case 'user': // single-site user option, or per-site user option in multisite
 				$this->response = is_multisite() ? get_user_option( $this->key, $this->obj_id ) : get_user_meta( $this->obj_id, $this->key, $this->single );
 				break; // traditional user meta
-			case 'user-network':
+			case 'user-network': // user network option applied globally across all blogs/sites
 				$this->response = get_user_meta( $this->obj_id, $this->key, $this->single );
 				break;
 			case 'term':
-			case 'category':
-			case 'tag':
 				$this->response = get_metadata( 'term', $this->obj_id, $this->key, $this->single );
 				break;
 			case 'post':
@@ -2091,26 +1544,15 @@ class Save_Single_Field {
 	 * @param bool $autoload
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $panel_id ) ) {
-			return false; // check for nonce, only allow panel to use this class
-		}
-		if ( 'wpop-encrypted-pwd-field-val-unchanged' === $value ) {
-			return false; // when pwd fields have existing value and are unchanged, do nothing to database value
+		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $panel_id )            // only allow class to be used by panel
+		     || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value // encrypted pwds never updated after insert
+		) {
+			return false;
 		}
 
 		return $this->save_data( $panel_id, $type, $key, $value, $obj_id, $autoload );
 	}
 
-	/**
-	 * @param      $panel_id
-	 * @param      $type
-	 * @param      $key
-	 * @param      $value
-	 * @param null $obj_id
-	 * @param bool $autoload
-	 *
-	 * @return bool|int|\WP_Error
-	 */
 	private function save_data( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		switch ( $type ) {
 			case 'site':
@@ -2119,7 +1561,6 @@ class Save_Single_Field {
 			case 'network':
 				return self::handle_network_option_save( $key, $value );
 				break;
-			case 'user-site':
 			case 'user':
 				return self::handle_user_site_meta_save( $obj_id, $key, $value );
 				break; // traditional user meta
