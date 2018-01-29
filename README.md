@@ -38,4 +38,7 @@ if( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
 
 # Usage
 
+* [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
+* [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/blob/master/app/admin/class-options-panel.php) in the WPOP Example Plugin
+* [Generate a working copy](https://github.com/WordPress-Phoenix/wordpress-development-toolkit/releases) using the WordPress Development Toolkit and the [Abstract Plugin Base](https://github.com/WordPress-Phoenix/abstract-plugin-base).
 
