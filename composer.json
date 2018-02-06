@@ -3,7 +3,7 @@
     "description": "Library that helps you setup theme or plugin options that store data in the database with just a line or two of code",
     "keywords": ["wordpress","site-options","utility","helper"],
     "homepage": "https://github.com/WordPress-Phoenix/wordpress-options-builder-class",
-    "license": "GPL-v3",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Seth Carstens",
