@@ -96,7 +96,7 @@ class Panel {
 	public function __construct( $args = [], $sections = [] ) {
 		global $pagenow;
 		if ( ! isset( $args['id'] ) ) {
-			echo "Setting a panel ID is required";
+			echo 'Setting a panel ID is required';
 			exit;
 		}
 		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
@@ -148,7 +148,6 @@ class Panel {
 							}
 						}
 					}
-
 				}
 
 				$update_message = '';
@@ -171,22 +170,26 @@ class Panel {
 	public function detect_data_api_and_permissions() {
 		$error = null;
 		$api   = null;
-		if ( isset( $_GET['page'] ) ) {
-			if ( isset( $_GET['post'] ) && is_numeric( $_GET['post'] ) ) {
+		$page = filter_input( INPUT_GET, 'page' );
+		$post = filter_input( INPUT_GET, 'post' );
+		$user = filter_input( INPUT_GET, 'user' );
+		$term = filter_input( INPUT_GET, 'term' );
+		if ( isset( $page ) ) {
+			if ( isset( $post ) && is_numeric( $post ) ) {
 				$api                = 'post';
-				$this->page_title   = $this->page_title . ' for ' . get_the_title( $_GET['post'] );
-				$this->panel_object = get_post( $_GET['post'] );
-			} elseif ( isset( $_GET['user'] ) && is_numeric( $_GET['user'] ) ) {
+				$this->page_title   = $this->page_title . ' for ' . get_the_title( $post );
+				$this->panel_object = get_post( $post );
+			} elseif ( isset( $user ) && is_numeric( $user ) ) {
 				if ( is_multisite() && is_network_admin() ) {
 					$api                 = 'user-network';
 				} else {
 					$api = 'user';
 				}
-				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', absint( $_GET['user'] ) ) );
-				$this->panel_object = get_user_by( 'id', absint( $_GET['user'] ) );
-			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
+				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', absint( $user ) ) );
+				$this->panel_object = get_user_by( 'id', absint( $user ) );
+			} elseif ( isset( $term ) && is_numeric( $term ) ) {
 				$api  = 'term';
-				$term = get_term( $_GET['term'] );
+				$term = get_term( $term );
 				if ( is_object( $term ) && ! is_wp_error( $term ) && isset( $term->name ) ) {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term->name );
 					$this->panel_object = $term;
@@ -217,13 +220,16 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return absint( $_GET['post'] );
+				$post = filter_input( INPUT_GET, 'post' );
+				return absint( $post );
 				break;
 			case 'user':
-				return absint( $_GET['user'] );
+				$user = filter_input( INPUT_GET, 'user' );
+				return absint( $user );
 				break;
 			case 'term':
-				return absint( $_GET['term'] );
+				$term = filter_input( INPUT_GET, 'term' );
+				return absint( $term );
 				break;
 			default:
 				return null;
@@ -254,14 +260,25 @@ class Panel {
 	 * @example $note_data = array( 'notification' => 'My text', 'type' => 'notice-success' )
 	 */
 	public function echo_notifications() {
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'div' => array(
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'p' => array(),
+		) );
+
 		foreach ( $this->notifications as $note_data ) {
 			$data         = is_array( $note_data ) ? $note_data : [ 'notification' => $note_data ];
 			$data['type'] = isset( $data['type'] ) ? $data['type'] : 'notice-success';
-			echo HTML::tag(
+			echo wp_kses( HTML::tag(
 				'div',
 				[ 'class' => 'notice ' . $data['type'] ],
 				HTML::tag( 'p', [], $data['notification'] )
-			);
+			), $allowed_tags );
 		}
 	}
 
@@ -357,12 +374,93 @@ class Page extends Panel {
 		$page_icon = ! empty( $this->dashicon ) ? HTML::dashicon( $this->dashicon . ' page-icon' ) . ' ' : '';
 		$screen    = get_current_screen();
 		$screen_id = $screen->id;
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'h1' => array(),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'code' => array(),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'ul' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'li' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'a' => array(
+				'href'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'div' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'section' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'header' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'h2' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'input' => array(
+				'type'  => 1,
+				'name'  => 1,
+				'value' => 1,
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'form' => array(
+				'method'    => 1,
+				'class' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'footer' => array(
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+
 		add_action( 'admin_print_footer_scripts-' . $screen_id, function () {
 			$this->footer_scripts();
 		} );
 		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
-			echo '<h1>Please select a ' . $this->api . '.</h1>';
-			echo '<code>?' . $this->api . '=ID</code>';
+			echo wp_kses( '<h1>Please select a ' . $this->api . '.</h1>', $allowed_tags );
+			echo wp_kses( '<code>?' . $this->api . '=ID</code>', $allowed_tags );
 			exit;
 		}
 		ob_start(); ?>
@@ -385,15 +483,16 @@ class Page extends Panel {
 				<form method="post" class="pure-form wpop-form">
 					<header class="wpop-head">
 						<div class="inner">
-							<?php echo HTML::tag( 'h1', [], $page_icon . $this->page_title ); ?>
+							<?php echo wp_kses( HTML::tag( 'h1', [], $page_icon . $this->page_title ), $allowed_tags ); ?>
 							<input type="submit"
-								   class="button button-primary button-hero save-all"
-								   value="Save All"
-								   name="submit">
+							       class="button button-primary button-hero save-all"
+							       value="Save All"
+							       name="submit">
 						</div>
 					</header>
 					<?php
-					if ( isset( $_POST['submit'] ) && $_POST['submit'] ) {
+					$submit = filter_input( INPUT_POST, 'submit' );
+					if ( isset( $submit ) && $submit ) {
 						$this->echo_notifications();
 					}
 					?>
@@ -406,25 +505,19 @@ class Page extends Panel {
 										$section_icon = ! empty( $section['dashicon'] ) ?
 											HTML::dashicon( $section['dashicon'] . ' menu-icon' ) : '';
 										$pcount       = count( $section['parts'] ) > 1 ? HTML::tag( 'small', [ 'class' => 'part-count' ], count( $section['parts'] ) ) : '';
-										echo HTML::tag(
+										echo wp_kses( HTML::tag(
 											'li',
 											[
 												'id'    => $section_id . '-nav',
 												'class' => 'pure-menu-item',
 											],
-											HTML::tag(
-												'a',
-												[
-													'href'  => '#' . $section_id,
-													'class' => 'pure-menu-link',
-												],
-												$section_icon . $section['label'] . $pcount )
-										);
+											HTML::tag( 'a', [ 'href' => '#' . $section_id, 'class' => 'pure-menu-link' ], $section_icon . $section['label'] . $pcount )
+										), $allowed_tags );
 									}
 									?>
 								</ul>
 							</div>
-							<?php echo wp_nonce_field( $this->id, '_wpnonce', true, false ); ?>
+							<?php echo wp_kses( wp_nonce_field( $this->id, '_wpnonce', true, false ), $allowed_tags ); ?>
 						</div>
 						<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
 							<ul id="wpopOptNavUl" style="list-style: none;">
@@ -441,13 +534,13 @@ class Page extends Panel {
 									<div>
 										<ul>
 											<li>
-												Sections: <?php echo HTML::tag( 'code', [], $this->section_count ); ?></li>
+												Sections: <?php echo wp_kses( HTML::tag( 'code', [], $this->section_count ), $allowed_tags ); ?></li>
 											<li>Total Data
-												Parts: <?php echo HTML::tag( 'code', [], $this->data_count ); ?></li>
+												Parts: <?php echo wp_kses( HTML::tag( 'code', [], $this->data_count ), $allowed_tags ); ?></li>
 											<li>Total
-												Parts: <?php echo HTML::tag( 'code', [], $this->part_count ); ?></li>
+												Parts: <?php echo wp_kses( HTML::tag( 'code', [], $this->part_count ), $allowed_tags ); ?></li>
 											<li>Stored
-												in: <?php echo HTML::tag( 'code', [], $this->get_storage_table() ); ?></li>
+												in: <?php echo wp_kses( HTML::tag( 'code', [], $this->get_storage_table() ), $allowed_tags ); ?></li>
 										</ul>
 									</div>
 								</div>
@@ -466,13 +559,24 @@ class Page extends Panel {
 			</section>
 		</div> <!-- end #wpopOptions -->
 		<?php
-		echo ob_get_clean();
+		echo wp_kses( ob_get_clean(), $allowed_tags );
 	}
 
 	/**
 	 *
 	 */
 	public function inline_styles_and_scripts() {
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'style' => array(),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'script' => array(
+				'type' => 1,
+			),
+		) );
+
 		ob_start(); ?>
 		<style>
 			@-webkit-keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}.wpcore-spin{position:relative;width:20px;height:20px;border-radius:20px;background:#A6A6A6;-webkit-animation:wp-core-spinner 1.04s linear infinite;animation:wp-core-spinner 1.04s linear infinite}.wpcore-spin:after{content:"";position:absolute;top:2px;left:50%;width:4px;height:4px;border-radius:4px;margin-left:-2px;background:#fff}#panel-loader-positioning-wrap{background:#fff;display:flex;align-items:center;justify-content:center;height:100%;min-height:10vw;position:absolute!important;width:99%;max-width:1600px;z-index:50}#panel-loader-box{max-width:50%}#panel-loader-box .wpcore-spin{width:60px;height:60px;border-radius:60px}#panel-loader-box .wpcore-spin:after{top:6px;width:12px;height:12px;border-radius:12px;margin-left:-6px}.onOffSwitch-inner,.onOffSwitch-switch{transition:all .5s cubic-bezier(1,0,0,1)}.onOffSwitch{position:relative;width:110px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;margin-left:auto;margin-right:12px}input[type=checkbox].onOffSwitch-checkbox{display:none}.onOffSwitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #EEE;border-radius:28px}.onOffSwitch-inner{display:block;width:200%;margin-left:-100%}.onOffSwitch-inner:after,.onOffSwitch-inner:before{display:block;float:left;width:50%;height:40px;padding:0;line-height:40px;font-size:17px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.pure-menu-link .part-count,.radio-wrap{float:right}.pure-menu-link .part-count{float:right;position:relative;top:-6px;padding:.33rem .66rem;border-radius:50%;-webkit-border-radius:50%;-moz-border-radius:50%;background:#aaa;color:#222}.onOffSwitch-inner:before{content:"ON";padding-left:10px;background-color:#21759B;color:#FFF}.onOffSwitch-inner:after{content:"OFF";padding-right:10px;background-color:#EEE;color:#BCBCBC;text-align:right}.onOffSwitch-switch{display:block;width:28px;margin:6px;background:#BCBCBC;position:absolute;top:0;bottom:0;right:66px;border:2px solid #EEE;border-radius:20px}.cb,.cb-wrap,.desc:after,.pwd-clear,.radio-wrap,.save-all,span.menu-icon,span.page-icon:before,span.spacer{position:relative}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-inner{margin-left:0}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-switch{right:0;background-color:#D54E21}.radio-wrap{top:-1rem}.cb,.save-all,.wpop-option.color .iris-picker{float:right;position:relative;top:-30px}.wpop-option .selectize-control.multi .selectize-input:after{content:'Select one or more options...'}li.wpop-option.color input[type=text]{height:50px}.wpop-option.media h4.label{margin-bottom:.33rem}.wpop-form{margin-bottom:0}#wpop{max-width:1600px;margin:0 auto 0 0!important}#wpopMain{background:#fff}#wpopOptNavUl{margin-top:0}.wpop-options-menu{margin-bottom:8em}#wpopContent{background:#F1F1F1;width:100%!important;border-top:1px solid #D8D8D8}.pure-g [class*=pure-u]{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.pure-form select{min-width:320px}.selectize-control{max-width:98.5%}.pure-menu-disabled,.pure-menu-heading,.pure-menu-link{padding:1.3em 2em}.pure-menu-active>.pure-menu-link,.pure-menu-link:focus,.pure-menu-link:hover{background:inherit}#wpopOptions header{overflow:hidden;max-height:88px}#wpopNav li.pure-menu-item{height:55px}#wpopNav p.submit input{width:100%}#wpop{border:1px solid #D8D8D8;background:#fff}.opn a.pure-menu-link{color:#fff!important}.opn a.pure-menu-link:focus{box-shadow:none;-webkit-box-shadow:none}#wpopContent .section{display:none;width:100%}#wpopContent .section.active{display:inline-block}span.page-icon{margin:0 1.5rem 0 0}span.menu-icon{left:-.5rem}span.page-icon:before{font-size:2.5rem;top:-4px;right:4px;color:#777}.clear{clear:both}.section{padding:0 0 5px}.section h3{margin:0 0 10px;padding:2rem 1.5rem}.section h4.label{margin:0;display:table-cell;border:1px solid #e9e9e9;background:#f1f1f1;padding:.33rem .66rem .5rem;font-weight:500;font-size:16px}.section ul li:nth-child(even) h4.label{background:#ddd}.section li.wpop-option{margin:1rem 1rem 1.25rem}.twothirdfat{width:66.6%}span.spacer{display:block;width:100%;border:0;height:0;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}li.even.option{background-color:#ccc}input[disabled=disabled]{background-color:#CCC}.cb{right:20px}.card-wrap{width:100%}.fullwidth{width:100%!important;max-width:100%!important}.wpop-head{background:#f1f1f1}.wpop-head>.inner{padding:1rem 1.5rem 0}.save-all{top:-2.5rem}.desc{margin:.5rem 0 0 .25rem;font-weight:300;font-size:12px;line-height:16px;color:#888}.desc:after{display:block;width:98%;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}.wpop-option input[type=email],.wpop-option input[type=number],.wpop-option input[type=password],.wpop-option input[type=range],.wpop-option input[type=text],.wpop-option input[type=url]{width:90%}.wpop-option input[data-part=color]{width:25%}li[data-part=markdown]{padding:1rem}li[data-part=markdown]+span.spacer{display:none}li[data-part=markdown] p{margin:0!important}li[data-part=markdown] ol,li[data-part=markdown] p,li[data-part=markdown] ul{font-size:1rem}[data-part=markdown] h1{padding-top:1.33rem;padding-bottom:.33rem}[data-part=markdown] h1:first-of-type{padding-top:.33rem;padding-bottom:.33rem}[data-part=markdown] h1,[data-part=markdown] h2,[data-part=markdown] h3,[data-part=markdown] h4,[data-part=markdown] h5,[data-part=markdown] h6{padding-left:0!important}input[data-assigned]{width:100%!important}.add-button{margin:3em auto;display:block;width:100%;text-align:center}.img-preview{max-width:320px;display:block;margin:0 0 1rem}.media-stats,.wpop-option .wp-editor-wrap{margin-top:.5rem}.img-remove{border:2px solid #cd1713!important;background:#f1f1f1!important;color:#cd1713!important;box-shadow:none;-webkit-box-shadow:none;margin-left:1rem!important}.pwd-clear{margin-left:.5rem!important;top:1px}.pure-form footer{background:#f1f1f1;border-top:1px solid #D8D8D8}.pure-form footer div div>*{padding:1rem .33rem}.wpop-option.color input{width:50%}.cb-wrap{display:block;right:1.33rem;max-width:110px;margin-left:auto;top:-1.66rem}
@@ -485,10 +589,63 @@ class Page extends Panel {
 		</script>
 		<?php
 		$js = ob_get_clean();
-		echo PHP_EOL . $css . PHP_EOL . $js . PHP_EOL;
+		echo wp_kses( PHP_EOL . $css . PHP_EOL . $js . PHP_EOL, $allowed_tags );
 	}
 
 	public function footer_scripts() {
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'span' => array(
+				'class' => 1,
+				'data-dashicon'  => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'style' => array(),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'script' => array(
+				'type' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'div' => array(
+				'class' => 1,
+				'id' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'table' => array(
+				'class' => 1,
+			),
+			'thead' => array(),
+			'tbody' => array(),
+			'tr' => array(),
+			'td' => array(
+				'colspan' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'a' => array(
+				'href' => 1,
+				'class' => 1,
+				'style' => 1,
+			),
+		) );
+
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'img' => array(
+				'src' => 1,
+				'class' => 1,
+			),
+		) );
+
 		ob_start(); ?>
 		<script type="text/html" id="tmpl-wpop-media-stats">
 			<div class="pure-g media-stats">
@@ -496,7 +653,7 @@ class Page extends Panel {
 					<table class="widefat striped">
 						<thead>
 						<tr>
-							<td colspan="2"><?php echo HTML::dashicon( 'dashicons-format-image' ); ?>
+							<td colspan="2"><?php echo wp_kses( HTML::dashicon( 'dashicons-format-image' ), $allowed_tags ); ?>
 								<a href="{{{ data.url }}}">{{{ data.filename }}}</a>
 								<a href="{{{ data.editLink }}}" class="button" style="float:right;">Edit Image</a>
 							</td>
@@ -531,7 +688,7 @@ class Page extends Panel {
 			} );
 		</script>
 		<?php
-		echo PHP_EOL . ob_get_clean() . PHP_EOL;
+		echo wp_kses( PHP_EOL . ob_get_clean() . PHP_EOL, $allowed_tags );
 	}
 
 	/**
@@ -636,18 +793,26 @@ class Section {
 	public function echo_html() {
 		ob_start();
 
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'li' => array(
+				'id'     => 1,
+				'class'   => 1,
+			),
+		) );
+
 		$section_content = '';
 
 		foreach ( $this->parts as $part ) { // parts are wrapped in <li>'s
 			$section_content .= $part->get_html() . HTML::tag( 'span', [ 'class' => 'spacer' ] );
 		}
 
-		echo HTML::tag( 'li', [
+		echo wp_kses( HTML::tag( 'li', [
 			'id'    => $this->id,
-			'class' => implode( ' ', $this->classes )
-		], HTML::tag( 'ul', [], $section_content ) );
+			'class' => implode( ' ', $this->classes ),
+		], HTML::tag( 'ul', [], $section_content ) ), $allowed_tags );
 
-		echo ob_get_clean();
+		echo wp_kses( ob_get_clean(), $allowed_tags );
 	}
 }
 
@@ -713,19 +878,22 @@ class Part {
 	}
 
 	public function run_save_process() {
-		if ( ! isset( $_POST['submit'] )
-		     || ! is_string( $_POST['submit'] )
-		     || 'Save All' !== $_POST['submit']
+		$submit = filter_input( INPUT_POST, 'submit' );
+		if ( ! isset( $submit )
+		     || ! is_string( $submit )
+		     || 'Save All' !== $submit
 		) {
 			return false; // only run logic if submiting
 		}
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->panel_id ) ) {
+		$wpnonce = filter_input( INPUT_POST, '_wpnonce' );
+		if ( ! wp_verify_nonce( $wpnonce, $this->panel_id ) ) {
 			return false; // check for nonce
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
+		$id = filter_input( INPUT_POST, $this->id );
+		$field_input = isset( $id ) ? $id : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
@@ -749,14 +917,17 @@ class Part {
 
 		switch ( $this->panel_api ) {
 			case 'post':
-				$obj_id = sanitize_text_field( $_GET['post'] );
+				$post = filter_input( INPUT_GET, 'post' );
+				$obj_id = sanitize_text_field( $post );
 				break;
 			case 'term':
-				$obj_id = sanitize_text_field( $_GET['term'] );
+				$term = filter_input( INPUT_GET, 'term' );
+				$obj_id = sanitize_text_field( $term );
 				break;
 			case 'user':
 			case 'user-network':
-				$obj_id = sanitize_text_field( $_GET['user'] );
+				$user = filter_input( INPUT_GET, 'user' );
+				$obj_id = sanitize_text_field( $user );
 				break;
 			case 'network':
 			case 'site':
@@ -779,7 +950,8 @@ class Part {
 	protected function sanitize_data_input( $input_type, $id, $value ) {
 		switch ( $input_type ) {
 			case 'password':
-				if ( $_POST[ 'stored_' . $id ] === $value && ! empty( $value ) ) {
+				$stored_id = filter_input( INPUT_POST, 'stored_' . $id );
+				if ( $stored_id === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
 
@@ -948,7 +1120,7 @@ class Password extends Input {
 			while ( strlen( $key ) < $s ) {
 				$key = $key . "\0";
 			}
-			if ( strlen( $key ) == $s ) {
+			if ( strlen( $key ) === $s ) {
 				break; // finish if the key matches a size
 			}
 		}
@@ -1047,7 +1219,7 @@ class Editor extends Part {
 				'editor_class'  => 'edit',
 				'quicktags'     => isset( $this->no_quicktags ) ? false : true,
 				'teeny'         => isset( $this->teeny ) ? true : false,
-				'media_buttons' => isset( $this->no_media ) ? false : true
+				'media_buttons' => isset( $this->no_media ) ? false : true,
 			)
 		);
 
@@ -1076,10 +1248,20 @@ class Select extends Part {
 	public function get_html() {
 		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option';
 
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'select' => array(
+				'option' => 1,
+				'value'  => 1,
+				'id'     => 1,
+				'name'   => 1,
+			),
+		) );
+
 		ob_start();
 
 		if ( $this->empty_default ) {
-			echo HTML::tag( 'option', [ 'value' => '' ] );
+			echo wp_kses( HTML::tag( 'option', [ 'value' => '' ] ), $allowed_tags );
 		}
 
 		foreach ( $this->values as $value => $label ) {
@@ -1087,7 +1269,7 @@ class Select extends Part {
 			if ( $value === $this->get_saved() ) {
 				$option['selected'] = 'selected';
 			}
-			echo HTML::tag( 'option', $option, $label );
+			echo wp_kses( HTML::tag( 'option', $option, $label ), $allowed_tags );
 		}
 
 		return $this->build_base_markup(
@@ -1097,7 +1279,7 @@ class Select extends Part {
 					'id'               => $this->id,
 					'name'             => $this->id,
 					'data-select'      => true,
-					'data-placeholder' => $default_option
+					'data-placeholder' => $default_option,
 				],
 				ob_get_clean()
 			)
@@ -1135,7 +1317,7 @@ class Multiselect extends Part {
 			foreach ( $save as $key ) {
 				$opts_markup .= HTML::tag( 'option', [
 					'value'    => $key,
-					'selected' => 'selected'
+					'selected' => 'selected',
 				], $this->values[ $key ] );
 				unset( $this->values[ $key ] );
 			}
@@ -1151,8 +1333,8 @@ class Multiselect extends Part {
 			'id'               => $this->id,
 			'name'             => $this->id . '[]',
 			'multiple'         => 'multiple',
-			'data-multiselect' => '1'
-		], $opts_markup
+			'data-multiselect' => '1',
+			], $opts_markup
 		) );
 	}
 
@@ -1249,18 +1431,14 @@ class Radio_Buttons extends Part {
 				'id'    => $this->id . '_' . $key,
 				'name'  => $this->field_id,
 				'value' => $value,
-				'class' => 'radio-item'
+				'class' => 'radio-item',
 			];
 
 			if ( $selected_val === $value ) {
 				$input['checked'] = 'checked';
 			}
 
-			$label      = HTML::tag( 'td', [], HTML::tag( 'label', [
-				'class' => 'opt-label',
-				'for'   => $this->id . '_' . $key
-			], $value )
-			);
+			$label      = HTML::tag( 'td', [], HTML::tag( 'label', [ 'class' => 'opt-label', 'for' => $this->id . '_' . $key ], $value ) );
 			$input_mark = HTML::tag( 'td', [], HTML::tag( 'input', $input ) );
 
 			$table_body .= HTML::tag( 'tr', [], $label . $input_mark );
@@ -1293,8 +1471,32 @@ class Media extends Part {
 			$insert_label = 'Replace ' . $this->media_label;
 		}
 
+		$allowed_tags = wp_kses_allowed_html( 'post' );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'input' => array(
+				'type'  => 1,
+				'name'  => 1,
+				'value' => 1,
+				'id'    => 1,
+				'class' => 1,
+			),
+		) );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'a' => array(
+				'href'  => 1,
+				'data-media-label'  => 1,
+				'class' => 1,
+			),
+		) );
+		$allowed_tags = array_merge( $allowed_tags, array(
+			'div' => array(
+				'style'  => 1,
+				'class' => 1,
+			),
+		) );
+
 		ob_start();
-		echo '<div class="blank-img" style="display:none;">' . $empty . '</div>';
+		echo wp_kses( '<div class="blank-img" style="display:none;">' . $empty . '</div>', $allowed_tags );
 
 		$image_btn = [
 			'id'               => $this->id . '_button',
@@ -1312,7 +1514,7 @@ class Media extends Part {
 			'name'      => $this->id,
 			'type'      => 'hidden',
 			'value'     => $saved['id'],
-			'data-part' => strtolower( $this->get_clean_classname() )
+			'data-part' => strtolower( $this->get_clean_classname() ),
 		];
 
 		if ( ! empty( $this->atts ) ) {
@@ -1321,14 +1523,14 @@ class Media extends Part {
 			}
 		}
 
-		echo HTML::tag( 'input', $image_btn );
-		echo HTML::tag( 'input', $hidden );
-		echo HTML::tag( 'a', [
+		echo wp_kses( HTML::tag( 'input', $image_btn ), $allowed_tags );
+		echo wp_kses( HTML::tag( 'input', $hidden ), $allowed_tags );
+		echo wp_kses( HTML::tag( 'a', [
 			'href'             => '#',
 			'class'            => 'button button-secondary img-remove',
-			'data-media-label' => $this->media_label
-		], 'Remove ' . $this->media_label
-		);
+			'data-media-label' => $this->media_label,
+			], 'Remove ' . $this->media_label
+		), $allowed_tags );
 
 		return $this->build_base_markup( ob_get_clean() );
 	}
@@ -1355,7 +1557,7 @@ class Include_Partial extends Part {
 
 	public function echo_html() {
 		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) {
-			return HTML::tag( 'li', [ 'class' => $this->get_clean_classname() ], file_get_contents( $this->filename ) );
+			return HTML::tag( 'li', [ 'class' => $this->get_clean_classname() ], wpcom_vip_file_get_contents( $this->filename ) );
 		}
 	}
 }
@@ -1370,13 +1572,13 @@ class Markdown extends Include_Partial {
 	public function echo_html() {
 		if ( is_file( $this->filename ) && class_exists( '\\Parsedown' ) ) {
 			$converter = new \Parsedown();
-			$markup    = file_get_contents( $this->filename );
+			$markup    = wpcom_vip_file_get_contents( $this->filename );
 			if ( ! empty( $markup ) ) {
 				return HTML::tag(
 					'li',
 					[
 						'class'     => $this->get_clean_classname(),
-						'data-part' => strtolower( $this->get_clean_classname() )
+						'data-part' => strtolower( $this->get_clean_classname() ),
 					],
 					$converter->text( do_shortcode( $markup ) )
 				);
@@ -1500,10 +1702,10 @@ class Get_Single_Field {
 				$this->response = get_site_option( $this->key );
 				break;
 			case 'user': // single-site user option, or per-site user option in multisite
-				$this->response = is_multisite() ? get_user_option( $this->key, $this->obj_id ) : get_user_meta( $this->obj_id, $this->key, $this->single );
+				$this->response = is_multisite() ? get_user_option( $this->key, $this->obj_id ) : get_metadata( 'user', $this->obj_id, $this->key, $this->single );
 				break; // traditional user meta
 			case 'user-network': // user network option applied globally across all blogs/sites
-				$this->response = get_user_meta( $this->obj_id, $this->key, $this->single );
+				$this->response = get_metadata( 'user', $this->obj_id, $this->key, $this->single );
 				break;
 			case 'term':
 				$this->response = get_metadata( 'term', $this->obj_id, $this->key, $this->single );
@@ -1535,7 +1737,8 @@ class Save_Single_Field {
 	 * @param bool $autoload
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $panel_id )            // only allow class to be used by panel
+		$wpnonce = filter_input( INPUT_POST, '_wpnonce' );
+		if ( ! wp_verify_nonce( $wpnonce, $panel_id )            // only allow class to be used by panel
 		     || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value // encrypted pwds never updated after insert
 		) {
 			return false;
@@ -1583,7 +1786,7 @@ class Save_Single_Field {
 	}
 
 	private static function handle_user_site_meta_save( $user_id, $key, $value ) {
-		return empty( $value ) ? delete_user_meta( $user_id, $key ) : update_user_meta( $user_id, $key, $value );
+		return empty( $value ) ? delete_metadata( 'user', $user_id, $key ) : update_metadata( 'user', $user_id, $key, $value );
 	}
 
 	private static function handle_user_network_meta_save( $id, $key, $value ) {
