@@ -409,7 +409,7 @@ li[data-part="markdown"] p,
 li[data-part="markdown"] ul,
 li[data-part="markdown"] ol {
 	font-size: 1rem;
-	line-height 1.05rem;
+	line-height: 1.05rem;
 }
 
 [data-part="markdown"] h1 {
