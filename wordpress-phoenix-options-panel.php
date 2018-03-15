@@ -4,7 +4,7 @@
  *
  * @authors 🌵 WordPress Phoenix 🌵 / Seth Carstens, David Ryan
  * @package wpop
- * @version 3.1.3
+ * @version 3.1.4
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
@@ -22,6 +22,7 @@ if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 
 /**
  * Class Panel
+ *
  * @package WPOP\V_3_0
  */
 class Panel {
@@ -85,7 +86,7 @@ class Panel {
 	/**
 	 * @var array used to track what happens during save process
 	 */
-	public $updated_counts = array( 'created' => 0, 'updated' => 0, 'deleted' => 0 );
+	public $updated_counts = [ 'created' => 0, 'updated' => 0, 'deleted' => 0 ];
 
 	/**
 	 * Container constructor.
@@ -252,7 +253,7 @@ class Panel {
 	public function add_part( $section_id, $section, $part ) {
 		if ( ! isset( $this->parts[ $section_id ] ) ) {
 			$this->parts[ $section_id ]          = $section;
-			$this->parts[ $section_id ]['parts'] = array();
+			$this->parts[ $section_id ]['parts'] = [];
 		}
 
 		array_push( $this->parts[ $section_id ]['parts'], $part );
@@ -260,19 +261,20 @@ class Panel {
 
 	/**
 	 * Print WordPress Admin Notifications
+	 *
 	 * @example $note_data = array( 'notification' => 'My text', 'type' => 'notice-success' )
 	 */
 	public function echo_notifications() {
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'div' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'div' => [
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'p' => array(),
-		) );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'p' => [],
+		] );
 
 		foreach ( $this->notifications as $note_data ) {
 			$data         = is_array( $note_data ) ? $note_data : [ 'notification' => $note_data ];
@@ -297,6 +299,7 @@ class Panel {
 
 /**
  * Class Page
+ *
  * @package WPOP\V_3_0
  */
 class Page extends Panel {
@@ -350,8 +353,8 @@ class Page extends Panel {
 			if ( 'network' === $this->api || 'user-network' === $this->api ) {
 				$dashboard = 'network_admin_menu';
 			}
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-			add_action( $dashboard, array( $this, 'add_settings_submenu_page' ) );
+			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dependencies' ] );
+			add_action( $dashboard, [ $this, 'add_settings_submenu_page' ] );
 		}
 	}
 
@@ -365,7 +368,7 @@ class Page extends Panel {
 			$this->menu_title,
 			$this->capability,
 			$this->id,
-			array( $this, 'build_parts' )
+			[ $this, 'build_parts' ]
 		);
 	}
 
@@ -378,85 +381,85 @@ class Page extends Panel {
 		$screen       = get_current_screen();
 		$screen_id    = $screen->id;
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'h1' => array(),
-		) );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'h1' => [],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'code' => array(),
-		) );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'code' => [],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'ul' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'ul' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'li' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'li' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'a' => array(
+			],
+		] );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'a' => [
 				'href'  => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'div' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'div' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'section' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'section' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'header' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'header' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'h2' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'h2' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'input' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'input' => [
 				'type'  => 1,
 				'name'  => 1,
 				'value' => 1,
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'form' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'form' => [
 				'method' => 1,
 				'class'  => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'footer' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'footer' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
 		add_action( 'admin_print_footer_scripts-' . $screen_id, function () {
 			$this->footer_scripts();
@@ -573,15 +576,15 @@ class Page extends Panel {
 	 */
 	public function inline_styles_and_scripts() {
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'style' => array(),
-		) );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'style' => [],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'script' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'script' => [
 				'type' => 1,
-			),
-		) );
+			],
+		] );
 
 		ob_start(); ?>
 		<style>
@@ -1227,56 +1230,56 @@ class Page extends Panel {
 	public function footer_scripts() {
 		$allowed_tags = wp_kses_allowed_html( 'post' );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'span' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'span' => [
 				'class'         => 1,
 				'data-dashicon' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'style' => array(),
-		) );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'style' => [],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'script' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'script' => [
 				'type' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'div' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'div' => [
 				'class' => 1,
 				'id'    => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'table' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'table' => [
 				'class' => 1,
-			),
-			'thead' => array(),
-			'tbody' => array(),
-			'tr'    => array(),
-			'td'    => array(
+			],
+			'thead' => [],
+			'tbody' => [],
+			'tr'    => [],
+			'td'    => [
 				'colspan' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'a' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'a' => [
 				'href'  => 1,
 				'class' => 1,
 				'style' => 1,
-			),
-		) );
+			],
+		] );
 
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'img' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'img' => [
 				'src'   => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
 		ob_start(); ?>
 		<script type="text/html" id="tmpl-wpop-media-stats">
@@ -1354,19 +1357,19 @@ class Page extends Panel {
 	public function enqueue_dependencies() {
 		$unpkg = 'https://unpkg.com/purecss@1.0.0/build/';
 		wp_register_style( 'wpop-pure-base', $unpkg . 'base-min.css' );
-		wp_register_style( 'wpop-pure-grids', $unpkg . 'grids-min.css', array( 'wpop-pure-base' ) );
-		wp_register_style( 'wpop-pure-grids-r', $unpkg . 'grids-responsive-min.css', array( 'wpop-pure-grids' ) );
-		wp_register_style( 'wpop-pure-menus', $unpkg . 'menus-min.css', array( 'wpop-pure-grids-r' ) );
-		wp_register_style( 'wpop-pure-forms', $unpkg . 'forms-min.css', array( 'wpop-pure-menus' ) );
+		wp_register_style( 'wpop-pure-grids', $unpkg . 'grids-min.css', [ 'wpop-pure-base' ] );
+		wp_register_style( 'wpop-pure-grids-r', $unpkg . 'grids-responsive-min.css', [ 'wpop-pure-grids' ] );
+		wp_register_style( 'wpop-pure-menus', $unpkg . 'menus-min.css', [ 'wpop-pure-grids-r' ] );
+		wp_register_style( 'wpop-pure-forms', $unpkg . 'forms-min.css', [ 'wpop-pure-menus' ] );
 		wp_enqueue_style( 'wpop-pure-forms' ); // cue enqueue cascade
 
 		// Enqueue media (needed for media modal)
 		wp_enqueue_media();
 
-		wp_enqueue_script( array( 'iris', 'wp-util', 'wp-shortcode' ) );
+		wp_enqueue_script( [ 'iris', 'wp-util', 'wp-shortcode' ] );
 
 		$selectize_cdn = 'https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/';
-		wp_register_script( 'wpop-selectize', $selectize_cdn . 'js/standalone/selectize.min.js', array( 'jquery-ui-sortable' ) );
+		wp_register_script( 'wpop-selectize', $selectize_cdn . 'js/standalone/selectize.min.js', [ 'jquery-ui-sortable' ] );
 		wp_enqueue_script( 'wpop-selectize' );
 		wp_register_style( 'wpop-selectize', $selectize_cdn . 'css/selectize.default.min.css' );
 		wp_enqueue_style( 'wpop-selectize' );
@@ -1377,6 +1380,7 @@ class Page extends Panel {
 
 /**
  * Class Section
+ *
  * @package WPOP\V_3_0
  */
 class Section {
@@ -1389,7 +1393,7 @@ class Section {
 	/**
 	 * @var array
 	 */
-	public $classes = array( 'section' );
+	public $classes = [ 'section' ];
 
 	/**
 	 * @var string
@@ -1426,12 +1430,12 @@ class Section {
 		ob_start();
 
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'li' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'li' => [
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
 		$section_content = '';
 
@@ -1450,6 +1454,7 @@ class Section {
 
 /**
  * Class Part
+ *
  * @package WPOP\V_3_0
  */
 class Part {
@@ -1461,7 +1466,7 @@ class Part {
 	public $label = 'Option';
 	public $description = '';
 	public $default_value = '';
-	public $classes = array();
+	public $classes = [];
 	public $atts = [];
 	public $data_store = false;
 	public $field_before = null;
@@ -1485,7 +1490,7 @@ class Part {
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
 			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-			           && ( $old_value !== $this->saved )
+					   && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -1512,8 +1517,8 @@ class Part {
 	public function run_save_process() {
 		$submit = filter_input( INPUT_POST, 'submit' );
 		if ( ! isset( $submit )
-		     || ! is_string( $submit )
-		     || 'Save All' !== $submit
+			 || ! is_string( $submit )
+			 || 'Save All' !== $submit
 		) {
 			return false; // only run logic if submiting
 		}
@@ -1629,6 +1634,7 @@ class Part {
 
 /**
  * Class Input
+ *
  * @package WPOP\V_3_0
  */
 class Input extends Part {
@@ -1666,6 +1672,7 @@ class Input extends Part {
 
 /**
  * Class Text
+ *
  * @package WPOP\V_3_0
  */
 class Text extends Input {
@@ -1674,6 +1681,7 @@ class Text extends Input {
 
 /**
  * Class Color
+ *
  * @package WPOP\V_3_0
  */
 class Color extends Input {
@@ -1683,6 +1691,7 @@ class Color extends Input {
 
 /**
  * Class Number
+ *
  * @package WPOP\V_3_0
  */
 class Number extends Input {
@@ -1691,6 +1700,7 @@ class Number extends Input {
 
 /**
  * Class Email
+ *
  * @package WPOP\V_3_0
  */
 class Email extends Input {
@@ -1699,6 +1709,7 @@ class Email extends Input {
 
 /**
  * Class Url
+ *
  * @package WPOP\V_3_0
  */
 class Url extends Input {
@@ -1707,6 +1718,7 @@ class Url extends Input {
 
 /**
  * Class password
+ *
  * @package WPOP\V_2_8
  * @notes   how to use: echo $this->decrypt( get_option( $this->id ) );
  */
@@ -1720,14 +1732,18 @@ class Password extends Input {
 	}
 
 	protected function pwd_clear_and_hidden_field() {
-		return HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' ) .
-		       HTML::tag( 'input', [
-			       'id'           => 'stored_' . $this->id,
-			       'name'         => 'stored_' . $this->id,
-			       'type'         => 'hidden',
-			       'value'        => $this->saved,
-			       'autocomplete' => 'off',
-		       ] );
+		$html = HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' );
+		$html .= HTML::tag( 'input',
+			[
+				'id'           => 'stored_' . $this->id,
+				'name'         => 'stored_' . $this->id,
+				'type'         => 'hidden',
+				'value'        => $this->saved,
+				'autocomplete' => 'off',
+			]
+		);
+
+		return $html;
 	}
 
 	/**
@@ -1746,7 +1762,7 @@ class Password extends Input {
 			return false;
 		}
 
-		$sizes = array( 16, 24, 32 );
+		$sizes = [ 16, 24, 32 ];
 
 		foreach ( $sizes as $s ) { // loop sizes, pad key
 			while ( strlen( $key ) < $s ) {
@@ -1801,6 +1817,7 @@ class Password extends Input {
 
 /**
  * Class Textarea
+ *
  * @package WPOP\V_3_0
  */
 class Textarea extends Part {
@@ -1832,6 +1849,7 @@ class Textarea extends Part {
 
 /**
  * Class Editor
+ *
  * @package WPOP\V_3_0
  */
 class Editor extends Part {
@@ -1845,14 +1863,14 @@ class Editor extends Part {
 		wp_editor(
 			stripslashes( $this->get_saved() ),
 			$this->id . '_editor',
-			array(
+			[
 				'textarea_name' => $this->id, // used for saving value
-				'tinymce'       => array( 'min_height' => 300 ),
+				'tinymce'       => [ 'min_height' => 300 ],
 				'editor_class'  => 'edit',
 				'quicktags'     => isset( $this->no_quicktags ) ? false : true,
 				'teeny'         => isset( $this->teeny ) ? true : false,
 				'media_buttons' => isset( $this->no_media ) ? false : true,
-			)
+			]
 		);
 
 		return $this->build_base_markup( ob_get_clean() ); // no return param in wp_editor so buffer it is ¯\_//(ツ)_/¯
@@ -1861,6 +1879,7 @@ class Editor extends Part {
 
 /**
  * Class Select
+ *
  * @package WPOP\V_3_0
  */
 class Select extends Part {
@@ -1881,14 +1900,14 @@ class Select extends Part {
 		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option';
 
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'select' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'select' => [
 				'option' => 1,
 				'value'  => 1,
 				'id'     => 1,
 				'name'   => 1,
-			),
-		) );
+			],
+		] );
 
 		ob_start();
 
@@ -1922,6 +1941,7 @@ class Select extends Part {
 
 /**
  * Class Multiselect
+ *
  * @package WPOP\V_3_0
  */
 class Multiselect extends Part {
@@ -1961,12 +1981,13 @@ class Multiselect extends Part {
 			}
 		}
 
-		return $this->build_base_markup( HTML::tag( 'select', [
-			'id'               => $this->id,
-			'name'             => $this->id . '[]',
-			'multiple'         => 'multiple',
-			'data-multiselect' => '1',
-		], $opts_markup
+		return $this->build_base_markup( HTML::tag( 'select',
+			[
+				'id'               => $this->id,
+				'name'             => $this->id . '[]',
+				'multiple'         => 'multiple',
+				'data-multiselect' => '1',
+			], $opts_markup
 		) );
 	}
 
@@ -1983,6 +2004,7 @@ class Multiselect extends Part {
 
 /**
  * Class Checkbox
+ *
  * @package WPOP\V_3_0
  */
 class Checkbox extends Part {
@@ -2016,6 +2038,7 @@ class Checkbox extends Part {
 
 /**
  * Class Toggle_Switch
+ *
  * @package WPOP\V_3_0
  */
 class Toggle_Switch extends Checkbox {
@@ -2039,6 +2062,7 @@ class Toggle_Switch extends Checkbox {
 
 /**
  * Class Radio_Buttons
+ *
  * @package WPOP\V_3_0
  */
 class Radio_Buttons extends Part {
@@ -2088,6 +2112,7 @@ class Radio_Buttons extends Part {
 
 /**
  * Class Media
+ *
  * @package WPOP\V_3_0
  */
 class Media extends Part {
@@ -2097,38 +2122,38 @@ class Media extends Part {
 
 	public function get_html() {
 		$empty        = ''; // TODO: REPLACE EMPTY IMAGE WITH CSS YO
-		$saved        = array( 'url' => $empty, 'id' => '' );
+		$saved        = [ 'url' => $empty, 'id' => '' ];
 		$option_val   = $this->get_saved();
 		$insert_label = 'Insert ' . $this->media_label;
 		if ( ! empty( $option_val ) && absint( $option_val ) ) {
 			$img          = wp_get_attachment_image_src( $option_val );
-			$saved        = array( 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $option_val );
+			$saved        = [ 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $option_val ];
 			$insert_label = 'Replace ' . $this->media_label;
 		}
 
 		$allowed_tags = wp_kses_allowed_html( 'post' );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'input' => array(
+		$allowed_tags = array_merge( $allowed_tags, [
+			'input' => [
 				'type'  => 1,
 				'name'  => 1,
 				'value' => 1,
 				'id'    => 1,
 				'class' => 1,
-			),
-		) );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'a' => array(
+			],
+		] );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'a' => [
 				'href'             => 1,
 				'data-media-label' => 1,
 				'class'            => 1,
-			),
-		) );
-		$allowed_tags = array_merge( $allowed_tags, array(
-			'div' => array(
+			],
+		] );
+		$allowed_tags = array_merge( $allowed_tags, [
+			'div' => [
 				'style' => 1,
 				'class' => 1,
-			),
-		) );
+			],
+		] );
 
 		ob_start();
 		echo wp_kses( '<div class="blank-img" style="display:none;">' . $empty . '</div>', $allowed_tags );
@@ -2160,11 +2185,12 @@ class Media extends Part {
 
 		echo wp_kses( HTML::tag( 'input', $image_btn ), $allowed_tags );
 		echo wp_kses( HTML::tag( 'input', $hidden ), $allowed_tags );
-		echo wp_kses( HTML::tag( 'a', [
-			'href'             => '#',
-			'class'            => 'button button-secondary img-remove',
-			'data-media-label' => $this->media_label,
-		], 'Remove ' . $this->media_label
+		echo wp_kses( HTML::tag( 'a',
+			[
+				'href'             => '#',
+				'class'            => 'button button-secondary img-remove',
+				'data-media-label' => $this->media_label,
+			], 'Remove ' . $this->media_label
 		), $allowed_tags );
 
 		return $this->build_base_markup( ob_get_clean() );
@@ -2174,6 +2200,7 @@ class Media extends Part {
 
 /**
  * Class Include_Partial
+ *
  * @package WPOP\V_3_0
  */
 class Include_Partial extends Part {
@@ -2207,6 +2234,7 @@ class Include_Partial extends Part {
 
 /**
  * Class Markdown
+ *
  * @package WPOP\V_3_1
  */
 class Markdown extends Include_Partial {
@@ -2227,14 +2255,14 @@ class Markdown extends Include_Partial {
 				);
 			}
 		} else {
-			return 'File Status: ' . strval( is_file( $this->filename ) ) .
-			       ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
+			return 'File Status: ' . strval( is_file( $this->filename ) ) . ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
 		}
 	}
 }
 
 /**
  * Class HTML
+ *
  * @package WPOP\V_2_10
  * @link    https://github.com/Automattic/amp-wp/blob/master/includes/utils/class-amp-html-utils.php
  */
@@ -2259,7 +2287,7 @@ class HTML {
 	 *
 	 * @return string
 	 */
-	public static function tag( $tag_name, $attributes = array(), $content = '' ) {
+	public static function tag( $tag_name, $attributes = [], $content = '' ) {
 		$attr_string = self::build_attributes_string( $attributes );
 
 		return sprintf( '<%1$s %2$s>%3$s</%1$s>', sanitize_key( $tag_name ), $attr_string, $content );
@@ -2273,7 +2301,7 @@ class HTML {
 	 * @return string
 	 */
 	public static function build_attributes_string( $attributes ) {
-		$string = array();
+		$string = [];
 		foreach ( $attributes as $name => $value ) {
 			if ( empty( $value ) ) {
 				$string[] = sprintf( '%s', sanitize_key( $name ) );
@@ -2301,6 +2329,7 @@ class HTML {
  * Helper used by panel for tapping various WordPress APIs
  *
  * Class Get_Single_Field
+ *
  * @package WPOP\V_3_0
  */
 class Get_Single_Field {
@@ -2366,6 +2395,7 @@ class Get_Single_Field {
 
 /**
  * Class Save_Single_Field
+ *
  * @package WPOP\V_3_0
  */
 class Save_Single_Field {
@@ -2381,9 +2411,8 @@ class Save_Single_Field {
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		$wpnonce = filter_input( INPUT_POST, '_wpnonce' );
-		if ( ! wp_verify_nonce( $wpnonce, $panel_id )            // only allow class to be used by panel
-		     || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value // encrypted pwds never updated after insert
-		) {
+		// only allow class to be used by panel OR encrypted pwds never updated after insert
+		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
 			return false;
 		}
 
