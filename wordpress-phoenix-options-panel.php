@@ -2159,7 +2159,10 @@ class Media extends Part {
 		$insert_label = 'Insert ' . $this->media_label;
 		if ( ! empty( $option_val ) && absint( $option_val ) ) {
 			$img          = wp_get_attachment_image_src( $option_val );
-			$saved        = [ 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $option_val ];
+			$saved        = [
+				'url' => is_array( $img ) ? $img[0] : 'err',
+				'id'  => $option_val,
+			];
 			$insert_label = 'Replace ' . $this->media_label;
 		}
 
