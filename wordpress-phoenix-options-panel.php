@@ -86,7 +86,11 @@ class Panel {
 	/**
 	 * @var array used to track what happens during save process
 	 */
-	public $updated_counts = [ 'created' => 0, 'updated' => 0, 'deleted' => 0 ];
+	public $updated_counts = [
+		'created' => 0,
+		'updated' => 0,
+		'deleted' => 0,
+	];
 
 	/**
 	 * Container constructor.
@@ -534,7 +538,8 @@ class Page extends Panel {
 								foreach ( $this->parts as $section_key => $section ) {
 									$built_section = new Section( $section_key, $section );
 									$built_section->echo_html();
-								} ?>
+								}
+								?>
 							</ul>
 						</div>
 						<footer class="pure-u-1">
@@ -586,7 +591,8 @@ class Page extends Panel {
 			],
 		] );
 
-		ob_start(); ?>
+		ob_start();
+		?>
 		<style>
 			@-webkit-keyframes wp-core-spinner {
 				from {
@@ -1073,7 +1079,8 @@ class Page extends Panel {
 		</style>
 		<?php
 		$css = ob_get_clean();
-		ob_start(); ?>
+		ob_start();
+		?>
 		<script type="text/javascript">
 					!function ( t, o ) {
 						"use strict";
@@ -1281,7 +1288,8 @@ class Page extends Panel {
 			],
 		] );
 
-		ob_start(); ?>
+		ob_start();
+		?>
 		<script type="text/html" id="tmpl-wpop-media-stats">
 			<div class="pure-g media-stats">
 				<div class="pure-u-1 pure-u-sm-18-24">
@@ -1508,7 +1516,10 @@ class Part {
 
 		return HTML::tag(
 			'li',
-			[ 'class' => 'wpop-option ' . strtolower( $this->get_clean_classname() ), 'data-part' => $this->id ],
+			[
+				'class'     => 'wpop-option ' . strtolower( $this->get_clean_classname() ),
+				'data-part' => $this->id,
+			],
 			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field . $this->field_after
 			. $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
 		);
@@ -1732,7 +1743,12 @@ class Password extends Input {
 	}
 
 	protected function pwd_clear_and_hidden_field() {
-		$html = HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' );
+		$html = HTML::tag( 'a',
+			[
+				'href'  => '#',
+				'class' => 'button button-secondary pwd-clear',
+			], 'clear'
+		);
 		$html .= HTML::tag( 'input',
 			[
 				'id'           => 'stored_' . $this->id,
@@ -1834,7 +1850,12 @@ class Textarea extends Part {
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
 
-		$field = [ 'id' => $this->id, 'name' => $this->id, 'cols' => $this->cols, 'rows' => $this->rows ];
+		$field = [
+			'id'   => $this->id,
+			'name' => $this->id,
+			'cols' => $this->cols,
+			'rows' => $this->rows,
+		];
 
 		if ( ! empty( $this->atts ) && is_array( $this->atts ) ) {
 			foreach ( $this->atts as $key => $val ) {
@@ -2024,7 +2045,12 @@ class Checkbox extends Part {
 
 	public function get_html() {
 		$classes = ! empty( $this->label_markup ) ? 'onOffSwitch-checkbox' : 'cb';
-		$input   = [ 'type' => 'checkbox', 'id' => $this->id, 'name' => $this->id, 'class' => $classes ];
+		$input   = [
+			'type'  => 'checkbox',
+			'id'    => $this->id,
+			'name'  => $this->id,
+			'class' => $classes,
+		];
 		if ( $this->get_saved() === $this->value ) {
 			$input['checked'] = 'checked';
 		}
@@ -2054,7 +2080,10 @@ class Toggle_Switch extends Checkbox {
 		parent::__construct( $i, $args );
 		$this->label_markup = HTML::tag(
 			'label',
-			[ 'class' => 'onOffSwitch-label', 'for' => $this->id ],
+			[
+				'class' => 'onOffSwitch-label',
+				'for'   => $this->id,
+			],
 			'<div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span>'
 		);
 	}
@@ -2122,7 +2151,10 @@ class Media extends Part {
 
 	public function get_html() {
 		$empty        = ''; // TODO: REPLACE EMPTY IMAGE WITH CSS YO
-		$saved        = [ 'url' => $empty, 'id' => '' ];
+		$saved        = [
+			'url' => $empty,
+			'id'  => '',
+		];
 		$option_val   = $this->get_saved();
 		$insert_label = 'Insert ' . $this->media_label;
 		if ( ! empty( $option_val ) && absint( $option_val ) ) {
@@ -2275,7 +2307,12 @@ class HTML {
 	 * @return string
 	 */
 	public static function dashicon( $class_str ) {
-		return self::tag( 'span', [ 'class' => 'dashicons ' . $class_str, 'data-dashicon' ] );
+		return self::tag( 'span',
+			[
+				'class' => 'dashicons ' . $class_str,
+				'data-dashicon',
+			]
+		);
 	}
 
 	/**
@@ -2321,7 +2358,12 @@ class HTML {
 	 * @return string
 	 */
 	public static function notification( $class_str ) {
-		return self::tag( 'div', [ 'class' => 'dashicons ' . $class_str, 'data-dashicon' ] );
+		return self::tag( 'div',
+			[
+				'class' => 'dashicons ' . $class_str,
+				'data-dashicon',
+			]
+		);
 	}
 }
 
