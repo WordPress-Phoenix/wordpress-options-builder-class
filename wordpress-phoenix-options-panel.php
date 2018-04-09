@@ -210,8 +210,8 @@ class Panel {
 
 		// allow api auto detection if 'api' not set in config array, but if its set and doesn't match then ignore and
 		// use config value for safety
-		//   (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent accidental API
-		//   override)
+		// (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent accidental API
+		// override)
 		if ( isset( $this->api ) && $api !== $this->api ) {
 			return $this->api;
 		}
@@ -448,6 +448,7 @@ class Page extends Panel {
 				'value' => 1,
 				'id'    => 1,
 				'class' => 1,
+				'checked' => 1,
 			],
 		] );
 
@@ -573,7 +574,9 @@ class Page extends Panel {
 			</section>
 		</div> <!-- end #wpopOptions -->
 		<?php
-		echo wp_kses( ob_get_clean(), $allowed_tags );
+		// @codingStandardsIgnoreStart
+		echo ob_get_clean();
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
@@ -1231,7 +1234,10 @@ class Page extends Panel {
 		</script>
 		<?php
 		$js = ob_get_clean();
-		echo wp_kses( PHP_EOL . $css . PHP_EOL . $js . PHP_EOL, $allowed_tags );
+		echo wp_kses( PHP_EOL . $css, $allowed_tags );
+		// @codingStandardsIgnoreStart
+		echo PHP_EOL . $js . PHP_EOL;
+		// @codingStandardsIgnoreEnd
 	}
 
 	public function footer_scripts() {
@@ -1442,6 +1448,17 @@ class Section {
 			'li' => [
 				'id'    => 1,
 				'class' => 1,
+			],
+		] );
+
+		$allowed_tags = array_merge( $allowed_tags, [
+			'input' => [
+				'type'  => 1,
+				'name'  => 1,
+				'value' => 1,
+				'id'    => 1,
+				'class' => 1,
+				'checked' => 1,
 			],
 		] );
 
@@ -2262,7 +2279,9 @@ class Include_Partial extends Part {
 		if ( function_exists( 'wpcom_vip_file_get_contents' ) ) {
 			return wpcom_vip_file_get_contents( $filename );
 		} else {
+			// @codingStandardsIgnoreStart
 			\file_get_contents( $filename );
+			// @codingStandardsIgnoreEnd
 		}
 	}
 }
@@ -2322,8 +2341,8 @@ class HTML {
 	 * Create markup for HTML tag from array fully sanitized and prepared
 	 *
 	 * @param        $tag_name
-	 * @param array  $attributes
-	 * @param string $content
+	 * @param array    $attributes
+	 * @param string   $content
 	 *
 	 * @return string
 	 */
@@ -2392,9 +2411,9 @@ class Get_Single_Field {
 	 * @param      $panel_id
 	 * @param      $type
 	 * @param      $key
-	 * @param null $default
-	 * @param null $obj_id
-	 * @param bool $single
+	 * @param null     $default
+	 * @param null     $obj_id
+	 * @param bool     $single
 	 */
 	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
 		if ( false !== wp_verify_nonce( $panel_id, $panel_id ) ) {
@@ -2451,8 +2470,8 @@ class Save_Single_Field {
 	 * @param      $type
 	 * @param      $key
 	 * @param      $value
-	 * @param null $obj_id
-	 * @param bool $autoload
+	 * @param null     $obj_id
+	 * @param bool     $autoload
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		$wpnonce = filter_input( INPUT_POST, '_wpnonce' );
