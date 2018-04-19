@@ -125,6 +125,7 @@ class Panel {
 				// loop over current section's parts
 				foreach ( $section['parts'] as $part_id => $part_config ) {
 					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
+					$part_config['obj_id'] 	   = $this->obj_id;
 					$part_config['panel_id']   = $this->id;
 					$part_config['section_id'] = $section_id;
 					$part_config['panel_api']  = $this->api;
