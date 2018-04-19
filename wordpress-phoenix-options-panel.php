@@ -8,7 +8,7 @@
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
-namespace WPOP\V_3_1;
+namespace WPOP\V_4_0;
 
 /**
  * Some tips:
@@ -94,7 +94,6 @@ class Panel {
 	 * @param array $sections
 	 */
 	public function __construct( $args = [], $sections = [] ) {
-		global $pagenow;
 		if ( ! isset( $args['id'] ) ) {
 			echo "Setting a panel ID is required";
 			exit;
@@ -125,20 +124,16 @@ class Panel {
 				$this->section_count ++;
 				// loop over current section's parts
 				foreach ( $section['parts'] as $part_id => $part_config ) {
-					if ( isset( $part_config['part'] ) ) {
-						$current_part_classname = __NAMESPACE__ . '\\' . ucfirst( $part_config['part'] );
-					}
 					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
 					$part_config['panel_id']   = $this->id;
 					$part_config['section_id'] = $section_id;
 					$part_config['panel_api']  = $this->api;
 
+					// create part class
+					$current_part = new $current_part_classname( $part_id, $part_config );
+
 					// add part to panel/section
-					$this->add_part(
-						$section_id,
-						$section,
-						$current_part = new $current_part_classname( $part_id, $part_config )
-					);
+					$this->add_part( $section_id, $section, $current_part );
 					$this->part_count ++;
 					if ( is_object( $current_part ) && $current_part->data_store ) {
 						$this->data_count ++;
@@ -161,6 +156,9 @@ class Panel {
 		}
 	}
 
+	/**
+	 * @return null|string|string
+	 */
 	public function __toString() {
 		return $this->id;
 	}
@@ -169,16 +167,15 @@ class Panel {
 	 * Listen for query parameters denoting Post, User or Term object IDs for metadata api or network/site option apis
 	 */
 	public function detect_data_api_and_permissions() {
-		$error = null;
-		$api   = null;
+		$api = null;
 		if ( isset( $_GET['page'] ) ) {
 			if ( isset( $_GET['post'] ) && is_numeric( $_GET['post'] ) ) {
 				$api                = 'post';
 				$this->page_title   = $this->page_title . ' for ' . get_the_title( $_GET['post'] );
-				$this->panel_object = get_post( $_GET['post'] );
+				$this->panel_object = get_post( absint( $_GET['post'] ) );
 			} elseif ( isset( $_GET['user'] ) && is_numeric( $_GET['user'] ) ) {
 				if ( is_multisite() && is_network_admin() ) {
-					$api                 = 'user-network';
+					$api = 'user-network';
 				} else {
 					$api = 'user';
 				}
@@ -186,13 +183,13 @@ class Panel {
 				$this->panel_object = get_user_by( 'id', absint( $_GET['user'] ) );
 			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
 				$api  = 'term';
-				$term = get_term( $_GET['term'] );
+				$term = get_term( absint( $_GET['term'] ) );
 				if ( is_object( $term ) && ! is_wp_error( $term ) && isset( $term->name ) ) {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term->name );
 					$this->panel_object = $term;
 				}
 			} elseif ( is_multisite() && is_network_admin() ) {
-				$api                 = 'network';
+				$api = 'network';
 			} else {
 				$api = 'site';
 			}
@@ -255,14 +252,25 @@ class Panel {
 	 */
 	public function echo_notifications() {
 		foreach ( $this->notifications as $note_data ) {
-			$data         = is_array( $note_data ) ? $note_data : [ 'notification' => $note_data ];
-			$data['type'] = isset( $data['type'] ) ? $data['type'] : 'notice-success';
-			echo HTML::tag(
-				'div',
-				[ 'class' => 'notice ' . $data['type'] ],
-				HTML::tag( 'p', [], $data['notification'] )
-			);
+			$this->single_notification( $note_data );
 		}
+	}
+
+	/**
+	 * Create single notification markup
+	 *
+	 * @param $notification
+	 */
+	public function single_notification( $notification ) {
+		$data      = is_array( $notification ) ? $notification : [ 'notification' => $notification ];
+		$note_type = isset( $data['type'] ) ? $data['type'] : 'notice-success';
+		?>
+		<div class="notice <?php esc_attr_e( $note_type ); ?>">
+			<p><strong><?php esc_html_e( $this->page_title ); ?></strong> //
+				<?php esc_html_e( $data['notification'] ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -347,6 +355,112 @@ class Page extends Panel {
 			$this->id,
 			array( $this, 'build_parts' )
 		);
+		add_action( 'admin_print_footer_scripts-settings_page_wpop-example-panel-opts', array( $this, 'footer_scripts' ) );
+	}
+
+	/**
+	 * Builds <header>
+	 */
+	public function page_header() {
+		?>
+		<header class="wpop-head">
+			<div class="inner">
+				<h1>
+					<?php if ( ! empty( $this->dashicon ) ) { ?>
+						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
+					<?php }
+					echo esc_attr( $this->page_title ); ?>
+				</h1>
+				<input type="submit" class="button button-primary button-hero save-all" value="Save All" name="submit"/>
+			</div>
+		</header>
+		<?php
+	}
+
+	/**
+	 * Build container holding left sidebar and main content area
+	 */
+	public function page_content() {
+		?>
+		<div id="wpopContent" class="pure-g">
+			<div id="wpopNav" class="pure-u-1 pure-u-md-6-24">
+				<?php $this->page_content_sidebar(); ?>
+			</div>
+			<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
+				<?php $this->page_content_main(); ?>
+			</div>
+
+		</div>
+		<?php
+	}
+
+	/**
+	 * Left-sidebar in page_content()
+	 */
+	public function page_content_sidebar() {
+		?>
+		<div class="pure-menu wpop-options-menu">
+			<ul class="pure-menu-list">
+				<?php
+				foreach ( $this->parts as $section_id => $section ) {
+					?>
+					<li id="<?php esc_attr_e( $section_id . '-nav' ); ?>" class="pure-menu-item">
+						<a href="<?php esc_attr_e( '#' . $section_id ); ?>" class="pure-menu-link">
+							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
+								<span
+									class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
+							<?php }
+							echo esc_html( $section['label'] );
+							if ( count( $section['parts'] ) > 1 ) { ?>
+								<small class="part-count">
+									<?php esc_attr_e( count( $section['parts'] ) ); ?>
+								</small>
+							<?php } ?>
+						</a>
+					</li>
+					<?php
+				}
+				?>
+			</ul>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Main area in page_content()
+	 */
+	public function page_content_main() {
+		?>
+		<ul id="wpopOptNavUl" style="list-style: none;">
+			<?php
+			foreach ( $this->parts as $section_key => $section ) {
+				$built_section = new Section( $section_key, $section );
+				$built_section->echo_html();
+			} ?>
+		</ul>
+		<?php
+	}
+
+	/**
+	 * <footer> for panel page
+	 */
+	public function page_footer() {
+		?>
+		<footer class="pure-u-1">
+			<div class="pure-g">
+				<div class="pure-u-1 pure-u-md-1-3">
+					<div>
+						<ul>
+							<li>Sections: <code><?php esc_attr_e( $this->section_count ); ?></code></li>
+							<li>Total Data Parts: <code><?php esc_attr_e( $this->data_count ); ?></code></li>
+							<li>Total Parts: <code><?php esc_attr_e( $this->part_count ); ?></code></li>
+							<li>Stored in: <code><?php esc_attr_e( $this->get_storage_table() ); ?></code></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</footer>
+		<?php
 	}
 
 
@@ -354,18 +468,12 @@ class Page extends Panel {
 	 *
 	 */
 	public function build_parts() {
-		$page_icon = ! empty( $this->dashicon ) ? HTML::dashicon( $this->dashicon . ' page-icon' ) . ' ' : '';
-		$screen    = get_current_screen();
-		$screen_id = $screen->id;
-		add_action( 'admin_print_footer_scripts-' . $screen_id, function () {
-			$this->footer_scripts();
-		} );
 		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
 			echo '<h1>Please select a ' . $this->api . '.</h1>';
 			echo '<code>?' . $this->api . '=ID</code>';
 			exit;
 		}
-		ob_start(); ?>
+		?>
 		<div id="wpopOptions">
 			<?php
 			if ( ! $this->disable_styles ) {
@@ -383,90 +491,33 @@ class Page extends Panel {
 					</div>
 				</div>
 				<form method="post" class="pure-form wpop-form">
-					<header class="wpop-head">
-						<div class="inner">
-							<?php echo HTML::tag( 'h1', [], $page_icon . $this->page_title ); ?>
-							<input type="submit"
-								   class="button button-primary button-hero save-all"
-								   value="Save All"
-								   name="submit">
-						</div>
-					</header>
 					<?php
+					/**
+					 * Print WordPress Notices with Panel Information
+					 */
 					if ( isset( $_POST['submit'] ) && $_POST['submit'] ) {
 						$this->echo_notifications();
 					}
-					?>
-					<div id="wpopContent" class="pure-g">
-						<div id="wpopNav" class="pure-u-1 pure-u-md-6-24">
-							<div class="pure-menu wpop-options-menu">
-								<ul class="pure-menu-list">
-									<?php
-									foreach ( $this->parts as $section_id => $section ) {
-										$section_icon = ! empty( $section['dashicon'] ) ?
-											HTML::dashicon( $section['dashicon'] . ' menu-icon' ) : '';
-										$pcount       = count( $section['parts'] ) > 1 ? HTML::tag( 'small', [ 'class' => 'part-count' ], count( $section['parts'] ) ) : '';
-										echo HTML::tag(
-											'li',
-											[
-												'id'    => $section_id . '-nav',
-												'class' => 'pure-menu-item',
-											],
-											HTML::tag(
-												'a',
-												[
-													'href'  => '#' . $section_id,
-													'class' => 'pure-menu-link',
-												],
-												$section_icon . $section['label'] . $pcount )
-										);
-									}
-									?>
-								</ul>
-							</div>
-							<?php echo wp_nonce_field( $this->id, '_wpnonce', true, false ); ?>
-						</div>
-						<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
-							<ul id="wpopOptNavUl" style="list-style: none;">
-								<?php
-								foreach ( $this->parts as $section_key => $section ) {
-									$built_section = new Section( $section_key, $section );
-									$built_section->echo_html();
-								} ?>
-							</ul>
-						</div>
-						<footer class="pure-u-1">
-							<div class="pure-g">
-								<div class="pure-u-1 pure-u-md-1-3">
-									<div>
-										<ul>
-											<li>
-												Sections: <?php echo HTML::tag( 'code', [], $this->section_count ); ?></li>
-											<li>Total Data
-												Parts: <?php echo HTML::tag( 'code', [], $this->data_count ); ?></li>
-											<li>Total
-												Parts: <?php echo HTML::tag( 'code', [], $this->part_count ); ?></li>
-											<li>Stored
-												in: <?php echo HTML::tag( 'code', [], $this->get_storage_table() ); ?></li>
-										</ul>
-									</div>
-								</div>
-								<div class="pure-u-1 pure-u-md-1-3">
-									<div>
-
-									</div>
-								</div>
-								<div class="pure-u-1 pure-u-md-1-3">
-
-								</div>
-							</div>
-						</footer>
-					</div>
+					/**
+					 * Build <header>
+					 */
+					$this->page_header();
+					/**
+					 * Build <div id="wpopContent"> Container Holding Sidebar + Sections
+					 */
+					$this->page_content();
+					/**
+					 * Build <footer>
+					 */
+					$this->page_footer();
+					/**
+					 * Print Nonce Field
+					 */
+					echo wp_nonce_field( $this->id, '_wpnonce', true, false ); ?>
 				</form>
 			</section>
 		</div> <!-- end #wpopOptions -->
 		<?php
-		echo ob_get_clean();
 	}
 
 	/**
@@ -475,13 +526,639 @@ class Page extends Panel {
 	public function inline_styles_and_scripts() {
 		ob_start(); ?>
 		<style>
-			@-webkit-keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes wp-core-spinner{from{-webkit-transform:rotate(0);transform:rotate(0)}to{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}.wpcore-spin{position:relative;width:20px;height:20px;border-radius:20px;background:#A6A6A6;-webkit-animation:wp-core-spinner 1.04s linear infinite;animation:wp-core-spinner 1.04s linear infinite}.wpcore-spin:after{content:"";position:absolute;top:2px;left:50%;width:4px;height:4px;border-radius:4px;margin-left:-2px;background:#fff}#panel-loader-positioning-wrap{background:#fff;display:flex;align-items:center;justify-content:center;height:100%;min-height:10vw;position:absolute!important;width:99%;max-width:1600px;z-index:50}#panel-loader-box{max-width:50%}#panel-loader-box .wpcore-spin{width:60px;height:60px;border-radius:60px}#panel-loader-box .wpcore-spin:after{top:6px;width:12px;height:12px;border-radius:12px;margin-left:-6px}.onOffSwitch-inner,.onOffSwitch-switch{transition:all .5s cubic-bezier(1,0,0,1)}.onOffSwitch{position:relative;width:110px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;margin-left:auto;margin-right:12px}input[type=checkbox].onOffSwitch-checkbox{display:none}.onOffSwitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #EEE;border-radius:28px}.onOffSwitch-inner{display:block;width:200%;margin-left:-100%}.onOffSwitch-inner:after,.onOffSwitch-inner:before{display:block;float:left;width:50%;height:40px;padding:0;line-height:40px;font-size:17px;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.pure-menu-link .part-count,.radio-wrap{float:right}.pure-menu-link .part-count{float:right;position:relative;top:-6px;padding:.33rem .66rem;border-radius:50%;-webkit-border-radius:50%;-moz-border-radius:50%;background:#aaa;color:#222}.onOffSwitch-inner:before{content:"ON";padding-left:10px;background-color:#21759B;color:#FFF}.onOffSwitch-inner:after{content:"OFF";padding-right:10px;background-color:#EEE;color:#BCBCBC;text-align:right}.onOffSwitch-switch{display:block;width:28px;margin:6px;background:#BCBCBC;position:absolute;top:0;bottom:0;right:66px;border:2px solid #EEE;border-radius:20px}.cb,.cb-wrap,.desc:after,.pwd-clear,.radio-wrap,.save-all,span.menu-icon,span.page-icon:before,span.spacer{position:relative}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-inner{margin-left:0}.onOffSwitch-checkbox:checked+.onOffSwitch-label .onOffSwitch-switch{right:0;background-color:#D54E21}.radio-wrap{top:-1rem}.cb,.save-all,.wpop-option.color .iris-picker{float:right;position:relative;top:-30px}.wpop-option .selectize-control.multi .selectize-input:after{content:'Select one or more options...'}li.wpop-option.color input[type=text]{height:50px}.wpop-option.media h4.label{margin-bottom:.33rem}.wpop-form{margin-bottom:0}#wpop{max-width:1600px;margin:0 auto 0 0!important}#wpopMain{background:#fff}#wpopOptNavUl{margin-top:0}.wpop-options-menu{margin-bottom:8em}#wpopContent{background:#F1F1F1;width:100%!important;border-top:1px solid #D8D8D8}.pure-g [class*=pure-u]{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}.pure-form select{min-width:320px}.selectize-control{max-width:98.5%}.pure-menu-disabled,.pure-menu-heading,.pure-menu-link{padding:1.3em 2em}.pure-menu-active>.pure-menu-link,.pure-menu-link:focus,.pure-menu-link:hover{background:inherit}#wpopOptions header{overflow:hidden;max-height:88px}#wpopNav li.pure-menu-item{height:55px}#wpopNav p.submit input{width:100%}#wpop{border:1px solid #D8D8D8;background:#fff}.opn a.pure-menu-link{color:#fff!important}.opn a.pure-menu-link:focus{box-shadow:none;-webkit-box-shadow:none}#wpopContent .section{display:none;width:100%}#wpopContent .section.active{display:inline-block}span.page-icon{margin:0 1.5rem 0 0}span.menu-icon{left:-.5rem}span.page-icon:before{font-size:2.5rem;top:-4px;right:4px;color:#777}.clear{clear:both}.section{padding:0 0 5px}.section h3{margin:0 0 10px;padding:2rem 1.5rem}.section h4.label{margin:0;display:table-cell;border:1px solid #e9e9e9;background:#f1f1f1;padding:.33rem .66rem .5rem;font-weight:500;font-size:16px}.section ul li:nth-child(even) h4.label{background:#ddd}.section li.wpop-option{margin:1rem 1rem 1.25rem}.twothirdfat{width:66.6%}span.spacer{display:block;width:100%;border:0;height:0;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}li.even.option{background-color:#ccc}input[disabled=disabled]{background-color:#CCC}.cb{right:20px}.card-wrap{width:100%}.fullwidth{width:100%!important;max-width:100%!important}.wpop-head{background:#f1f1f1}.wpop-head>.inner{padding:1rem 1.5rem 0}.save-all{top:-2.5rem}.desc{margin:.5rem 0 0 .25rem;font-weight:300;font-size:12px;line-height:16px;color:#888}.desc:after{display:block;width:98%;border-top:1px solid rgba(0,0,0,.1);border-bottom:1px solid rgba(255,255,255,.3)}.wpop-option input[type=email],.wpop-option input[type=number],.wpop-option input[type=password],.wpop-option input[type=range],.wpop-option input[type=text],.wpop-option input[type=url]{width:90%}.wpop-option input[data-part=color]{width:25%}li[data-part=markdown]{padding:1rem}li[data-part=markdown]+span.spacer{display:none}li[data-part=markdown] p{margin:0!important}li[data-part=markdown] ol,li[data-part=markdown] p,li[data-part=markdown] ul{font-size:1rem}[data-part=markdown] h1{padding-top:1.33rem;padding-bottom:.33rem}[data-part=markdown] h1:first-of-type{padding-top:.33rem;padding-bottom:.33rem}[data-part=markdown] h1,[data-part=markdown] h2,[data-part=markdown] h3,[data-part=markdown] h4,[data-part=markdown] h5,[data-part=markdown] h6{padding-left:0!important}input[data-assigned]{width:100%!important}.add-button{margin:3em auto;display:block;width:100%;text-align:center}.img-preview{max-width:320px;display:block;margin:0 0 1rem}.media-stats,.wpop-option .wp-editor-wrap{margin-top:.5rem}.img-remove{border:2px solid #cd1713!important;background:#f1f1f1!important;color:#cd1713!important;box-shadow:none;-webkit-box-shadow:none;margin-left:1rem!important}.pwd-clear{margin-left:.5rem!important;top:1px}.pure-form footer{background:#f1f1f1;border-top:1px solid #D8D8D8}.pure-form footer div div>*{padding:1rem .33rem}.wpop-option.color input{width:50%}.cb-wrap{display:block;right:1.33rem;max-width:110px;margin-left:auto;top:-1.66rem}
+			@-webkit-keyframes wp-core-spinner {
+				from {
+					-webkit-transform: rotate(0);
+					transform: rotate(0)
+				}
+				to {
+					-webkit-transform: rotate(360deg);
+					transform: rotate(360deg)
+				}
+			}
+
+			@keyframes wp-core-spinner {
+				from {
+					-webkit-transform: rotate(0);
+					transform: rotate(0)
+				}
+				to {
+					-webkit-transform: rotate(360deg);
+					transform: rotate(360deg)
+				}
+			}
+
+			.wpcore-spin {
+				position: relative;
+				width: 20px;
+				height: 20px;
+				border-radius: 20px;
+				background: #A6A6A6;
+				-webkit-animation: wp-core-spinner 1.04s linear infinite;
+				animation: wp-core-spinner 1.04s linear infinite
+			}
+
+			.wpcore-spin:after {
+				content: "";
+				position: absolute;
+				top: 2px;
+				left: 50%;
+				width: 4px;
+				height: 4px;
+				border-radius: 4px;
+				margin-left: -2px;
+				background: #fff
+			}
+
+			#panel-loader-positioning-wrap {
+				background: #fff;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				height: 100%;
+				min-height: 10vw;
+				position: absolute !important;
+				width: 99%;
+				max-width: 1600px;
+				z-index: 50
+			}
+
+			#panel-loader-box {
+				max-width: 50%
+			}
+
+			#panel-loader-box .wpcore-spin {
+				width: 60px;
+				height: 60px;
+				border-radius: 60px
+			}
+
+			#panel-loader-box .wpcore-spin:after {
+				top: 6px;
+				width: 12px;
+				height: 12px;
+				border-radius: 12px;
+				margin-left: -6px
+			}
+
+			.onOffSwitch-inner, .onOffSwitch-switch {
+				transition: all .5s cubic-bezier(1, 0, 0, 1)
+			}
+
+			.onOffSwitch {
+				position: relative;
+				width: 110px;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				margin-left: auto;
+				margin-right: 12px
+			}
+
+			input[type=checkbox].onOffSwitch-checkbox {
+				display: none
+			}
+
+			.onOffSwitch-label {
+				display: block;
+				overflow: hidden;
+				cursor: pointer;
+				border: 2px solid #EEE;
+				border-radius: 28px
+			}
+
+			.onOffSwitch-inner {
+				display: block;
+				width: 200%;
+				margin-left: -100%
+			}
+
+			.onOffSwitch-inner:after, .onOffSwitch-inner:before {
+				display: block;
+				float: left;
+				width: 50%;
+				height: 40px;
+				padding: 0;
+				line-height: 40px;
+				font-size: 17px;
+				font-family: Trebuchet, Arial, sans-serif;
+				font-weight: 700;
+				box-sizing: border-box
+			}
+
+			.pure-menu-link .part-count, .radio-wrap {
+				float: right
+			}
+
+			.pure-menu-link .part-count {
+				float: right;
+				position: relative;
+				top: -6px;
+				padding: .33rem .66rem;
+				border-radius: 50%;
+				-webkit-border-radius: 50%;
+				-moz-border-radius: 50%;
+				background: #aaa;
+				color: #222
+			}
+
+			.onOffSwitch-inner:before {
+				content: "ON";
+				padding-left: 10px;
+				background-color: #21759B;
+				color: #FFF
+			}
+
+			.onOffSwitch-inner:after {
+				content: "OFF";
+				padding-right: 10px;
+				background-color: #EEE;
+				color: #BCBCBC;
+				text-align: right
+			}
+
+			.onOffSwitch-switch {
+				display: block;
+				width: 28px;
+				margin: 6px;
+				background: #BCBCBC;
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				right: 66px;
+				border: 2px solid #EEE;
+				border-radius: 20px
+			}
+
+			.cb, .cb-wrap, .desc:after, .pwd-clear, .radio-wrap, .save-all, span.menu-icon, span.page-icon:before, span.spacer {
+				position: relative
+			}
+
+			.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-inner {
+				margin-left: 0
+			}
+
+			.onOffSwitch-checkbox:checked + .onOffSwitch-label .onOffSwitch-switch {
+				right: 0;
+				background-color: #D54E21
+			}
+
+			.radio-wrap {
+				top: -1rem
+			}
+
+			.cb, .save-all, .wpop-option.color .iris-picker {
+				float: right;
+				position: relative;
+				top: -30px
+			}
+
+			.wpop-option .selectize-control.multi .selectize-input:after {
+				content: 'Select one or more options...'
+			}
+
+			li.wpop-option.color input[type=text] {
+				height: 50px
+			}
+
+			.wpop-option.media h4.label {
+				margin-bottom: .33rem
+			}
+
+			.wpop-form {
+				margin-bottom: 0
+			}
+
+			#wpop {
+				max-width: 1600px;
+				margin: 0 auto 0 0 !important
+			}
+
+			#wpopMain {
+				background: #fff
+			}
+
+			#wpopOptNavUl {
+				margin-top: 0
+			}
+
+			.wpop-options-menu {
+				margin-bottom: 8em
+			}
+
+			#wpopContent {
+				background: #F1F1F1;
+				width: 100% !important;
+				border-top: 1px solid #D8D8D8
+			}
+
+			.pure-g [class*=pure-u] {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif
+			}
+
+			.pure-form select {
+				min-width: 320px
+			}
+
+			.selectize-control {
+				max-width: 98.5%
+			}
+
+			.pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
+				padding: 1.3em 2em
+			}
+
+			.pure-menu-active > .pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+				background: inherit
+			}
+
+			#wpopOptions header {
+				overflow: hidden;
+				max-height: 88px
+			}
+
+			#wpopNav li.pure-menu-item {
+				height: 55px
+			}
+
+			#wpopNav p.submit input {
+				width: 100%
+			}
+
+			#wpop {
+				border: 1px solid #D8D8D8;
+				background: #fff
+			}
+
+			.opn a.pure-menu-link {
+				color: #fff !important
+			}
+
+			.opn a.pure-menu-link:focus {
+				box-shadow: none;
+				-webkit-box-shadow: none
+			}
+
+			#wpopContent .section {
+				display: none;
+				width: 100%
+			}
+
+			#wpopContent .section.active {
+				display: inline-block
+			}
+
+			span.page-icon {
+				margin: 0 1.5rem 0 0
+			}
+
+			span.menu-icon {
+				left: -.5rem
+			}
+
+			span.page-icon:before {
+				font-size: 2.5rem;
+				top: -4px;
+				right: 4px;
+				color: #777
+			}
+
+			.clear {
+				clear: both
+			}
+
+			.section {
+				padding: 0 0 5px
+			}
+
+			.section h3 {
+				margin: 0 0 10px;
+				padding: 2rem 1.5rem
+			}
+
+			.section h4.label {
+				margin: 0;
+				display: table-cell;
+				border: 1px solid #e9e9e9;
+				background: #f1f1f1;
+				padding: .33rem .66rem .5rem;
+				font-weight: 500;
+				font-size: 16px
+			}
+
+			.section ul li:nth-child(even) h4.label {
+				background: #ddd
+			}
+
+			.section li.wpop-option {
+				margin: 1rem 1rem 1.25rem
+			}
+
+			.twothirdfat {
+				width: 66.6%
+			}
+
+			span.spacer {
+				display: block;
+				width: 100%;
+				border: 0;
+				height: 0;
+				border-top: 1px solid rgba(0, 0, 0, .1);
+				border-bottom: 1px solid rgba(255, 255, 255, .3)
+			}
+
+			li.even.option {
+				background-color: #ccc
+			}
+
+			input[disabled=disabled] {
+				background-color: #CCC
+			}
+
+			.cb {
+				right: 20px
+			}
+
+			.card-wrap {
+				width: 100%
+			}
+
+			.fullwidth {
+				width: 100% !important;
+				max-width: 100% !important
+			}
+
+			.wpop-head {
+				background: #f1f1f1
+			}
+
+			.wpop-head > .inner {
+				padding: 1rem 1.5rem 0
+			}
+
+			.save-all {
+				top: -2.5rem
+			}
+
+			.desc {
+				margin: .5rem 0 0 .25rem;
+				font-weight: 300;
+				font-size: 12px;
+				line-height: 16px;
+				color: #888
+			}
+
+			.desc:after {
+				display: block;
+				width: 98%;
+				border-top: 1px solid rgba(0, 0, 0, .1);
+				border-bottom: 1px solid rgba(255, 255, 255, .3)
+			}
+
+			.wpop-option input[type=email], .wpop-option input[type=number], .wpop-option input[type=password], .wpop-option input[type=range], .wpop-option input[type=text], .wpop-option input[type=url] {
+				width: 90%
+			}
+
+			.wpop-option input[data-part=color] {
+				width: 25%
+			}
+
+			li[data-part=markdown] {
+				padding: 1rem
+			}
+
+			li[data-part=markdown] + span.spacer {
+				display: none
+			}
+
+			li[data-part=markdown] p {
+				margin: 0 !important
+			}
+
+			li[data-part=markdown] ol, li[data-part=markdown] p, li[data-part=markdown] ul {
+				font-size: 1rem
+			}
+
+			[data-part=markdown] h1 {
+				padding-top: 1.33rem;
+				padding-bottom: .33rem
+			}
+
+			[data-part=markdown] h1:first-of-type {
+				padding-top: .33rem;
+				padding-bottom: .33rem
+			}
+
+			[data-part=markdown] h1, [data-part=markdown] h2, [data-part=markdown] h3, [data-part=markdown] h4, [data-part=markdown] h5, [data-part=markdown] h6 {
+				padding-left: 0 !important
+			}
+
+			input[data-assigned] {
+				width: 100% !important
+			}
+
+			.add-button {
+				margin: 3em auto;
+				display: block;
+				width: 100%;
+				text-align: center
+			}
+
+			.img-preview {
+				max-width: 320px;
+				display: block;
+				margin: 0 0 1rem
+			}
+
+			.media-stats, .wpop-option .wp-editor-wrap {
+				margin-top: .5rem
+			}
+
+			.img-remove {
+				border: 2px solid #cd1713 !important;
+				background: #f1f1f1 !important;
+				color: #cd1713 !important;
+				box-shadow: none;
+				-webkit-box-shadow: none;
+				margin-left: 1rem !important
+			}
+
+			.pwd-clear {
+				margin-left: .5rem !important;
+				top: 1px
+			}
+
+			.pure-form footer {
+				background: #f1f1f1;
+				border-top: 1px solid #D8D8D8
+			}
+
+			.pure-form footer div div > * {
+				padding: 1rem .33rem
+			}
+
+			.wpop-option.color input {
+				width: 50%
+			}
+
+			.cb-wrap {
+				display: block;
+				right: 1.33rem;
+				max-width: 110px;
+				margin-left: auto;
+				top: -1.66rem
+			}
 		</style>
 		<?php
 		$css = ob_get_clean();
 		ob_start(); ?>
 		<script type="text/javascript">
-			!function(t,o){"use strict";t.wp=t.wp||{},t.wp.hooks=t.wp.hooks||new function(){function t(t,o,i,n){var e,r,p;if(a[t][o])if(i)if(e=a[t][o],n)for(p=e.length;p--;)(r=e[p]).callback===i&&r.context===n&&e.splice(p,1);else for(p=e.length;p--;)e[p].callback===i&&e.splice(p,1);else a[t][o]=[]}function o(t,o,i,n,e){var r={callback:i,priority:n,context:e},p=a[t][o];p?(p.push(r),p=function(t){for(var o,i,n,e=1,a=t.length;e<a;e++){for(o=t[e],i=e;(n=t[i-1])&&n.priority>o.priority;)t[i]=t[i-1],--i;t[i]=o}return t}(p)):p=[r],a[t][o]=p}function i(t,o,i){var n,e,r=a[t][o];if(!r)return"filters"===t&&i[0];if(e=r.length,"filters"===t)for(n=0;n<e;n++)i[0]=r[n].callback.apply(r[n].context,i);else for(n=0;n<e;n++)r[n].callback.apply(r[n].context,i);return"filters"!==t||i[0]}var n=Array.prototype.slice,e={removeFilter:function(o,i){return"string"==typeof o&&t("filters",o,i),e},applyFilters:function(){var t=n.call(arguments),o=t.shift();return"string"==typeof o?i("filters",o,t):e},addFilter:function(t,i,n,a){return"string"==typeof t&&"function"==typeof i&&o("filters",t,i,n=parseInt(n||10,10),a),e},removeAction:function(o,i){return"string"==typeof o&&t("actions",o,i),e},doAction:function(){var t=n.call(arguments),o=t.shift();return"string"==typeof o&&i("actions",o,t),e},addAction:function(t,i,n,a){return"string"==typeof t&&"function"==typeof i&&o("actions",t,i,n=parseInt(n||10,10),a),e}},a={actions:{},filters:{}};return e}}(window),jQuery(document).ready(function(t){var o;wp.hooks.addAction("wpopPreInit",p),wp.hooks.addAction("wpopInit",r,5),wp.hooks.addAction("wpopFooterScripts",c),wp.hooks.addAction("wpopInit",l),wp.hooks.addAction("wpopInit",f),wp.hooks.addAction("wpopInit",e,100),wp.hooks.addAction("wpopSectionNav",n),wp.hooks.addAction("wpopPwdClear",d),wp.hooks.addAction("wpopImgUpload",u),wp.hooks.addAction("wpopImgRemove",w),wp.hooks.addAction("wpopSubmit",a),wp.hooks.doAction("wpopPreInit");var i=wp.template("wpop-media-stats");function n(o,i){i.preventDefault();var n=t(t(o).attr("href")).addClass("active"),e=t(t(o).attr("href")+"-nav").addClass("active wp-ui-primary opn");return window.location.hash=t(o).attr("href"),window.scrollTo(0,0),t(n).siblings().removeClass("active"),t(e).siblings().removeClass("active wp-ui-primary opn"),!1}function e(){t("#panel-loader-positioning-wrap").fadeOut(345)}function a(){t("#panel-loader-positioning-wrap").fadeIn(345)}function r(){(hash=window.location.hash)?t(hash+"-nav a").trigger("click"):t("#wpopNav li:first a").trigger("click")}function p(){t("html, body").animate({scrollTop:0})}function c(){t('[data-part="color"]').iris({width:215,hide:!1,border:!1,create:function(){""!==t(this).attr("value")&&s(t(this).attr("name"),t(this).attr("value"),new Color(t(this).attr("value")).getMaxContrastColor())},change:function(o,i){s(t(this).attr("name"),i.color.toString(),new Color(i.color.toString()).getMaxContrastColor())}})}function l(){t("[data-select]").selectize({allowEmptyOption:!1,placeholder:t(this).attr("data-placeholder")}),t("[data-multiselect]").selectize({plugins:["restore_on_backspace","remove_button","drag_drop","optgroup_columns"]})}function s(o,i,n){t("#"+o).css("background-color",i).css("color",n)}function d(o,i){i.preventDefault(),t(o).prev().val(null)}function f(){t('[data-part="media"]').each(function(){if(""!==t(this).attr("value")){var o=t(this).closest(".wpop-option");wp.media.attachment(t(this).attr("value")).fetch().then(function(t){o.find(".img-remove").after(i(t))})}})}function u(n,e){e.preventDefault();var a=t(n).data();o||(o=wp.media.frames.wpModal||wp.media({title:a.title,button:{text:a.button},library:{type:"image"},multiple:!1})).on("select",function(){var e=o.state().get("selection").first().toJSON();if("object"==typeof e){console.log(e);var a=t(n).closest(".wpop-option");a.find('[type="hidden"]').val(e.id),a.find("img").attr("src",e.sizes.thumbnail.url).show(),t(n).attr("value","Replace "+t(n).attr("data-media-label")),a.find(".img-remove").show().after(i(e))}}),o.open()}function w(o,i){if(i.preventDefault(),confirm("Remove "+t(o).attr("data-media-label")+"?")){var n=t(o).closest(".wpop-option"),e=n.find(".blank-img").html();n.find('[type="hidden"]').val(null),n.find("img").attr("src",e),n.find(".button-hero").val("Set Image"),n.find(".media-stats").remove(),t(o).hide()}}t("#wpopNav li a").click(function(t){wp.hooks.doAction("wpopSectionNav",this,t)}),wp.hooks.doAction("wpopInit"),t('input[type="submit"]').click(function(t){wp.hooks.doAction("wpopSubmit",this,t)}),t(".pwd-clear").click(function(t){wp.hooks.doAction("wpopPwdClear",this,t)}),t(".img-upload").on("click",function(t){wp.hooks.doAction("wpopImgUpload",this,t)}),t(".img-remove").on("click",function(t){wp.hooks.doAction("wpopImgRemove",this,t)})});
+			!function( t, o ) {
+				"use strict";
+				t.wp = t.wp || {}, t.wp.hooks = t.wp.hooks || new function() {
+					function t( t, o, i, n ) {
+						var e, r, p;
+						if ( a[t][o] ) if ( i ) if ( e = a[t][o], n ) for ( p = e.length; p--; ) (r = e[p]).callback === i && r.context === n && e.splice( p, 1 ); else for ( p = e.length; p--; ) e[p].callback === i && e.splice( p, 1 ); else a[t][o] = []
+					}
+
+					function o( t, o, i, n, e ) {
+						var r = { callback: i, priority: n, context: e }, p = a[t][o];
+						p ? (p.push( r ), p = function( t ) {
+							for ( var o, i, n, e = 1, a = t.length; e < a; e++ ) {
+								for ( o = t[e], i = e; (n = t[i - 1]) && n.priority > o.priority; ) t[i] = t[i - 1], --i;
+								t[i] = o
+							}
+							return t
+						}( p )) : p = [r], a[t][o] = p
+					}
+
+					function i( t, o, i ) {
+						var n, e, r = a[t][o];
+						if ( !r ) return "filters" === t && i[0];
+						if ( e = r.length, "filters" === t ) for ( n = 0; n < e; n++ ) i[0] = r[n].callback.apply( r[n].context, i ); else for ( n = 0; n < e; n++ ) r[n].callback.apply( r[n].context, i );
+						return "filters" !== t || i[0]
+					}
+
+					var n = Array.prototype.slice, e = {
+						removeFilter: function( o, i ) {
+							return "string" == typeof o && t( "filters", o, i ), e
+						}, applyFilters: function() {
+							var t = n.call( arguments ), o = t.shift();
+							return "string" == typeof o ? i( "filters", o, t ) : e
+						}, addFilter: function( t, i, n, a ) {
+							return "string" == typeof t && "function" == typeof i && o( "filters", t, i, n = parseInt( n || 10, 10 ), a ), e
+						}, removeAction: function( o, i ) {
+							return "string" == typeof o && t( "actions", o, i ), e
+						}, doAction: function() {
+							var t = n.call( arguments ), o = t.shift();
+							return "string" == typeof o && i( "actions", o, t ), e
+						}, addAction: function( t, i, n, a ) {
+							return "string" == typeof t && "function" == typeof i && o( "actions", t, i, n = parseInt( n || 10, 10 ), a ), e
+						}
+					}, a = { actions: {}, filters: {} };
+					return e
+				}
+			}( window ), jQuery( document ).ready( function( t ) {
+				var o;
+				wp.hooks.addAction( "wpopPreInit", p ), wp.hooks.addAction( "wpopInit", r, 5 ), wp.hooks.addAction( "wpopFooterScripts", c ), wp.hooks.addAction( "wpopInit", l ), wp.hooks.addAction( "wpopInit", f ), wp.hooks.addAction( "wpopInit", e, 100 ), wp.hooks.addAction( "wpopSectionNav", n ), wp.hooks.addAction( "wpopPwdClear", d ), wp.hooks.addAction( "wpopImgUpload", u ), wp.hooks.addAction( "wpopImgRemove", w ), wp.hooks.addAction( "wpopSubmit", a ), wp.hooks.doAction( "wpopPreInit" );
+				// var i = wp.template( "wpop-media-stats" );
+
+				function n( o, i ) {
+					i.preventDefault();
+					var n = t( t( o ).attr( "href" ) ).addClass( "active" ),
+						e = t( t( o ).attr( "href" ) + "-nav" ).addClass( "active wp-ui-primary opn" );
+					return window.location.hash = t( o ).attr( "href" ), window.scrollTo( 0, 0 ), t( n ).siblings().removeClass( "active" ), t( e ).siblings().removeClass( "active wp-ui-primary opn" ), !1
+				}
+
+				function e() {
+					t( "#panel-loader-positioning-wrap" ).fadeOut( 345 )
+				}
+
+				function a() {
+					t( "#panel-loader-positioning-wrap" ).fadeIn( 345 )
+				}
+
+				function r() {
+					(hash = window.location.hash) ? t( hash + "-nav a" ).trigger( "click" ) : t( "#wpopNav li:first a" ).trigger( "click" )
+				}
+
+				function p() {
+					t( "html, body" ).animate( { scrollTop: 0 } )
+				}
+
+				function c() {
+					t( '[data-part="color"]' ).iris( {
+						width: 215, hide: !1, border: !1, create: function() {
+							"" !== t( this ).attr( "value" ) && s( t( this ).attr( "name" ), t( this ).attr( "value" ), new Color( t( this ).attr( "value" ) ).getMaxContrastColor() )
+						}, change: function( o, i ) {
+							s( t( this ).attr( "name" ), i.color.toString(), new Color( i.color.toString() ).getMaxContrastColor() )
+						}
+					} )
+				}
+
+				function l() {
+					t( "[data-select]" ).selectize( {
+						allowEmptyOption: !1,
+						placeholder: t( this ).attr( "data-placeholder" )
+					} ), t( "[data-multiselect]" ).selectize( { plugins: ["restore_on_backspace", "remove_button", "drag_drop", "optgroup_columns"] } )
+				}
+
+				function s( o, i, n ) {
+					t( "#" + o ).css( "background-color", i ).css( "color", n )
+				}
+
+				function d( o, i ) {
+					i.preventDefault(), t( o ).prev().val( null )
+				}
+
+				function f() {
+					t( '[data-part="media"]' ).each( function() {
+						if ( "" !== t( this ).attr( "value" ) ) {
+							var o = t( this ).closest( ".wpop-option" );
+							wp.media.attachment( t( this ).attr( "value" ) ).fetch().then( function( t ) {
+								o.find( ".img-remove" ).after( i( t ) )
+							} )
+						}
+					} )
+				}
+
+				function u( n, e ) {
+					e.preventDefault();
+					var a = t( n ).data();
+					o || (o = wp.media.frames.wpModal || wp.media( {
+						title: a.title,
+						button: { text: a.button },
+						library: { type: "image" },
+						multiple: !1
+					} )).on( "select", function() {
+						var e = o.state().get( "selection" ).first().toJSON();
+						if ( "object" == typeof e ) {
+							console.log( e );
+							var a = t( n ).closest( ".wpop-option" );
+							a.find( '[type="hidden"]' ).val( e.id ), a.find( "img" ).attr( "src", e.sizes.thumbnail.url ).show(), t( n ).attr( "value", "Replace " + t( n ).attr( "data-media-label" ) ), a.find( ".img-remove" ).show().after( i( e ) )
+						}
+					} ), o.open()
+				}
+
+				function w( o, i ) {
+					if ( i.preventDefault(), confirm( "Remove " + t( o ).attr( "data-media-label" ) + "?" ) ) {
+						var n = t( o ).closest( ".wpop-option" ), e = n.find( ".blank-img" ).html();
+						n.find( '[type="hidden"]' ).val( null ), n.find( "img" ).attr( "src", e ), n.find( ".button-hero" ).val( "Set Image" ), n.find( ".media-stats" ).remove(), t( o ).hide()
+					}
+				}
+
+				t( "#wpopNav li a" ).click( function( t ) {
+					wp.hooks.doAction( "wpopSectionNav", this, t )
+				} ), wp.hooks.doAction( "wpopInit" ), t( 'input[type="submit"]' ).click( function( t ) {
+					wp.hooks.doAction( "wpopSubmit", this, t )
+				} ), t( ".pwd-clear" ).click( function( t ) {
+					wp.hooks.doAction( "wpopPwdClear", this, t )
+				} ), t( ".img-upload" ).on( "click", function( t ) {
+					wp.hooks.doAction( "wpopImgUpload", this, t )
+				} ), t( ".img-remove" ).on( "click", function( t ) {
+					wp.hooks.doAction( "wpopImgRemove", this, t )
+				} )
+			} );
 		</script>
 		<?php
 		$js = ob_get_clean();
@@ -489,7 +1166,7 @@ class Page extends Panel {
 	}
 
 	public function footer_scripts() {
-		ob_start(); ?>
+		?>
 		<script type="text/html" id="tmpl-wpop-media-stats">
 			<div class="pure-g media-stats">
 				<div class="pure-u-1 pure-u-sm-18-24">
@@ -523,7 +1200,6 @@ class Page extends Panel {
 					<img src="{{{ data.sizes.thumbnail.url }}}" class="img-preview"/>
 				</div>
 			</div>
-
 		</script>
 		<script type="text/javascript">
 			jQuery( document ).ready( function( $ ) {
@@ -531,7 +1207,6 @@ class Page extends Panel {
 			} );
 		</script>
 		<?php
-		echo PHP_EOL . ob_get_clean() . PHP_EOL;
 	}
 
 	/**
@@ -634,20 +1309,30 @@ class Section {
 	 * Print Panel Markup
 	 */
 	public function echo_html() {
-		ob_start();
-
-		$section_content = '';
-
-		foreach ( $this->parts as $part ) { // parts are wrapped in <li>'s
-			$section_content .= $part->get_html() . HTML::tag( 'span', [ 'class' => 'spacer' ] );
-		}
-
-		echo HTML::tag( 'li', [
-			'id'    => $this->id,
-			'class' => implode( ' ', $this->classes )
-		], HTML::tag( 'ul', [], $section_content ) );
-
-		echo ob_get_clean();
+		?>
+		<li id="<?php esc_attr_e( $this->id ); ?>" class="<?php esc_attr_e( implode( ' ', $this->classes ) ); ?>">
+			<ul>
+				<?php foreach ( $this->parts as $part ) {
+					$class_str = strtolower( $part->get_clean_classname() );
+					?>
+					<li class="wpop-option <?php esc_attr_e( $class_str ); ?>" data-part="<?php esc_attr_e( $part->id ); ?>">
+						<h4 class="label">
+							<?php esc_html_e( $part->label ); ?>
+						</h4>
+						<?php
+						// render main unique field output
+						echo $part->render();
+						if ( ! empty( $part->description ) ) { ?>
+							<div class="desc clear"><?php esc_html_e( $part->description ); ?></div>
+						<?php } ?>
+						<div class="clear"></div>
+					</li><span class="spacer"></span>
+				<?php
+				}
+				?>
+			</ul>
+		</li>
+		<?php
 	}
 }
 
@@ -667,8 +1352,6 @@ class Part {
 	public $classes = array();
 	public $atts = [];
 	public $data_store = false;
-	public $field_before = null;
-	public $field_after = null;
 	public $panel_api = false;
 	public $panel_id = false;
 	public $update_type = '';
@@ -701,15 +1384,17 @@ class Part {
 		return explode( '\\', get_called_class() )[2];
 	}
 
-	public function build_base_markup( $field ) {
-		$desc = ( $this->description ) ? HTML::tag( 'div', [ 'class' => 'desc clear' ], $this->description ) : '';
+	public function input( $field_id = '', $type = '', $stored = '' ) {
+		$field_id = ! empty( $field_id ) ? $field_id : $this->field_id;
+		$type	  = ! empty( $type ) ? $type : $this->input_type;
+		$established = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
+		$value = ! empty( $stored ) ? $stored : $established;
+		$clean_classname = strtolower( $this->get_clean_classname() );
+		$class_str = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
-		return HTML::tag(
-			'li',
-			[ 'class' => 'wpop-option ' . strtolower( $this->get_clean_classname() ), 'data-part' => $this->id ],
-			HTML::tag( 'h4', [ 'class' => 'label' ], $this->label ) . $this->field_before . $field . $this->field_after
-			. $desc . HTML::tag( 'div', [ 'class' => 'clear' ] )
-		);
+		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"'.
+			 ' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
+			 . esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
 	}
 
 	public function run_save_process() {
@@ -830,32 +1515,8 @@ class Part {
 class Input extends Part {
 	public $input_type;
 	public $data_store = true;
-
-	public function get_html() {
-		$option_val = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
-
-		$type = ! empty( $this->input_type ) ? $this->input_type : 'hidden';
-
-		$input = [
-			'id'           => $this->field_id,
-			'name'         => $this->field_id,
-			'type'         => $type,
-			'value'        => $option_val,
-			'data-part'    => strtolower( $this->get_clean_classname() ),
-			'autocomplete' => 'false', // prevents pwd field autofilling, among other things
-		];
-
-		if ( ! empty( $this->classes ) ) {
-			$input['classes'] = implode( ' ', $this->classes );
-		}
-
-		if ( ! empty( $this->atts ) ) {
-			foreach ( $this->atts as $key => $val ) {
-				$input[ $key ] = $val;
-			}
-		}
-
-		return $this->build_base_markup( HTML::tag( 'input', $input ) );
+	public function render() {
+		$this->input();
 	}
 
 }
@@ -911,19 +1572,12 @@ class Password extends Input {
 
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
-
-		$this->field_after = $this->pwd_clear_and_hidden_field();
 	}
 
-	protected function pwd_clear_and_hidden_field() {
-		return HTML::tag( 'a', [ 'href' => '#', 'class' => 'button button-secondary pwd-clear' ], 'clear' ) .
-		       HTML::tag( 'input', [
-			       'id'           => 'stored_' . $this->id,
-			       'name'         => 'stored_' . $this->id,
-			       'type'         => 'hidden',
-			       'value'        => $this->saved,
-			       'autocomplete' => 'off',
-		       ] );
+	public function render() {
+		$this->input();
+		echo '<a href="#" class="button pwd-clear">clear</a>';
+		$this->input( 'stored_' . $this->id, 'hidden', $this->saved );
 	}
 
 	/**
@@ -1006,22 +1660,15 @@ class Textarea extends Part {
 	public $input_type = 'textarea';
 	public $data_store = true;
 
-	/**
-	 * @return string
-	 */
-	public function get_html() {
+	public function render() {
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
-
-		$field = [ 'id' => $this->id, 'name' => $this->id, 'cols' => $this->cols, 'rows' => $this->rows ];
-
-		if ( ! empty( $this->atts ) && is_array( $this->atts ) ) {
-			foreach ( $this->atts as $key => $val ) {
-				$field[ $key ] = $val;
-			}
-		}
-
-		return $this->build_base_markup( HTML::tag( 'textarea', $field, stripslashes( $this->get_saved() ) ) );
+		?>
+			<textarea id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>"
+					  cols="<?php esc_attr_e( $this->cols ); ?>" rows="<?php esc_attr_e( $this->rows ); ?>">
+				<?php echo stripslashes( $this->saved ); ?>
+			</textarea>
+		<?php
 	}
 
 }
@@ -1035,9 +1682,7 @@ class Editor extends Part {
 	public $input_type = 'editor';
 	public $data_store = true;
 
-	public function get_html() {
-
-		ob_start();
+	public function render() {
 		wp_editor(
 			stripslashes( $this->get_saved() ),
 			$this->id . '_editor',
@@ -1050,8 +1695,6 @@ class Editor extends Part {
 				'media_buttons' => isset( $this->no_media ) ? false : true
 			)
 		);
-
-		return $this->build_base_markup( ob_get_clean() ); // no return param in wp_editor so buffer it is ¯\_//(ツ)_/¯
 	}
 }
 
@@ -1073,35 +1716,20 @@ class Select extends Part {
 		$this->meta   = ( ! empty( $m ) ) ? $m : [];
 	}
 
-	public function get_html() {
-		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option';
-
-		ob_start();
-
-		if ( $this->empty_default ) {
-			echo HTML::tag( 'option', [ 'value' => '' ] );
-		}
-
-		foreach ( $this->values as $value => $label ) {
-			$option = [ 'value' => $value ];
-			if ( $value === $this->get_saved() ) {
-				$option['selected'] = 'selected';
-			}
-			echo HTML::tag( 'option', $option, $label );
-		}
-
-		return $this->build_base_markup(
-			HTML::tag(
-				'select',
-				[
-					'id'               => $this->id,
-					'name'             => $this->id,
-					'data-select'      => true,
-					'data-placeholder' => $default_option
-				],
-				ob_get_clean()
-			)
-		);
+	public function render() {
+		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option'; ?>
+			<select id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>"
+			data-select="true" data-placeholder="<?php esc_attr_e( $default_option ); ?>">
+				<?php if ( $this->empty_default ) { ?>
+					<option value=""></option>
+				<?php }
+				foreach ( $this->values as $value => $label ) { ?>
+					<option value="<?php esc_attr_e( $value ); ?>" <?php selected( $value, $this->get_saved() ); ?>>
+						<?php esc_html_e( $label ); ?>
+					</option>
+				<?php } ?>
+			</select>
+		<?php
 	}
 
 }
@@ -1126,43 +1754,25 @@ class Multiselect extends Part {
 		$this->meta   = ( ! empty( $m ) ) ? $m : [];
 	}
 
-	public function get_html() {
-		$save = ! empty( $this->saved ) ? json_decode( $this->saved ) : false;
-
-		$opts_markup = '';
-
-		if ( ! empty( $save ) && is_array( $save ) ) {
-			foreach ( $save as $key ) {
-				$opts_markup .= HTML::tag( 'option', [
-					'value'    => $key,
-					'selected' => 'selected'
-				], $this->values[ $key ] );
-				unset( $this->values[ $key ] );
-			}
+	public function render() {
+		$stored = ! empty( $this->saved ) ? json_decode( $this->saved ) : false; ?>
+		<select id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>[]"
+			multiple="multiple" data-multiselect="1">
+		<?php
+		if ( ! empty( $stored ) && is_array( $stored ) ) {
+			foreach ( $stored as $key ) { ?>
+				<option value="<?php esc_attr_e( $key ); ?>" selected="selected">
+					<?php esc_html_e( $this->values[ $key ]); unset( $this->values[ $key ] ); ?>
+				</option>
+			<?php }
 		}
-
 		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
-			foreach ( $this->values as $key => $value ) {
-				$opts_markup .= HTML::tag( 'option', [ 'value' => $key ], $value );
+			foreach ( $this->values as $key => $value ) { ?>
+				<option value="<?php esc_attr_e( $key ); ?>"><?php esc_html_e( $value); ?></option>
+			<?php
 			}
 		}
-
-		return $this->build_base_markup( HTML::tag( 'select', [
-			'id'               => $this->id,
-			'name'             => $this->id . '[]',
-			'multiple'         => 'multiple',
-			'data-multiselect' => '1'
-		], $opts_markup
-		) );
-	}
-
-	function multi_atts( $pairs, $atts ) {
-		$return = [];
-		foreach ( $atts as $key ) {
-			$return[ $key ] = $pairs[ $key ];
-		}
-
-		return $return;
+		echo "</select>";
 	}
 
 }
@@ -1174,7 +1784,6 @@ class Multiselect extends Part {
 class Checkbox extends Part {
 
 	public $value = 'on';
-	public $label_markup;
 	public $input_type = 'checkbox';
 	public $data_store = true;
 
@@ -1186,16 +1795,16 @@ class Checkbox extends Part {
 		}
 	}
 
-	public function get_html() {
-		$classes = ! empty( $this->label_markup ) ? 'onOffSwitch-checkbox' : 'cb';
-		$input   = [ 'type' => 'checkbox', 'id' => $this->id, 'name' => $this->id, 'class' => $classes ];
-		if ( $this->get_saved() === $this->value ) {
-			$input['checked'] = 'checked';
-		}
+	public function label_markup() {
+	}
 
-		return $this->build_base_markup(
-			HTML::tag( 'div', [ 'class' => 'cb-wrap' ], HTML::tag( 'input', $input ) . $this->label_markup )
-		);
+	public function render() {
+		?>
+			<div class="cb-wrap">
+				<?php $this->input( $this->id, 'checkbox');
+					  $this->label_markup(); ?>
+			</div>
+		<?php
 	}
 
 }
@@ -1207,19 +1816,17 @@ class Checkbox extends Part {
 class Toggle_Switch extends Checkbox {
 	public $input_type = 'toggle_switch';
 
-	/**
-	 * Toggle_Switch constructor.
-	 *
-	 * @param string $i
-	 * @param array  $args
-	 */
-	function __construct( $i, array $args = [] ) {
+	public function __construct($i,array $args = []) {
 		parent::__construct( $i, $args );
-		$this->label_markup = HTML::tag(
-			'label',
-			[ 'class' => 'onOffSwitch-label', 'for' => $this->id ],
-			'<div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span>'
-		);
+		$this->classes = 'onOffSwitch-checkbox';
+	}
+
+	public function label_markup() {
+		?>
+			<label class="onOffSwitch-label" for="<?php esc_attr_e( $this->id ); ?>">
+				<div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span>
+			</label>
+		<?php
 	}
 }
 
@@ -1239,38 +1846,29 @@ class Radio_Buttons extends Part {
 		$this->values = ( ! empty( $c['values'] ) ) ? $c['values'] : [];
 	}
 
-	public function get_html() {
-		$table_body = '';
+	public function render() {
 		foreach ( $this->values as $key => $value ) {
 			$selected_val = $this->get_saved() ? $this->get_saved() : $this->default_value;
-
-			$input = [
-				'type'  => 'radio',
-				'id'    => $this->id . '_' . $key,
-				'name'  => $this->field_id,
-				'value' => $value,
-				'class' => 'radio-item'
-			];
-
-			if ( $selected_val === $value ) {
-				$input['checked'] = 'checked';
-			}
-
-			$label      = HTML::tag( 'td', [], HTML::tag( 'label', [
-				'class' => 'opt-label',
-				'for'   => $this->id . '_' . $key
-			], $value )
-			);
-			$input_mark = HTML::tag( 'td', [], HTML::tag( 'input', $input ) );
-
-			$table_body .= HTML::tag( 'tr', [], $label . $input_mark );
+			?>
+			<div class="radio-wrap">
+				<table class="widefat striped">
+					<tr>
+						<td>
+							<label class="opt-label" for="<?php esc_attr_e( $this->id . '_' . $key ); ?>">
+								<?php esc_html_e( $value ); ?>
+							</label>
+						</td>
+						<td>
+							<input type="radio" id="<?php esc_attr_e( $this->id . '_' . $key ); ?>"
+								   name="<?php esc_attr_e( $this->field_id ); ?>" value="<?php esc_attr_e( $value ); ?>"
+								   class="radio-item" <?php checked( $value, $selected_val ); ?> />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<?php
 		}
-
-		$table = HTML::tag( 'table', [ 'class' => 'widefat striped' ], $table_body );
-
-		return $this->build_base_markup( HTML::tag( 'div', [ 'class' => 'radio-wrap' ], $table ) );
 	}
-
 }
 
 /**
@@ -1282,55 +1880,27 @@ class Media extends Part {
 	public $input_type = 'media';
 	public $data_store = true;
 
-	public function get_html() {
-		$empty        = ''; // TODO: REPLACE EMPTY IMAGE WITH CSS YO
-		$saved        = array( 'url' => $empty, 'id' => '' );
-		$option_val   = $this->get_saved();
-		$insert_label = 'Insert ' . $this->media_label;
-		if ( ! empty( $option_val ) && absint( $option_val ) ) {
-			$img          = wp_get_attachment_image_src( $option_val );
-			$saved        = array( 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $option_val );
-			$insert_label = 'Replace ' . $this->media_label;
-		}
-
-		ob_start();
-		echo '<div class="blank-img" style="display:none;">' . $empty . '</div>';
-
-		$image_btn = [
-			'id'               => $this->id . '_button',
-			'data-media-label' => $this->media_label,
-			'type'             => 'button',
-			'class'            => 'button button-secondary button-hero img-upload',
-			'value'            => $insert_label,
-			'data-id'          => $this->id,
-			'data-button'      => 'Use ' . $this->media_label,
-			'data-title'       => 'Select or Upload ' . $this->media_label,
-		];
-
-		$hidden = [
-			'id'        => $this->id,
-			'name'      => $this->id,
-			'type'      => 'hidden',
-			'value'     => $saved['id'],
-			'data-part' => strtolower( $this->get_clean_classname() )
-		];
-
-		if ( ! empty( $this->atts ) ) {
-			foreach ( $this->atts as $key => $val ) {
-				$hidden[ $key ] = $val;
-			}
-		}
-
-		echo HTML::tag( 'input', $image_btn );
-		echo HTML::tag( 'input', $hidden );
-		echo HTML::tag( 'a', [
-			'href'             => '#',
-			'class'            => 'button button-secondary img-remove',
-			'data-media-label' => $this->media_label
-		], 'Remove ' . $this->media_label
-		);
-
-		return $this->build_base_markup( ob_get_clean() );
+	public function render() {
+		$saved        = array( 'url' => '', 'id' => '' );
+		$insert_label = 'Insert ' . esc_html( $this->media_label );
+		if ( ! empty( $this->get_saved() ) && absint( $this->get_saved() ) ) {
+			$img = wp_get_attachment_image_src( $this->get_saved() );
+			$saved        = array( 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $this->get_saved() );
+			$insert_label = 'Replace ' . esc_html( $this->media_label );
+		} ?>
+			<div class="blank-img" style="display:none"></div>
+			<input id="<?php esc_attr_e( $this->id . '_button' ); ?>" type="button" class="button button-hero img-upload"
+				   data-media-label="<?php esc_attr_e( $this->media_label ); ?>" data-id="<?php esc_attr_e( $this->id ); ?>"
+				   value="<?php esc_attr_e( $insert_label ); ?>"
+				   data-button="<?php esc_attr_e( 'Use ' . $this->media_label ); ?>"
+				   data-title="<?php esc_attr_e( 'Select or Upload ' . $this->media_label ); ?>" />
+		   <input id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>" type="hidden"
+				   value="<?php esc_attr_e( $saved['id'] ); ?>"
+				   data-part="<?php strtolower( $this->get_clean_classname() ); ?>" />
+		   <a href="#" class="button img-remove" data-media-label="<?php esc_attr_e( $this->media_label ); ?>">
+		   	<?php esc_html_e( 'Remove ' . $this->media_label ); ?>
+		   </a>
+		<?php
 	}
 
 }
@@ -1349,13 +1919,12 @@ class Include_Partial extends Part {
 		$this->filename = ( ! empty( $config['filename'] ) ) ? $config['filename'] : 'set_the_filename.php';
 	}
 
-	public function get_html() {
-		return $this->echo_html();
-	}
-
-	public function echo_html() {
-		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) {
-			return HTML::tag( 'li', [ 'class' => $this->get_clean_classname() ], file_get_contents( $this->filename ) );
+	public function render() {
+		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) { ?>
+			<li class="<?php esc_attr_e( $this->get_clean_classname() ); ?>">
+				<?php echo file_get_contents( $this->filename ); ?>
+			</li>
+		<?php
 		}
 	}
 }
@@ -1367,88 +1936,24 @@ class Include_Partial extends Part {
 class Markdown extends Include_Partial {
 	public $field_type = 'markdown_file';
 
-	public function echo_html() {
+	public function render() {
 		if ( is_file( $this->filename ) && class_exists( '\\Parsedown' ) ) {
 			$converter = new \Parsedown();
 			$markup    = file_get_contents( $this->filename );
 			if ( ! empty( $markup ) ) {
-				return HTML::tag(
-					'li',
-					[
-						'class'     => $this->get_clean_classname(),
-						'data-part' => strtolower( $this->get_clean_classname() )
-					],
-					$converter->text( do_shortcode( $markup ) )
-				);
+//				return HTML::tag(
+//					'li',
+//					[
+//						'class'     => $this->get_clean_classname(),
+//						'data-part' => strtolower( $this->get_clean_classname() )
+//					],
+//					$converter->text( do_shortcode( $markup ) )
+//				);
 			}
 		} else {
 			return 'File Status: ' . strval( is_file( $this->filename ) ) .
 			       ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
 		}
-	}
-}
-
-/**
- * Class HTML
- * @package WPOP\V_2_10
- * @link    https://github.com/Automattic/amp-wp/blob/master/includes/utils/class-amp-html-utils.php
- */
-class HTML {
-	/**
-	 * Dashicon Markup Helper
-	 *
-	 * @param $class_str - the dashicons-* class and any addl
-	 *
-	 * @return string
-	 */
-	public static function dashicon( $class_str ) {
-		return self::tag( 'span', [ 'class' => 'dashicons ' . $class_str, 'data-dashicon' ] );
-	}
-
-	/**
-	 * Create markup for HTML tag from array fully sanitized and prepared
-	 *
-	 * @param        $tag_name
-	 * @param array  $attributes
-	 * @param string $content
-	 *
-	 * @return string
-	 */
-	public static function tag( $tag_name, $attributes = array(), $content = '' ) {
-		$attr_string = self::build_attributes_string( $attributes );
-
-		return sprintf( '<%1$s %2$s>%3$s</%1$s>', sanitize_key( $tag_name ), $attr_string, $content );
-	}
-
-	/**
-	 * Built Escaped, Sanitized Attribute String for HTML Tag
-	 *
-	 * @param $attributes
-	 *
-	 * @return string
-	 */
-	public static function build_attributes_string( $attributes ) {
-		$string = array();
-		foreach ( $attributes as $name => $value ) {
-			if ( empty( $value ) ) {
-				$string[] = sprintf( '%s', sanitize_key( $name ) );
-			} else {
-				$string[] = sprintf( '%s="%s"', sanitize_key( $name ), esc_attr( $value ) );
-			}
-		}
-
-		return implode( ' ', $string );
-	}
-
-	/**
-	 * WordPress Admin Notification Markup (can be printed anywhere in the DOM and will be relocated to top of page)
-	 *
-	 * @param $class_str - the dashicons-* class and any addl
-	 *
-	 * @return string
-	 */
-	public static function notification( $class_str ) {
-		return self::tag( 'div', [ 'class' => 'dashicons ' . $class_str, 'data-dashicon' ] );
 	}
 }
 
