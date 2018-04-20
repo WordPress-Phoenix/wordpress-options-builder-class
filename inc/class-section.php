@@ -47,7 +47,7 @@ class Section {
 	 */
 	public function echo_html() {
 		?>
-		<li id="<?php esc_attr_e( (string) $this->id ); ?>" class="<?php esc_attr_e( implode( ' ', (string) $this->classes ) );
+		<li id="<?php esc_attr_e( strval( $this->id ) ); ?>" class="<?php esc_attr_e( strval( implode( ' ', $this->classes ) ) );
 		?>">
 			<ul>
 				<?php foreach ( $this->parts as $part ) {
