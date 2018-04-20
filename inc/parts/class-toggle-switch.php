@@ -15,8 +15,8 @@ class Toggle_Switch extends Checkbox {
 	}
 
 	public function label_markup() {
-		?>
-		<label class="onOffSwitch-label" for="<?php esc_attr_e( $this->id ); ?>">
+		$label = strval( $this->id ); ?>
+		<label class="onOffSwitch-label" for="<?php esc_attr_e( $label ); ?>">
 			<div class="onOffSwitch-inner"></div><span class="onOffSwitch-switch"></span>
 		</label>
 		<?php

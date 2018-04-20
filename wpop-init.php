@@ -35,7 +35,7 @@ require_once 'inc/class-page.php';
 
 // must require base input class first because others extend
 require_once 'inc/parts/class-input.php';
-foreach( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
+foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
 	if ( false !== stripos( $file, 'inc/parts/class-input.php' ) ) {
 		continue; // already included above
 	}

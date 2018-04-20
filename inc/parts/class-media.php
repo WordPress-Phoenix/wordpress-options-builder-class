@@ -12,12 +12,15 @@ class Media extends Part {
 	public $data_store = true;
 
 	public function render() {
-		$saved        = array( 'url' => '', 'id' => '' );
+		$saved        = array(
+			'url' => '',
+			'id' => '',
+		);
 		$insert_label = 'Insert ' . esc_html( $this->media_label );
 		if ( ! empty( $this->get_saved() ) && absint( $this->get_saved() ) ) {
 			$img = wp_get_attachment_image_src( $this->get_saved() );
 			$saved        = array( 'url' => is_array( $img ) ? $img[0] : 'err', 'id' => $this->get_saved() );
-			$insert_label = 'Replace ' . esc_html( $this->media_label );
+			$insert_label = esc_html( 'Replace ' . $this->media_label );
 		} ?>
 		<div class="blank-img" style="display:none"></div>
 		<input id="<?php esc_attr_e( $this->id . '_button' ); ?>" type="button" class="button button-hero img-upload"

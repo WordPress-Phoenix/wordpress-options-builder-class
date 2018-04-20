@@ -14,14 +14,7 @@ class Markdown extends Include_Partial {
 			$converter = new \Parsedown();
 			$markup    = file_get_contents( $this->filename );
 			if ( ! empty( $markup ) ) {
-//				return HTML::tag(
-//					'li',
-//					[
-//						'class'     => $this->get_clean_classname(),
-//						'data-part' => strtolower( $this->get_clean_classname() )
-//					],
-//					$converter->text( do_shortcode( $markup ) )
-//				);
+//				// todo: repair markdown field
 			}
 		} else {
 			return 'File Status: ' . strval( is_file( $this->filename ) ) .

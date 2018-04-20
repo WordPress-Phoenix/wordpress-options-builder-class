@@ -28,15 +28,17 @@ class Multiselect extends Part {
 			multiple="multiple" data-multiselect="1">
 		<?php
 		if ( ! empty( $stored ) && is_array( $stored ) ) {
-			foreach ( $stored as $key ) { ?>
-				<option value="<?php esc_attr_e( $key ); ?>" selected="selected">
+			foreach ( $stored as $key ) {
+				?><option value="<?php esc_attr_e( $key ); ?>" selected="selected">
 					<?php esc_html_e( $this->values[ $key ]); unset( $this->values[ $key ] ); ?>
 				</option>
 			<?php }
 		}
 		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
-			foreach ( $this->values as $key => $value ) { ?>
-				<option value="<?php esc_attr_e( $key ); ?>"><?php esc_html_e( $value); ?></option>
+			foreach ( $this->values as $key => $value ) {
+				?><option value="<?php esc_attr_e( $key ); ?>">
+					<?php esc_html_e( $value); ?>
+				</option>
 			<?php
 			}
 		}
