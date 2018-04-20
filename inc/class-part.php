@@ -76,7 +76,7 @@ class Part {
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
-		$updated = new Save_Single_Field(
+		$updated = new Update(
 			$this->panel_id, // used to check nonce
 			$this->panel_api, // doing this way to allow multi-api saving from single panel down-the-road
 			$this->id, // this is the data storage key in the database
@@ -112,7 +112,7 @@ class Part {
 				break;
 		}
 
-		$response = new Get_Single_Field(
+		$response = new Read(
 			$this->panel_id,
 			$this->panel_api,
 			$pre_ . $this->id,
