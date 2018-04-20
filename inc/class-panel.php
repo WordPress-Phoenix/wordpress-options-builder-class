@@ -145,26 +145,36 @@ class Panel {
 	 * Listen for query parameters denoting Post, User or Term object IDs for metadata api or network/site option apis
 	 */
 	public function detect_data_api_and_permissions() {
-		$api = null;
-		if ( isset( $_GET['page'] ) ) {
-			if ( isset( $_GET['post'] ) && is_numeric( $_GET['post'] ) ) {
+		$api   = null;
+		$page  = filter_input( INPUT_GET, 'page' );
+		$post  = filter_input( INPUT_GET, 'post' );
+		$user  = filter_input( INPUT_GET, 'user' );
+		$term  = filter_input( INPUT_GET, 'term' );
+		if ( ! empty( $page ) ) {
+			if ( isset( $post ) && absint( $post ) ) {
 				$api                = 'post';
-				$this->page_title   = $this->page_title . ' for ' . get_the_title( $_GET['post'] );
-				$this->panel_object = get_post( absint( $_GET['post'] ) );
-			} elseif ( isset( $_GET['user'] ) && is_numeric( $_GET['user'] ) ) {
+				$post_obj = get_post( absint( $post ) );
+				if ( is_object( $post_obj ) && ! is_wp_error( $post_obj ) && isset( $post_obj->post_title ) ) {
+					$this->panel_object = $post_obj;
+					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $post_obj->post_title );
+				}
+			} elseif ( isset( $user ) && absint( $user ) ) {
 				if ( is_multisite() && is_network_admin() ) {
 					$api = 'user-network';
 				} else {
 					$api = 'user';
 				}
-				$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( get_the_author_meta( 'display_name', absint( $_GET['user'] ) ) );
-				$this->panel_object = get_user_by( 'id', absint( $_GET['user'] ) );
-			} elseif ( isset( $_GET['term'] ) && is_numeric( $_GET['term'] ) ) {
+				$user_obj = get_user_by( 'id', absint( $user ) );
+				if ( is_object( $user_obj ) && ! is_wp_error( $user_obj ) && isset( $user_obj->display_name ) ) {
+					$this->panel_object = $user_obj;
+					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $user_obj->display_name );
+				}
+			} elseif ( isset( $term ) && absint( $term ) ) {
 				$api  = 'term';
-				$term = get_term( absint( $_GET['term'] ) );
-				if ( is_object( $term ) && ! is_wp_error( $term ) && isset( $term->name ) ) {
-					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term->name );
-					$this->panel_object = $term;
+				$term_obj = get_term( absint( $term ) );
+				if ( is_object( $term_obj ) && ! is_wp_error( $term_obj ) && isset( $term_obj->name ) ) {
+					$this->panel_object = $term_obj;
+					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term_obj->name );
 				}
 			} elseif ( is_multisite() && is_network_admin() ) {
 				$api = 'network';
@@ -175,11 +185,17 @@ class Panel {
 			$api = '';
 		}
 
-		// allow api auto detection if 'api' not set in config array, but if its set and doesn't match then ignore and
-		// use config value for safety
-		//   (tl;dr - will ignore &term=1 param on a site options panel when 'api' is defined to prevent accidental API
-		//   override)
-		if ( isset( $this->api ) && $api !== $this->api ) {
+		// safety valve for all metadata apis to prevent creating arbitrary meta for non-existent objects
+		if ( ! empty( $api ) && 'network' !== $api && 'site' !== $api ) {
+			if ( empty( $this->panel_object ) || is_wp_error( $this->panel_object ) ) {
+				$api = null; // use null here to distinguish between empty string above and failure here
+			}
+		}
+
+		// allow api auto detection if 'api' not set in config, but if it doesn't match what was determined above
+		// then ignore the presumed API and defined config value
+		//  (will ignore &term=1 param when $config['api] === 'site' or 'network' to prevent accidental override)
+		if ( null !== $api && $api !== $this->api ) {
 			return $this->api;
 		}
 
@@ -192,13 +208,13 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return absint( $_GET['post'] );
+				return filter_input( INPUT_GET, 'post' );
 				break;
 			case 'user':
-				return absint( $_GET['user'] );
+				return filter_input( INPUT_GET, 'user' );
 				break;
 			case 'term':
-				return absint( $_GET['term'] );
+				return filter_input( INPUT_GET, 'term' );
 				break;
 			default:
 				return null;
