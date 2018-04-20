@@ -47,21 +47,22 @@ class Section {
 	 */
 	public function echo_html() {
 		?>
-		<li id="<?php esc_attr_e( $this->id ); ?>" class="<?php esc_attr_e( implode( ' ', $this->classes ) ); ?>">
+		<li id="<?php esc_attr_e( (string) $this->id ); ?>" class="<?php esc_attr_e( implode( ' ', (string) $this->classes ) );
+		?>">
 			<ul>
 				<?php foreach ( $this->parts as $part ) {
 					$class_str = strtolower( $part->get_clean_classname() );
 					?>
-					<li class="wpop-option <?php esc_attr_e( $class_str ); ?>"
-						data-part="<?php esc_attr_e( $part->id ); ?>">
+					<li class="wpop-option <?php esc_attr_e( (string) $class_str ); ?>"
+						data-part="<?php esc_attr_e( (string) $part->id ); ?>">
 						<h4 class="label">
-							<?php esc_html_e( $part->label ); ?>
+							<?php esc_html_e( (string) $part->label ); ?>
 						</h4>
 						<?php
 						// render main unique field output
 						$part->render();
 						if ( ! empty( $part->description ) ) { ?>
-							<div class="desc clear"><?php esc_html_e( $part->description ); ?></div>
+							<div class="desc clear"><?php esc_html_e( (string) $part->description ); ?></div>
 						<?php } ?>
 						<div class="clear"></div>
 					</li><span class="spacer"></span>
