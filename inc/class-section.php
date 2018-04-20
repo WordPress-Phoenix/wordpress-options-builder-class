@@ -52,13 +52,14 @@ class Section {
 				<?php foreach ( $this->parts as $part ) {
 					$class_str = strtolower( $part->get_clean_classname() );
 					?>
-					<li class="wpop-option <?php esc_attr_e( $class_str ); ?>" data-part="<?php esc_attr_e( $part->id ); ?>">
+					<li class="wpop-option <?php esc_attr_e( $class_str ); ?>"
+						data-part="<?php esc_attr_e( $part->id ); ?>">
 						<h4 class="label">
 							<?php esc_html_e( $part->label ); ?>
 						</h4>
 						<?php
 						// render main unique field output
-						echo $part->render();
+						$part->render();
 						if ( ! empty( $part->description ) ) { ?>
 							<div class="desc clear"><?php esc_html_e( $part->description ); ?></div>
 						<?php } ?>

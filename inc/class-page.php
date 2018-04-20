@@ -75,7 +75,10 @@ class Page extends Panel {
 
 	function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
-			add_action( 'admin_print_footer_scripts-' . $screen->id, array( __NAMESPACE__ . '\\Assets', 'inline_js_footer' ) );
+			add_action( 'admin_print_footer_scripts-' . $screen->id, array(
+				__NAMESPACE__ . '\\Assets',
+				'inline_js_footer'
+			) );
 		}
 	}
 

@@ -33,7 +33,7 @@ class Part {
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
 			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-			           && ( $old_value !== $this->saved )
+				&& ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -47,14 +47,14 @@ class Part {
 	}
 
 	public function input( $field_id = '', $type = '', $stored = '' ) {
-		$field_id = ! empty( $field_id ) ? $field_id : $this->field_id;
-		$type	  = ! empty( $type ) ? $type : $this->input_type;
-		$established = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
-		$value = ! empty( $stored ) ? $stored : $established;
+		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
+		$type            = ! empty( $type ) ? $type : $this->input_type;
+		$established     = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
+		$value           = ! empty( $stored ) ? $stored : $established;
 		$clean_classname = strtolower( $this->get_clean_classname() );
-		$class_str = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
+		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
-		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"'.
+		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
 		     ' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
 		     . esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
 	}

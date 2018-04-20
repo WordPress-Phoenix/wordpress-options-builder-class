@@ -62,7 +62,11 @@ class Panel {
 	/**
 	 * @var array used to track what happens during save process
 	 */
-	public $updated_counts = array( 'created' => 0, 'updated' => 0, 'deleted' => 0 );
+	public $updated_counts = array(
+		'created' => 0,
+		'updated' => 0,
+		'deleted' => 0,
+	);
 
 	/**
 	 * Container constructor.
@@ -102,7 +106,7 @@ class Panel {
 				// loop over current section's parts
 				foreach ( $section['parts'] as $part_id => $part_config ) {
 					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
-					$part_config['obj_id'] 	   = $this->obj_id;
+					$part_config['obj_id']     = $this->obj_id;
 					$part_config['panel_id']   = $this->id;
 					$part_config['section_id'] = $section_id;
 					$part_config['panel_api']  = $this->api;
@@ -145,14 +149,14 @@ class Panel {
 	 * Listen for query parameters denoting Post, User or Term object IDs for metadata api or network/site option apis
 	 */
 	public function detect_data_api_and_permissions() {
-		$api   = null;
-		$page  = isset( $_GET['page'] ) ? filter_input( INPUT_GET, 'page' ) : null;
-		$post  = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
-		$user  = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
-		$term  = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
+		$api  = null;
+		$page = isset( $_GET['page'] ) ? filter_input( INPUT_GET, 'page' ) : null;
+		$post = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
+		$user = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
+		$term = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
 		if ( ! empty( $page ) ) {
 			if ( isset( $post ) && absint( $post ) ) {
-				$api                = 'post';
+				$api      = 'post';
 				$post_obj = get_post( absint( $post ) );
 				if ( is_object( $post_obj ) && ! is_wp_error( $post_obj ) && isset( $post_obj->post_title ) ) {
 					$this->panel_object = $post_obj;
@@ -170,7 +174,7 @@ class Panel {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $user_obj->display_name );
 				}
 			} elseif ( isset( $term ) && absint( $term ) ) {
-				$api  = 'term';
+				$api      = 'term';
 				$term_obj = get_term( absint( $term ) );
 				if ( is_object( $term_obj ) && ! is_wp_error( $term_obj ) && isset( $term_obj->name ) ) {
 					$this->panel_object = $term_obj;
