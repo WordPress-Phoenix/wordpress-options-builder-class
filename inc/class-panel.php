@@ -146,10 +146,10 @@ class Panel {
 	 */
 	public function detect_data_api_and_permissions() {
 		$api   = null;
-		$page  = filter_input( INPUT_GET, 'page' );
-		$post  = filter_input( INPUT_GET, 'post' );
-		$user  = filter_input( INPUT_GET, 'user' );
-		$term  = filter_input( INPUT_GET, 'term' );
+		$page  = isset( $_GET['page'] ) ? filter_input( INPUT_GET, 'page' ) : null;
+		$post  = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
+		$user  = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
+		$term  = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
 		if ( ! empty( $page ) ) {
 			if ( isset( $post ) && absint( $post ) ) {
 				$api                = 'post';
@@ -208,13 +208,13 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return filter_input( INPUT_GET, 'post' );
+				return isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
 				break;
 			case 'user':
-				return filter_input( INPUT_GET, 'user' );
+				return isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
 				break;
 			case 'term':
-				return filter_input( INPUT_GET, 'term' );
+				return isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
 				break;
 			default:
 				return null;

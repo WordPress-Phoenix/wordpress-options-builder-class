@@ -92,18 +92,17 @@ class Part {
 	}
 
 	public function get_saved() {
-		$pre_ = apply_filters( 'wpop_custom_option_enabled', false ) ? SM_SITEOP_PREFIX : '';
 
 		switch ( $this->panel_api ) {
 			case 'post':
-				$obj_id = sanitize_text_field( $_GET['post'] );
+				$obj_id = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
 				break;
 			case 'term':
-				$obj_id = sanitize_text_field( $_GET['term'] );
+				$obj_id = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
 				break;
 			case 'user':
 			case 'user-network':
-				$obj_id = sanitize_text_field( $_GET['user'] );
+				$obj_id = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
 				break;
 			case 'network':
 			case 'site':
@@ -115,7 +114,7 @@ class Part {
 		$response = new Read(
 			$this->panel_id,
 			$this->panel_api,
-			$pre_ . $this->id,
+			$this->id,
 			$this->default_value,
 			$obj_id
 		);
@@ -123,6 +122,15 @@ class Part {
 		return $response->response;
 	}
 
+	/**
+	 * Master sanitization function used to clean user input
+	 *
+	 * @param $input_type
+	 * @param $id
+	 * @param $value
+	 *
+	 * @return bool|string
+	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
 		switch ( $input_type ) {
 			case 'password':
