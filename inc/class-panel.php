@@ -76,7 +76,7 @@ class Panel {
 	 */
 	public function __construct( $args = [], $sections = [] ) {
 		if ( ! isset( $args['id'] ) ) {
-			echo "Setting a panel ID is required";
+			echo 'Setting a panel ID is required';
 			exit;
 		}
 		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
@@ -125,7 +125,6 @@ class Panel {
 							}
 						}
 					}
-
 				}
 
 				$update_message = '';

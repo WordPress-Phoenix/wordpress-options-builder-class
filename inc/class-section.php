@@ -47,8 +47,8 @@ class Section {
 	 */
 	public function echo_html() {
 		?>
-		<li id="<?php esc_attr_e( strval( $this->id ) ); ?>" class="<?php esc_attr_e( strval( implode( ' ', $this->classes ) ) );
-		?>">
+		<li id="<?php echo esc_attr( $this->id ); ?>"
+			class="<?php echo esc_attr( implode( ' ', $this->classes ) ); ?>">
 			<ul>
 				<?php foreach ( $this->parts as $part ) {
 					$class_str = strtolower( $part->get_clean_classname() );
@@ -66,7 +66,7 @@ class Section {
 						<?php } ?>
 						<div class="clear"></div>
 					</li><span class="spacer"></span>
-					<?php
+				<?php
 				}
 				?>
 			</ul>

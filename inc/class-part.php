@@ -33,7 +33,7 @@ class Part {
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
 			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-				&& ( $old_value !== $this->saved )
+			           && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -55,19 +55,14 @@ class Part {
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
 		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
-		     ' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
-		     . esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
+			' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
+			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
 	}
 
 	public function run_save_process() {
-		if ( ! isset( $_POST['submit'] )
-		     || ! is_string( $_POST['submit'] )
-		     || 'Save All' !== $_POST['submit']
-		) {
-			return false; // only run logic if submiting
-		}
-		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->panel_id ) ) {
-			return false; // check for nonce
+		$nonce = ( isset( $_POST['submit'] ) && $_POST['_wpnonce'] ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
+			return false; // only run logic if asked to run & auth'd by nonce
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
