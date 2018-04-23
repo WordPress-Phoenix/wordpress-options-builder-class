@@ -14,11 +14,10 @@ class Markdown extends Include_Partial {
 			$converter = new \Parsedown();
 			$markup    = file_get_contents( $this->filename );
 			if ( ! empty( $markup ) ) {
-//				// todo: repair markdown field
+				// TODO: fix markdown field
 			}
 		} else {
-			return 'File Status: ' . strval( is_file( $this->filename ) ) .
-			       ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
+			return 'File Status: ' . strval( is_file( $this->filename ) ) . ' and class exists: ' . strval( class_exists( '\\Parsedown' ) );
 		}
 	}
 }

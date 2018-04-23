@@ -134,7 +134,7 @@ class Page extends Panel {
 							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
 								<span
 									class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-							<?php
+								<?php
 							}
 							echo esc_html( $section['label'] );
 							if ( count( $section['parts'] ) > 1 ) { ?>
@@ -223,7 +223,7 @@ class Page extends Panel {
 					/**
 					 * Print WordPress Notices with Panel Information
 					 */
-					if ( isset( $_POST['submit'] ) && filter_input( INPUT_GET, 'submit' ) ) {
+					if ( ! empty( filter_input( INPUT_GET, 'submit' ) ) ) {
 						$this->echo_notifications();
 					}
 					/**
@@ -241,7 +241,7 @@ class Page extends Panel {
 					/**
 					 * Print Nonce Field
 					 */
-					echo wp_nonce_field( $this->id, '_wpnonce', true, false );
+					echo wp_nonce_field( esc_attr( $this->id, '_wpnonce' ), true, false );
 					?>
 				</form>
 			</section>

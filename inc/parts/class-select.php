@@ -23,7 +23,7 @@ class Select extends Part {
 	public function render() {
 		$default_option = isset( $this->meta['option_default'] ) ? $this->meta['option_default'] : 'Select an option'; ?>
 		<select id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>"
-		        data-select="true" data-placeholder="<?php echo esc_attr( $default_option ); ?>">
+				data-select="true" data-placeholder="<?php echo esc_attr( $default_option ); ?>">
 			<?php if ( $this->empty_default ) { ?>
 				<option value=""></option>
 			<?php }
@@ -31,7 +31,8 @@ class Select extends Part {
 				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $this->get_saved() ); ?>>
 					<?php echo esc_html( $label ); ?>
 				</option>
-			<?php } ?>
+			<?php
+			} ?>
 		</select>
 		<?php
 	}

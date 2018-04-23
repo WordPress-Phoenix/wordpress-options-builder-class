@@ -24,11 +24,11 @@ class Media extends Part {
 		} ?>
 		<div class="blank-img" style="display:none"></div>
 		<input id="<?php echo esc_attr( $this->id . '_button' ); ?>" type="button" class="button button-hero img-upload"
-		       data-media-label="<?php echo esc_attr( $this->media_label ); ?>"
-			   data-id="<?php echo esc_attr( $this->id ); ?>"
-		       value="<?php echo esc_attr( $insert_label ); ?>"
-		       data-button="<?php echo esc_attr( 'Use ' . $this->media_label ); ?>"
-		       data-title="<?php echo esc_attr( 'Select or Upload ' . $this->media_label ); ?>" />
+			data-media-label="<?php echo esc_attr( $this->media_label ); ?>"
+			data-id="<?php echo esc_attr( $this->id ); ?>"
+			value="<?php echo esc_attr( $insert_label ); ?>"
+			data-button="<?php echo esc_attr( 'Use ' . $this->media_label ); ?>"
+			data-title="<?php echo esc_attr( 'Select or Upload ' . $this->media_label ); ?>" />
 		<input id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>" type="hidden"
 		       value="<?php echo esc_attr( $saved['id'] ); ?>"
 		       data-part="<?php strtolower( $this->get_clean_classname() ); ?>" />

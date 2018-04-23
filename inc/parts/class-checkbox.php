@@ -27,8 +27,9 @@ class Checkbox extends Part {
 		?>
 		<div class="cb-wrap">
 			<?php
-			$this->input( $this->id, 'checkbox');
-			$this->label_markup(); ?>
+			$this->input( esc_attr( $this->id ), 'checkbox');
+			$this->label_markup();
+			?>
 		</div>
 		<?php
 	}
