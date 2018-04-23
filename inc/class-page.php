@@ -128,8 +128,8 @@ class Page extends Panel {
 				<?php
 				foreach ( $this->parts as $section_id => $section ) {
 					?>
-					<li id="<?php esc_attr_e( $section_id . '-nav' ); ?>" class="pure-menu-item">
-						<a href="<?php esc_attr_e( '#' . $section_id ); ?>" class="pure-menu-link">
+					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
+						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
 								<span
 									class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
@@ -137,7 +137,7 @@ class Page extends Panel {
 							echo esc_html( $section['label'] );
 							if ( count( $section['parts'] ) > 1 ) { ?>
 								<small class="part-count">
-									<?php esc_attr_e( count( $section['parts'] ) ); ?>
+									<?php echo esc_attr( count( $section['parts'] ) ); ?>
 								</small>
 							<?php } ?>
 						</a>
@@ -175,10 +175,10 @@ class Page extends Panel {
 				<div class="pure-u-1 pure-u-md-1-3">
 					<div>
 						<ul>
-							<li>Sections: <code><?php esc_attr_e( $this->section_count ); ?></code></li>
-							<li>Total Data Parts: <code><?php esc_attr_e( $this->data_count ); ?></code></li>
-							<li>Total Parts: <code><?php esc_attr_e( $this->part_count ); ?></code></li>
-							<li>Stored in: <code><?php esc_attr_e( $this->get_storage_table() ); ?></code></li>
+							<li>Sections: <code><?php echo esc_attr( $this->section_count ); ?></code></li>
+							<li>Total Data Parts: <code><?php echo esc_attr( $this->data_count ); ?></code></li>
+							<li>Total Parts: <code><?php echo esc_attr( $this->part_count ); ?></code></li>
+							<li>Stored in: <code><?php echo esc_attr( $this->get_storage_table() ); ?></code></li>
 						</ul>
 					</div>
 				</div>
@@ -193,8 +193,8 @@ class Page extends Panel {
 	 */
 	public function build_parts() {
 		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
-			echo '<h1>Please select a ' . $this->api . '.</h1>';
-			echo '<code>?' . $this->api . '=ID</code>';
+			echo '<h1>Please select a ' . esc_attr( $this->api ) . '.</h1>';
+			echo '<code>?' . esc_attr( $this->api ) . '=ID</code>';
 			exit;
 		}
 		?>

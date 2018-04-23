@@ -263,9 +263,9 @@ class Panel {
 		$data      = is_array( $notification ) ? $notification : [ 'notification' => $notification ];
 		$note_type = isset( $data['type'] ) ? $data['type'] : 'notice-success';
 		?>
-		<div class="notice <?php esc_attr_e( $note_type ); ?>">
-			<p><strong><?php esc_html_e( $this->page_title ); ?></strong> //
-				<?php esc_html_e( $data['notification'] ); ?>
+		<div class="notice <?php echo esc_attr( $note_type ); ?>">
+			<p><strong><?php echo esc_html( $this->page_title ); ?></strong> //
+				<?php echo esc_html( $data['notification'] ); ?>
 			</p>
 		</div>
 		<?php

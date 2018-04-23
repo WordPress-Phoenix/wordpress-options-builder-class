@@ -26,7 +26,8 @@ class Checkbox extends Part {
 	public function render() {
 		?>
 		<div class="cb-wrap">
-			<?php $this->input( $this->id, 'checkbox');
+			<?php
+			$this->input( $this->id, 'checkbox');
 			$this->label_markup(); ?>
 		</div>
 		<?php

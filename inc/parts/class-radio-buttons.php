@@ -35,13 +35,13 @@ class Radio_Buttons extends Part {
 				<table class="widefat striped">
 					<tr>
 						<td>
-							<label class="opt-label" for="<?php esc_attr_e( $this->id . '_' . $key ); ?>">
-								<?php esc_html_e( $value ); ?>
+							<label class="opt-label" for="<?php echo esc_attr( $this->id . '_' . $key ); ?>">
+								<?php echo esc_html( $value ); ?>
 							</label>
 						</td>
 						<td>
-							<input type="radio" id="<?php esc_attr_e( $this->id . '_' . $key ); ?>"
-							       name="<?php esc_attr_e( $this->field_id ); ?>" value="<?php esc_attr_e( $value ); ?>"
+							<input type="radio" id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
+							       name="<?php echo esc_attr( $this->field_id ); ?>" value="<?php echo esc_attr( $value	); ?>"
 							       class="radio-item" <?php checked( $value, $selected_val ); ?> />
 						</td>
 					</tr>

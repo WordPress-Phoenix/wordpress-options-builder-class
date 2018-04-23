@@ -24,20 +24,20 @@ class Multiselect extends Part {
 
 	public function render() {
 		$stored = ! empty( $this->saved ) ? json_decode( $this->saved ) : false; ?>
-		<select id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>[]"
+		<select id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>[]"
 			multiple="multiple" data-multiselect="1">
 		<?php
 		if ( ! empty( $stored ) && is_array( $stored ) ) {
 			foreach ( $stored as $key ) {
-				?><option value="<?php esc_attr_e( $key ); ?>" selected="selected">
-					<?php esc_html_e( $this->values[ $key ]); unset( $this->values[ $key ] ); ?>
+				?><option value="<?php echo esc_attr( $key ); ?>" selected="selected">
+					<?php echo esc_html( $this->values[ $key ]); unset( $this->values[ $key ] ); ?>
 				</option>
 			<?php }
 		}
 		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
 			foreach ( $this->values as $key => $value ) {
-				?><option value="<?php esc_attr_e( $key ); ?>">
-					<?php esc_html_e( $value); ?>
+				?><option value="<?php echo esc_attr( $key ); ?>">
+					<?php echo esc_html( $value); ?>
 				</option>
 			<?php
 			}

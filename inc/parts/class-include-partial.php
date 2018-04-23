@@ -31,9 +31,9 @@ class Include_Partial extends Part {
 	 */
 	public static function get_contents( $filename ) {
 		if ( function_exists( 'wpcom_vip_file_get_contents' ) ) {
-			return wpcom_vip_file_get_contents( filename );
+			return wpcom_vip_file_get_contents( $filename );
 		} else {
-			return file_get_contents( filename );
+			return file_get_contents( $filename );
 		}
 	}
 }

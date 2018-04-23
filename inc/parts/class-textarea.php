@@ -17,8 +17,8 @@ class Textarea extends Part {
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
 		?>
-		<textarea id="<?php esc_attr_e( $this->id ); ?>" name="<?php esc_attr_e( $this->id ); ?>"
-		          cols="<?php esc_attr_e( $this->cols ); ?>" rows="<?php esc_attr_e( $this->rows ); ?>"
+		<textarea id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>"
+		          cols="<?php echo esc_attr( $this->cols ); ?>" rows="<?php echo esc_attr( $this->rows ); ?>"
 		><?php echo stripslashes( $this->saved ); ?></textarea>
 		<?php
 	}
