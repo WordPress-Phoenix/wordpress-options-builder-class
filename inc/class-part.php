@@ -85,7 +85,7 @@ class Part {
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
+		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_GET, $this->id ) : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
@@ -147,10 +147,10 @@ class Part {
 	protected function sanitize_data_input( $input_type, $id, $value ) {
 		switch ( $input_type ) {
 			case 'password':
-				if ( $_POST[ 'stored_' . $id ] === $value && ! empty( $value ) ) {
+				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_GET, 'stored_' . $id ) : null;
+				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
-
 				return ! empty( $value ) ? Password::encrypt( $value ) : false;
 				break;
 			case 'media':
