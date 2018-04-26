@@ -75,10 +75,12 @@ class Page extends Panel {
 
 	function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
-			add_action( 'admin_print_footer_scripts-' . $screen->id, array(
-				__NAMESPACE__ . '\\Assets',
-				'inline_js_footer',
-			) );
+			add_action(
+				'admin_print_footer_scripts-' . $screen->id, array(
+					__NAMESPACE__ . '\\Assets',
+					'inline_js_footer',
+				)
+			);
 		}
 	}
 
@@ -93,8 +95,9 @@ class Page extends Panel {
 					<?php if ( ! empty( $this->dashicon ) ) { ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
 						<?php
-					}
-					echo esc_attr( $this->page_title ); ?>
+}
+					echo esc_attr( $this->page_title );
+					?>
 				</h1>
 				<input type="submit" class="button button-primary button-hero save-all" value="Save All" name="submit"/>
 			</div>
@@ -135,9 +138,10 @@ class Page extends Panel {
 								<span
 									class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
 								<?php
-							}
+}
 							echo esc_html( $section['label'] );
-							if ( count( $section['parts'] ) > 1 ) { ?>
+if ( count( $section['parts'] ) > 1 ) {
+							?>
 								<small class="part-count">
 									<?php echo esc_attr( count( $section['parts'] ) ); ?>
 								</small>

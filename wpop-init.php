@@ -10,7 +10,7 @@
 
 /**
  * Some tips:
- * * Panel + Page work together to register panel, create wordpress admin page.
+ * * Panel + Page work together to register panel, create WordPress admin page.
  * * The resulting Panel supports tabbed Sections.
  * * Sections contain Parts (which are either inputs or non-data display values)
  */

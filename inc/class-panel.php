@@ -4,7 +4,7 @@ namespace WPOP\V_4_1;
 
 class Panel {
 	/**
-	 * @var null - string used by class to determine wordpress data api
+	 * @var null - string used by class to determine WordPress data api
 	 */
 	public $api = null;
 
@@ -96,7 +96,7 @@ class Panel {
 		// establish data storage api
 		$this->api = $this->detect_data_api_and_permissions();
 
-		// maybe establish wordpress object id when api is one of the metadata APIs
+		// maybe establish WordPress object id when api is one of the metadata APIs
 		$this->obj_id = $this->maybe_capture_wp_object_id();
 
 		// loop over sections
@@ -231,8 +231,8 @@ class Panel {
 	 * @return bool
 	 */
 	public static function is_wordpress_vip_or_vip_go() {
-		$is_vip = ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) ? true : false;
-		$is_vip_go = ( defined( 'VIP_GO_ENV') && ! empty( VIP_GO_ENV ) ) ? true : false;
+		$is_vip    = ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) ? true : false;
+		$is_vip_go = ( defined( 'VIP_GO_ENV' ) && ! empty( VIP_GO_ENV ) ) ? true : false;
 
 		return ( $is_vip || $is_vip_go ) ? true : false;
 	}

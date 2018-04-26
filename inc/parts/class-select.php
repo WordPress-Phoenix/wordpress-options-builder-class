@@ -11,8 +11,8 @@ class Select extends Part {
 	public $values;
 	public $meta;
 	public $empty_default = true;
-	public $input_type = 'select';
-	public $data_store = true;
+	public $input_type    = 'select';
+	public $data_store    = true;
 
 	public function __construct( $i, $m ) {
 		parent::__construct( $i, $m );
@@ -26,13 +26,16 @@ class Select extends Part {
 				data-select="true" data-placeholder="<?php echo esc_attr( $default_option ); ?>">
 			<?php if ( $this->empty_default ) { ?>
 				<option value=""></option>
-			<?php }
-			foreach ( $this->values as $value => $label ) { ?>
+			<?php
+}
+foreach ( $this->values as $value => $label ) {
+			?>
 				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $this->get_saved() ); ?>>
 					<?php echo esc_html( $label ); ?>
 				</option>
 			<?php
-			} ?>
+}
+			?>
 		</select>
 		<?php
 	}

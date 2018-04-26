@@ -7,17 +7,17 @@ class Part {
 	public $id;
 	public $field_id;
 	public $saved;
-	public $part_type = 'option';
-	public $input_type = 'hidden';
-	public $label = 'Option';
-	public $description = '';
+	public $part_type     = 'option';
+	public $input_type    = 'hidden';
+	public $label         = 'Option';
+	public $description   = '';
 	public $default_value = '';
-	public $classes = array();
-	public $atts = [];
-	public $data_store = false;
-	public $panel_api = false;
-	public $panel_id = false;
-	public $update_type = '';
+	public $classes       = array();
+	public $atts          = [];
+	public $data_store    = false;
+	public $panel_api     = false;
+	public $panel_id      = false;
+	public $update_type   = '';
 
 	public function __construct( $i, $args = [] ) {
 		$this->id       = $i;
@@ -34,7 +34,7 @@ class Part {
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
 			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-			           && ( $old_value !== $this->saved )
+					   && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -58,7 +58,7 @@ class Part {
 		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
 			' type="' . esc_attr( $type ) . '" autocomplete="false" data-part="'
 			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '"' .
-		     $this->input_value( $type, $established ) . '  />';
+			 $this->input_value( $type, $established ) . '  />';
 	}
 
 	/**

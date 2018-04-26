@@ -8,7 +8,7 @@ namespace WPOP\V_4_1;
  */
 class Checkbox extends Part {
 
-	public $value = 'on';
+	public $value      = 'on';
 	public $input_type = 'checkbox';
 	public $data_store = true;
 

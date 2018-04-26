@@ -50,7 +50,8 @@ class Section {
 		<li id="<?php echo esc_attr( $this->id ); ?>"
 			class="<?php echo esc_attr( implode( ' ', $this->classes ) ); ?>">
 			<ul>
-				<?php foreach ( $this->parts as $part ) {
+				<?php
+				foreach ( $this->parts as $part ) {
 					$part_type = strtolower( $part->get_clean_classname() );
 					?>
 					<li class="wpop-option <?php echo esc_attr( $part_type ); ?>"
@@ -60,7 +61,8 @@ class Section {
 						<?php
 						// render main unique field output
 						$part->render();
-						if ( ! empty( $part->description ) ) { ?>
+						if ( ! empty( $part->description ) ) {
+						?>
 							<div class="desc clear"><?php echo esc_html( $part->description ); ?></div>
 						<?php } ?>
 						<div class="clear"></div>

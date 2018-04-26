@@ -11,9 +11,9 @@ class Multiselect extends Part {
 	public $values;
 	public $meta;
 	public $allow_reordering = false;
-	public $create_options = false;
-	public $input_type = 'multiselect';
-	public $data_store = true;
+	public $create_options   = false;
+	public $input_type       = 'multiselect';
+	public $data_store       = true;
 
 
 	public function __construct( $i, $m ) {
@@ -29,20 +29,26 @@ class Multiselect extends Part {
 		<?php
 		if ( ! empty( $stored ) && is_array( $stored ) ) {
 			foreach ( $stored as $key ) {
-				?><option value="<?php echo esc_attr( $key ); ?>" selected="selected">
-					<?php echo esc_html( $this->values[ $key ]); unset( $this->values[ $key ] ); ?>
-				</option>
-			<?php }
-		}
-		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
-			foreach ( $this->values as $key => $value ) {
-				?><option value="<?php echo esc_attr( $key ); ?>">
-					<?php echo esc_html( $value); ?>
+				?>
+				<option value="<?php echo esc_attr( $key ); ?>" selected="selected">
+					<?php
+					echo esc_html( $this->values[ $key ] );
+					unset( $this->values[ $key ] );
+?>
 				</option>
 			<?php
 			}
 		}
-		echo "</select>";
+		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
+			foreach ( $this->values as $key => $value ) {
+				?>
+				<option value="<?php echo esc_attr( $key ); ?>">
+					<?php echo esc_html( $value ); ?>
+				</option>
+			<?php
+			}
+		}
+		echo '</select>';
 	}
 
 }
