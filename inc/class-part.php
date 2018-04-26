@@ -145,6 +145,11 @@ class Part {
 	 * @return bool|string
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
+		// codesniffer is being annoying and wants another nonce check
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
+			return false; // only run logic if asked to run & auth'd by nonce
+		}
 		switch ( $input_type ) {
 			case 'password':
 				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_GET, 'stored_' . $id ) : null;
