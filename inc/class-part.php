@@ -78,7 +78,7 @@ class Part {
 	}
 
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && $_POST['_wpnonce'] ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
 		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
 			return false; // only run logic if asked to run & auth'd by nonce
 		}

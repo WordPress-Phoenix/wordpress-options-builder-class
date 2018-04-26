@@ -245,7 +245,7 @@ if ( count( $section['parts'] ) > 1 ) {
 					/**
 					 * Print Nonce Field
 					 */
-					echo wp_nonce_field( esc_attr( $this->id, '_wpnonce' ), true, false );
+					wp_nonce_field( esc_attr( $this->id, '_wpnonce' ), true, true );
 					?>
 				</form>
 			</section>
