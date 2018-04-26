@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Page extends Panel {
 

@@ -22,7 +22,7 @@ if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
 
 // data api wrappers
 require_once 'inc/api/class-read.php';
-require_once 'inc/api/class-update.php';
+require_once 'inc/api/class-update.php'; // contains delete functions as well, relies on Update for creation
 
 // base part
 require_once 'inc/class-part.php';
@@ -37,7 +37,7 @@ require_once 'inc/class-page.php';
 require_once 'inc/parts/class-input.php';
 foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
 	if ( false !== stripos( $file, 'inc/parts/class-input.php' ) ) {
-		continue; // already included above
+		continue; // don't re-require file
 	}
 	require_once $file;
 }

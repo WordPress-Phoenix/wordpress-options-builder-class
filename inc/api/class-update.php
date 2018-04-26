@@ -1,7 +1,11 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
+/**
+ * Class Update
+ * @package WPOP\V_4_0
+ */
 class Update {
 	/**
 	 * Update constructor.
@@ -14,7 +18,7 @@ class Update {
 	 * @param bool $autoload
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
-		$wpnonce = filter_input( INPUT_POST, '_wpnonce' );
+		$wpnonce = isset( $_GET['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		// only allow class to be used by panel OR encrypted pwds never updated after insert
 		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
 			return false;

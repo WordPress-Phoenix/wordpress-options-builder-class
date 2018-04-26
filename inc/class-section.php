@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Section {
 
@@ -51,13 +51,12 @@ class Section {
 			class="<?php echo esc_attr( implode( ' ', $this->classes ) ); ?>">
 			<ul>
 				<?php foreach ( $this->parts as $part ) {
-					$class_str = strtolower( $part->get_clean_classname() );
+					$part_type = strtolower( $part->get_clean_classname() );
 					?>
-					<li class="wpop-option <?php echo esc_attr( $class_str ); ?>"
-						data-part="<?php echo esc_attr( $part->id ); ?>">
-						<h4 class="label">
-							<?php echo esc_html( $part->label ); ?>
-						</h4>
+					<li class="wpop-option <?php echo esc_attr( $part_type ); ?>"
+						data-part="<?php echo esc_attr( $part->id ); ?>"
+						data-type="<?php echo esc_attr( $part_type ); ?>">
+						<h4 class="label"><?php echo esc_html( $part->label ); ?></h4>
 						<?php
 						// render main unique field output
 						$part->render();

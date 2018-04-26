@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Part {
 
@@ -8,6 +8,7 @@ class Part {
 	public $field_id;
 	public $saved;
 	public $part_type = 'option';
+	public $input_type = 'hidden';
 	public $label = 'Option';
 	public $description = '';
 	public $default_value = '';
@@ -55,8 +56,25 @@ class Part {
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
 		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
-			' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
-			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
+			' type="' . esc_attr( $type ) . '" autocomplete="false" data-part="'
+			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '"' .
+		     $this->input_value( $type, $established ) . '  />';
+	}
+
+	/**
+	 * @param $type string - type of input field
+	 * @param $established_data string - either saved data or default value for field
+	 * @param $use_data_value bool
+	 */
+	public function input_value( $type, $established_data, $use_data_value = false ) {
+		$attr = ( 'checkbox' === $type || 'toggle-switch' === $type || $use_data_value ) ? 'data-value' : 'value';
+
+		$return = $attr . '="' . $established_data . '"';
+		if ( 'data-value' === $attr && ! empty( $established_data ) ) {
+			$return .= checked( $this->default_value, $established_data, false );
+		}
+
+		return $return;
 	}
 
 	public function run_save_process() {

@@ -1,13 +1,33 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
+/**
+ * Class Read
+ * @package WPOP\V_4_0
+ */
 class Read {
 
+	/**
+	 * @var string|mixed
+	 *
+	 */
 	public $response;
+	/**
+	 * @var string - internally-defined to decide which WP API to use
+	 */
 	protected $type;
+	/**
+	 * @var string - a string key used for storage in database
+	 */
 	protected $key;
+	/**
+	 * @var null|int - used for metadata APIs, contains ID for Post, Term or User.
+	 */
 	protected $obj_id;
+	/**
+	 * @var bool -
+	 */
 	protected $single;
 
 	/**
@@ -28,8 +48,9 @@ class Read {
 		$this->key    = $key;
 		$this->obj_id = $obj_id;
 		$this->single = $single;
+		// 1. Data API switchboard
 		$this->get_data();
-
+		// 2. Return data for use by field
 		return $this->response;
 	}
 

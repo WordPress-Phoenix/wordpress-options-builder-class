@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Panel {
 	/**
@@ -162,7 +162,7 @@ class Panel {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $post_obj->post_title );
 				}
 			} elseif ( isset( $user ) && absint( $user ) ) {
-				if ( is_multisite() && is_network_admin() ) {
+				if ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
 					$api = 'user-network';
 				} else {
 					$api = 'user';
@@ -179,7 +179,7 @@ class Panel {
 					$this->panel_object = $term_obj;
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term_obj->name );
 				}
-			} elseif ( is_multisite() && is_network_admin() ) {
+			} elseif ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
 				$api = 'network';
 			} else {
 				$api = 'site';
@@ -223,6 +223,18 @@ class Panel {
 				return null;
 				break;
 		}
+	}
+
+	/**
+	 * Check for Automattic server constants denoting we shouldn't add network options or switch_to_blog()
+	 *
+	 * @return bool
+	 */
+	public static function is_wordpress_vip_or_vip_go() {
+		$is_vip = ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) ? true : false;
+		$is_vip_go = ( defined( 'VIP_GO_ENV') && ! empty( VIP_GO_ENV ) ) ? true : false;
+
+		return ( $is_vip || $is_vip_go ) ? true : false;
 	}
 
 	/**

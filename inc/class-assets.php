@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Assets {
 	/**
@@ -98,8 +98,8 @@ class Assets {
 				margin-right: 12px
 			}
 
-			input[type=checkbox].onOffSwitch-checkbox {
-				display: none
+			input.onOffSwitch-checkbox {
+				display: none !important;
 			}
 
 			.onOffSwitch-label {
@@ -129,22 +129,6 @@ class Assets {
 				box-sizing: border-box
 			}
 
-			.pure-menu-link .part-count, .radio-wrap {
-				float: right
-			}
-
-			.pure-menu-link .part-count {
-				float: right;
-				position: relative;
-				top: -6px;
-				padding: .33rem .66rem;
-				border-radius: 50%;
-				-webkit-border-radius: 50%;
-				-moz-border-radius: 50%;
-				background: #aaa;
-				color: #222
-			}
-
 			.onOffSwitch-inner:before {
 				content: "ON";
 				padding-left: 10px;
@@ -171,6 +155,22 @@ class Assets {
 				right: 66px;
 				border: 2px solid #EEE;
 				border-radius: 20px
+			}
+
+			.pure-menu-link .part-count, .radio-wrap {
+				float: right
+			}
+
+			.pure-menu-link .part-count {
+				float: right;
+				position: relative;
+				top: -6px;
+				padding: .33rem .66rem;
+				border-radius: 50%;
+				-webkit-border-radius: 50%;
+				-moz-border-radius: 50%;
+				background: #aaa;
+				color: #222
 			}
 
 			.cb, .cb-wrap, .desc:after, .pwd-clear, .radio-wrap, .save-all, span.menu-icon, span.page-icon:before, span.spacer {
@@ -432,7 +432,12 @@ class Assets {
 				padding-bottom: .33rem
 			}
 
-			[data-part=markdown] h1, [data-part=markdown] h2, [data-part=markdown] h3, [data-part=markdown] h4, [data-part=markdown] h5, [data-part=markdown] h6 {
+			[data-part=markdown] h1,
+			[data-part=markdown] h2,
+			[data-part=markdown] h3,
+			[data-part=markdown] h4,
+			[data-part=markdown] h5,
+			[data-part=markdown] h6 {
 				padding-left: 0 !important
 			}
 
@@ -549,7 +554,8 @@ class Assets {
 			}( window ), jQuery( document ).ready( function( t ) {
 				var o;
 				wp.hooks.addAction( "wpopPreInit", p ), wp.hooks.addAction( "wpopInit", r, 5 ), wp.hooks.addAction( "wpopFooterScripts", c ), wp.hooks.addAction( "wpopInit", l ), wp.hooks.addAction( "wpopInit", f ), wp.hooks.addAction( "wpopInit", e, 100 ), wp.hooks.addAction( "wpopSectionNav", n ), wp.hooks.addAction( "wpopPwdClear", d ), wp.hooks.addAction( "wpopImgUpload", u ), wp.hooks.addAction( "wpopImgRemove", w ), wp.hooks.addAction( "wpopSubmit", a ), wp.hooks.doAction( "wpopPreInit" );
-				// var i = wp.template( "wpop-media-stats" );
+
+				var i = wp.template( "wpop-media-stats" );
 
 				function n( o, i ) {
 					i.preventDefault();
@@ -650,6 +656,7 @@ class Assets {
 		</script>
 		<?php
 	}
+
 	/**
 	 * Inline JavaScript above </body> close tag
 	 */
