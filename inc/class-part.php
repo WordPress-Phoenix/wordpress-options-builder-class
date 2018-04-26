@@ -54,11 +54,13 @@ class Part {
 		$value           = ! empty( $stored ) ? $stored : $established;
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
-
-		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
-			' type="' . esc_attr( $type ) . '" autocomplete="false" data-part="'
-			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '"' .
-			 $this->input_value( $type, $established ) . '  />';
+		?>
+			<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
+			       type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
+			       data-part="<?php echo esc_attr( $clean_classname ); ?>"
+			       class="<?php echo esc_attr( $class_str ); ?>"
+			       <?php $this->input_value( $type, $established ); ?> />
+		<?php
 	}
 
 	/**
@@ -67,14 +69,12 @@ class Part {
 	 * @param $use_data_value bool
 	 */
 	public function input_value( $type, $established_data, $use_data_value = false ) {
-		$attr = ( 'checkbox' === $type || 'toggle-switch' === $type || $use_data_value ) ? 'data-value' : 'value';
-
-		$return = $attr . '="' . $established_data . '"';
-		if ( 'data-value' === $attr && ! empty( $established_data ) ) {
-			$return .= checked( $this->default_value, $established_data, false );
+		if ( 'checkbox' === $type || 'toggle-switch' === $type || true === $use_data_value ) {
+			echo ' data-value="' . esc_attr( $established_data ) . '"';
+			checked( $this->default_value, $established_data );
+		} else {
+			echo ' value="' . esc_attr( $established_data ) . '"';
 		}
-
-		return $return;
 	}
 
 	public function run_save_process() {
@@ -173,7 +173,6 @@ class Part {
 				if ( ! empty( $value ) && is_array( $value ) ) {
 					return json_encode( array_map( 'sanitize_key', $value ) );
 				}
-
 				return false;
 				break;
 			case 'email':
