@@ -56,10 +56,10 @@ class Part {
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 		?>
 			<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
-			       type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
-			       data-part="<?php echo esc_attr( $clean_classname ); ?>"
-			       class="<?php echo esc_attr( $class_str ); ?>"
-			       <?php $this->input_value( $type, $established ); ?> />
+				   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
+				   data-part="<?php echo esc_attr( $clean_classname ); ?>"
+				   class="<?php echo esc_attr( $class_str ); ?>"
+					<?php $this->input_value( $type, $established ); ?> />
 		<?php
 	}
 
