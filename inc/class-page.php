@@ -49,12 +49,10 @@ class Page extends Panel {
 	 */
 	public function initialize_panel() {
 		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
-			$dashboard = 'admin_menu';
-			if ( 'network' === $this->api || 'user-network' === $this->api ) {
-				$dashboard = 'network_admin_menu';
-			}
+			$hook = ( 'network' === $this->api || 'user-network' === $this->api ) ? 'network_admin_menu' : 'admin_menu';
+
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-			add_action( $dashboard, array( $this, 'add_settings_submenu_page' ) );
+			add_action( $hook, array( $this, 'add_settings_submenu_page' ) );
 			add_action( 'current_screen', array( $this, 'maybe_run_footer_scripts' ) );
 		}
 	}
@@ -64,7 +62,7 @@ class Page extends Panel {
 	 */
 	public function add_settings_submenu_page() {
 		add_submenu_page(
-			$this->parent_page_id, // file.php to hook into
+			$this->parent_page_id,
 			$this->page_title,
 			$this->menu_title,
 			$this->capability,
@@ -95,7 +93,7 @@ class Page extends Panel {
 					<?php if ( ! empty( $this->dashicon ) ) { ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
 						<?php
-}
+					}
 					echo esc_attr( $this->page_title );
 					?>
 				</h1>
@@ -117,7 +115,6 @@ class Page extends Panel {
 			<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
 				<?php $this->page_content_main(); ?>
 			</div>
-
 		</div>
 		<?php
 	}
@@ -135,13 +132,13 @@ class Page extends Panel {
 					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
-								<span
-									class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
+								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] );
+								?> menu-icon"></span>
 								<?php
-}
+							}
 							echo esc_html( $section['label'] );
-if ( count( $section['parts'] ) > 1 ) {
-							?>
+							if ( count( $section['parts'] ) > 1 ) {
+								?>
 								<small class="part-count">
 									<?php echo esc_attr( count( $section['parts'] ) ); ?>
 								</small>
@@ -245,7 +242,7 @@ if ( count( $section['parts'] ) > 1 ) {
 					/**
 					 * Print Nonce Field
 					 */
-					wp_nonce_field( esc_attr( $this->id, '_wpnonce' ), true, true );
+					wp_nonce_field( esc_attr( $this->id ), esc_attr( $this->id ), true, true );
 					?>
 				</form>
 			</section>
@@ -282,25 +279,12 @@ if ( count( $section['parts'] ) > 1 ) {
 	 *
 	 */
 	public function enqueue_dependencies() {
-		$unpkg = 'https://unpkg.com/purecss@1.0.0/build/';
-		wp_register_style( 'wpop-pure-base', $unpkg . 'base-min.css' );
-		wp_register_style( 'wpop-pure-grids', $unpkg . 'grids-min.css', array( 'wpop-pure-base' ) );
-		wp_register_style( 'wpop-pure-grids-r', $unpkg . 'grids-responsive-min.css', array( 'wpop-pure-grids' ) );
-		wp_register_style( 'wpop-pure-menus', $unpkg . 'menus-min.css', array( 'wpop-pure-grids-r' ) );
-		wp_register_style( 'wpop-pure-forms', $unpkg . 'forms-min.css', array( 'wpop-pure-menus' ) );
-		wp_enqueue_style( 'wpop-pure-forms' ); // cue enqueue cascade
-
 		// Enqueue media (needed for media modal)
 		wp_enqueue_media();
-
-		wp_enqueue_script( array( 'iris', 'wp-util', 'wp-shortcode' ) );
-
-		$selectize_cdn = 'https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/';
-		wp_register_script( 'wpop-selectize', $selectize_cdn . 'js/standalone/selectize.min.js', array( 'jquery-ui-sortable' ) );
-		wp_enqueue_script( 'wpop-selectize' );
-		wp_register_style( 'wpop-selectize', $selectize_cdn . 'css/selectize.default.min.css' );
-		wp_enqueue_style( 'wpop-selectize' );
-		wp_register_script( 'clipboard', 'https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js' );
-		wp_enqueue_script( 'clipboard' );
+		wp_enqueue_script( array(
+			'iris',
+			'wp-util',
+			'wp-shortcode',
+		) );
 	}
 }

@@ -7,17 +7,18 @@ class Part {
 	public $id;
 	public $field_id;
 	public $saved;
-	public $part_type     = 'option';
-	public $input_type    = 'hidden';
-	public $label         = 'Option';
-	public $description   = '';
+	public $part_type = 'option';
+	public $input_type = 'hidden';
+	public $label = 'Option';
+	public $description = '';
 	public $default_value = '';
-	public $classes       = array();
-	public $atts          = [];
-	public $data_store    = false;
-	public $panel_api     = false;
-	public $panel_id      = false;
-	public $update_type   = '';
+	public $classes = array();
+	public $atts = [];
+	public $data_store = false;
+	public $panel_api = false;
+	public $panel_id = false;
+	public $obj_id = null;
+	public $update_type = '';
 
 	public function __construct( $i, $args = [] ) {
 		$this->id       = $i;
@@ -34,7 +35,7 @@ class Part {
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
 			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-					   && ( $old_value !== $this->saved )
+			           && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -55,18 +56,18 @@ class Part {
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 		?>
-			<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
-				   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
-				   data-part="<?php echo esc_attr( $clean_classname ); ?>"
-				   class="<?php echo esc_attr( $class_str ); ?>"
-					<?php $this->input_value( $type, $established ); ?> />
+		<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
+			   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
+			   data-part="<?php echo esc_attr( $clean_classname ); ?>"
+			   class="<?php echo esc_attr( $class_str ); ?>"
+			<?php $this->input_value( $type, $established ); ?> />
 		<?php
 	}
 
 	/**
-	 * @param $type string - type of input field
+	 * @param $type             string - type of input field
 	 * @param $established_data string - either saved data or default value for field
-	 * @param $use_data_value bool
+	 * @param $use_data_value   bool
 	 */
 	public function input_value( $type, $established_data, $use_data_value = false ) {
 		if ( 'checkbox' === $type || 'toggle-switch' === $type || true === $use_data_value ) {
@@ -106,30 +107,13 @@ class Part {
 
 	public function get_saved() {
 
-		switch ( $this->panel_api ) {
-			case 'post':
-				$obj_id = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
-				break;
-			case 'term':
-				$obj_id = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
-				break;
-			case 'user':
-			case 'user-network':
-				$obj_id = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
-				break;
-			case 'network':
-			case 'site':
-			default:
-				$obj_id = null;
-				break;
-		}
 
 		$response = new Read(
 			$this->panel_id,
 			$this->panel_api,
 			$this->id,
 			$this->default_value,
-			$obj_id
+			$this->obj_id
 		);
 
 		return $response->response;
@@ -156,6 +140,7 @@ class Part {
 				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
+
 				return ! empty( $value ) ? Password::encrypt( $value ) : false;
 				break;
 			case 'media':
@@ -178,6 +163,7 @@ class Part {
 				if ( ! empty( $value ) && is_array( $value ) ) {
 					return json_encode( array_map( 'sanitize_key', $value ) );
 				}
+
 				return false;
 				break;
 			case 'email':

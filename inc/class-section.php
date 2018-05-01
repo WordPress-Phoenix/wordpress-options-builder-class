@@ -66,6 +66,7 @@ class Section {
 							<div class="desc clear"><?php echo esc_html( $part->description ); ?></div>
 						<?php } ?>
 						<div class="clear"></div>
+						<?php var_dump( $part ); ?>
 					</li><span class="spacer"></span>
 				<?php
 				}

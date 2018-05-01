@@ -41,7 +41,8 @@ class Read {
 	 * @param bool $single
 	 */
 	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
-		if ( false !== wp_verify_nonce( $panel_id, $panel_id ) ) {
+		$wpnonce = isset( $_GET[ $panel_id . '_wpnonce' ] ) ? filter_input( INPUT_GET, $panel_id . '_wpnonce'  ) : null;
+		if ( false !== wp_verify_nonce( $wpnonce, $panel_id ) ) {
 			return false; // check for nonce, only allow panel to use this class
 		}
 		$this->type   = $type;
