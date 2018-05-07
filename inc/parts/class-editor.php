@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 /**
  * Class Editor
@@ -21,9 +21,9 @@ class Editor extends Part {
 	public function render() {
 		wp_editor(
 			stripslashes( $this->get_saved() ),
-			$this->id . '_editor',
+			$this->id . '_editor', // unique editor ID
 			array(
-				'textarea_name' => $this->id, // used for saving value
+				'textarea_name' => $this->id, // field key used for DB storage
 				'tinymce'       => array( 'min_height' => 300 ),
 				'editor_class'  => 'edit',
 				'quicktags'     => isset( $this->no_quicktags ) ? false : true,

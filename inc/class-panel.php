@@ -1,10 +1,10 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Panel {
 	/**
-	 * @var null - string used by class to determine wordpress data api
+	 * @var null - string used by class to determine WordPress data api
 	 */
 	public $api = null;
 
@@ -96,7 +96,7 @@ class Panel {
 		// establish data storage api
 		$this->api = $this->detect_data_api_and_permissions();
 
-		// maybe establish wordpress object id when api is one of the metadata APIs
+		// maybe establish WordPress object id when api is one of the metadata APIs
 		$this->obj_id = $this->maybe_capture_wp_object_id();
 
 		// loop over sections
@@ -162,7 +162,7 @@ class Panel {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $post_obj->post_title );
 				}
 			} elseif ( isset( $user ) && absint( $user ) ) {
-				if ( is_multisite() && is_network_admin() ) {
+				if ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
 					$api = 'user-network';
 				} else {
 					$api = 'user';
@@ -179,7 +179,7 @@ class Panel {
 					$this->panel_object = $term_obj;
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term_obj->name );
 				}
-			} elseif ( is_multisite() && is_network_admin() ) {
+			} elseif ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
 				$api = 'network';
 			} else {
 				$api = 'site';
@@ -226,6 +226,18 @@ class Panel {
 	}
 
 	/**
+	 * Check for Automattic server constants denoting we shouldn't add network options or switch_to_blog()
+	 *
+	 * @return bool
+	 */
+	public static function is_wordpress_vip_or_vip_go() {
+		$is_vip    = ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) ? true : false;
+		$is_vip_go = ( defined( 'VIP_GO_ENV' ) && ! empty( VIP_GO_ENV ) ) ? true : false;
+
+		return ( $is_vip || $is_vip_go ) ? true : false;
+	}
+
+	/**
 	 * Old external developer method used to add parts (sections/fields/markup/etc) to a Panel
 	 *
 	 * Now used internally, but still available public
@@ -263,9 +275,7 @@ class Panel {
 		$note_type = isset( $data['type'] ) ? $data['type'] : 'notice-success';
 		?>
 		<div class="notice <?php echo esc_attr( $note_type ); ?>">
-			<p><strong><?php echo esc_html( $this->page_title ); ?></strong> //
-				<?php echo esc_html( $data['notification'] ); ?>
-			</p>
+			<p><strong><?php echo esc_html( $data['notification'] ); ?></p>
 		</div>
 		<?php
 	}

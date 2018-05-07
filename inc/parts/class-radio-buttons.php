@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 /**
  * Class Radio_Buttons
@@ -10,8 +10,8 @@ class Radio_Buttons extends Part {
 
 	public $values;
 	public $default_value = '';
-	public $input_type = 'radio_buttons';
-	public $data_store = true;
+	public $input_type    = 'radio_buttons';
+	public $data_store    = true;
 
 	/**
 	 * Radio_Buttons constructor.

@@ -1,13 +1,33 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
+/**
+ * Class Read
+ * @package WPOP\V_4_0
+ */
 class Read {
 
+	/**
+	 * @var string|mixed
+	 *
+	 */
 	public $response;
+	/**
+	 * @var string - internally-defined to decide which WP API to use
+	 */
 	protected $type;
+	/**
+	 * @var string - a string key used for storage in database
+	 */
 	protected $key;
+	/**
+	 * @var null|int - used for metadata APIs, contains ID for Post, Term or User.
+	 */
 	protected $obj_id;
+	/**
+	 * @var bool -
+	 */
 	protected $single;
 
 	/**
@@ -21,14 +41,17 @@ class Read {
 	 * @param bool $single
 	 */
 	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
-		if ( false !== wp_verify_nonce( $panel_id, $panel_id ) ) {
-			return false; // check for nonce, only allow panel to use this class
+		$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! is_object( $current_screen ) || false === stripos( $current_screen->id, $panel_id ) ) {
+			return false; // only let panel page use that class to read db
 		}
 		$this->type   = $type;
 		$this->key    = $key;
 		$this->obj_id = $obj_id;
 		$this->single = $single;
+		// 1. Data API switchboard
 		$this->get_data();
+		// 2. Return data for use by field
 
 		return $this->response;
 	}

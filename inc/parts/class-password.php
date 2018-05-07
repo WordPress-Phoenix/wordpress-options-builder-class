@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 
 /**
@@ -11,8 +11,18 @@ namespace WPOP\V_4_0;
 class Password extends Input {
 	public $input_type = 'password';
 
+	/**
+	 * This value is used during saving to denote new field value matches prior database value, preventing overwriting
+	 * in the Update class
+	 * @var string
+	 */
+	public static $default_existing_value = '### wpop-encrypted-pwd-field-val-unchanged ###';
+
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
+		if ( ! defined( 'WPOP_EXISTING_ENCRYPTED_VALUE' ) ) {
+			define( 'WPOP_EXISTING_ENCRYPTED_VALUE', self::$default_existing_value );
+		}
 	}
 
 	public function render() {

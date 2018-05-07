@@ -1,6 +1,6 @@
 <?php
 
-namespace WPOP\V_4_0;
+namespace WPOP\V_4_1;
 
 class Part {
 
@@ -8,6 +8,7 @@ class Part {
 	public $field_id;
 	public $saved;
 	public $part_type = 'option';
+	public $input_type = 'hidden';
 	public $label = 'Option';
 	public $description = '';
 	public $default_value = '';
@@ -16,6 +17,7 @@ class Part {
 	public $data_store = false;
 	public $panel_api = false;
 	public $panel_id = false;
+	public $obj_id = null;
 	public $update_type = '';
 
 	public function __construct( $i, $args = [] ) {
@@ -32,8 +34,7 @@ class Part {
 			$this->saved   = $this->get_saved();
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
-			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-			           && ( $old_value !== $this->saved )
+			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved ) && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -49,25 +50,42 @@ class Part {
 	public function input( $field_id = '', $type = '', $stored = '' ) {
 		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
 		$type            = ! empty( $type ) ? $type : $this->input_type;
-		$established     = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
+		$established     = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 		$value           = ! empty( $stored ) ? $stored : $established;
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
+		?>
+		<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
+			   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
+			   data-part="<?php echo esc_attr( $clean_classname ); ?>"
+			   class="<?php echo esc_attr( $class_str ); ?>"
+			<?php $this->input_value( $type, $established ); ?> />
+		<?php
+	}
 
-		echo '<input id="' . esc_attr( $field_id ) . '" name="' . esc_attr( $field_id ) . '"' .
-			' type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" autocomplete="false" data-part="'
-			. esc_attr( $clean_classname ) . '" class="' . esc_attr( $class_str ) . '" />';
+	/**
+	 * @param $type             string - type of input field
+	 * @param $established_data string - either saved data or default value for field
+	 * @param $use_data_value   bool
+	 */
+	public function input_value( $type, $established_data, $use_data_value = false ) {
+		if ( 'checkbox' === $type || 'toggle-switch' === $type || true === $use_data_value ) {
+			echo ' data-value="' . esc_attr( $established_data ) . '"';
+			checked( $this->value, $established_data );
+		} else {
+			echo ' value="' . esc_attr( $established_data ) . '"';
+		}
 	}
 
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && $_POST['_wpnonce'] ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->panel_id ) ) {
 			return false; // only run logic if asked to run & auth'd by nonce
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
+		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id ) : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
@@ -88,30 +106,12 @@ class Part {
 
 	public function get_saved() {
 
-		switch ( $this->panel_api ) {
-			case 'post':
-				$obj_id = isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
-				break;
-			case 'term':
-				$obj_id = isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
-				break;
-			case 'user':
-			case 'user-network':
-				$obj_id = isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
-				break;
-			case 'network':
-			case 'site':
-			default:
-				$obj_id = null;
-				break;
-		}
-
 		$response = new Read(
 			$this->panel_id,
 			$this->panel_api,
 			$this->id,
 			$this->default_value,
-			$obj_id
+			$this->obj_id
 		);
 
 		return $response->response;
@@ -127,9 +127,15 @@ class Part {
 	 * @return bool|string
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
+		// codesniffer is being annoying and wants another nonce check
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
+			return false; // only run logic if asked to run & auth'd by nonce
+		}
 		switch ( $input_type ) {
 			case 'password':
-				if ( $_POST[ 'stored_' . $id ] === $value && ! empty( $value ) ) {
+				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
+				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
 
