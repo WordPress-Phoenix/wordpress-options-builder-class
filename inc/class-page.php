@@ -93,7 +93,7 @@ class Page extends Panel {
 					<?php if ( ! empty( $this->dashicon ) ) { ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
 						<?php
-					}
+}
 					echo esc_attr( $this->page_title );
 					?>
 				</h1>
@@ -132,15 +132,14 @@ class Page extends Panel {
 					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
-								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] );
-								?> menu-icon"></span>
+								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
 								<?php
-							}
+}
 							echo esc_html( $section['label'] );
-							if ( count( $section['parts'] ) > 1 ) {
-								?>
-								<small class="part-count">
-									<?php echo esc_attr( count( $section['parts'] ) ); ?>
+if ( count( $section['parts'] ) > 1 ) {
+	?>
+	<small class="part-count">
+		<?php echo esc_attr( count( $section['parts'] ) ); ?>
 								</small>
 							<?php } ?>
 						</a>
@@ -281,10 +280,12 @@ class Page extends Panel {
 	public function enqueue_dependencies() {
 		// Enqueue media (needed for media modal)
 		wp_enqueue_media();
-		wp_enqueue_script( array(
-			'iris',
-			'wp-util',
-			'wp-shortcode',
-		) );
+		wp_enqueue_script(
+			array(
+				'iris',
+				'wp-util',
+				'wp-shortcode',
+			)
+		);
 	}
 }

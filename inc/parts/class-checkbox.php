@@ -11,7 +11,7 @@ class Checkbox extends Part {
 	/**
 	 * @var string
 	 */
-	public $value      = 'on';
+	public $value = 'on';
 	/**
 	 * @var string
 	 */

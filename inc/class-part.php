@@ -107,7 +107,6 @@ class Part {
 
 	public function get_saved() {
 
-
 		$response = new Read(
 			$this->panel_id,
 			$this->panel_api,

@@ -18,10 +18,9 @@ class Update {
 	 * @param bool $autoload
 	 */
 	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
-		$wpnonce = isset( $_POST[ '_wpnonce' ] ) ? filter_input( INPUT_POST, '_wpnonce'  ) : null;
+		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		// only allow class to be used by panel OR encrypted pwds never updated after insert
-		if ( ! wp_verify_nonce( $wpnonce, $panel_id )
-		     || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value	) {
+		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
 
 			return false;
 		}
