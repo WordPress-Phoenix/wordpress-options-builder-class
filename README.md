@@ -2,7 +2,7 @@
 
 WordPress options builder class is a library that helps you setup theme or plugin options that store data in the database with just a few lines of code.
 
-### Updated in 3.0
+### Updated in 4.1
 * Fully escaped & sanitized
 * More data storage APIs
 * Cleaned up styles
