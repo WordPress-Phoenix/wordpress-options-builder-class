@@ -556,7 +556,8 @@ f.$input.html(d.join(""))}else f.$input.val(f.getValue()),f.$input.attr("value",
 			}
 
 			.radio-wrap {
-				top: -1rem
+				top: -1rem;
+				clear: both;
 			}
 
 			.cb, .save-all, .wpop-option.color .iris-picker {

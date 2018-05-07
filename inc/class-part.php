@@ -72,7 +72,7 @@ class Part {
 	public function input_value( $type, $established_data, $use_data_value = false ) {
 		if ( 'checkbox' === $type || 'toggle-switch' === $type || true === $use_data_value ) {
 			echo ' data-value="' . esc_attr( $established_data ) . '"';
-			checked( $this->default_value, $established_data );
+			checked( $this->value, $established_data );
 		} else {
 			echo ' value="' . esc_attr( $established_data ) . '"';
 		}
