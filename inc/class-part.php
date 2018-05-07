@@ -34,8 +34,7 @@ class Part {
 			$this->saved   = $this->get_saved();
 			if ( empty( $old_value ) && $this->updated && ! empty( $this->saved ) ) {
 				$this->update_type = 'created';
-			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved )
-			           && ( $old_value !== $this->saved )
+			} elseif ( ! empty( $old_value ) && $this->updated && ! empty( $this->saved ) && ( $old_value !== $this->saved )
 			) {
 				$this->update_type = 'updated';
 			} elseif ( ! empty( $old_value ) && $this->updated && empty( $this->saved ) ) {
@@ -86,7 +85,7 @@ class Part {
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
+		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id ) : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
