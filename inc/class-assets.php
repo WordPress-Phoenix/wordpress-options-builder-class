@@ -583,7 +583,7 @@ f.$input.html(d.join(""))}else f.$input.val(f.getValue()),f.$input.attr("value",
 
 			#wpop {
 				max-width: 1600px;
-				margin: 0 auto 0 0 !important
+				margin: 0 0.75rem 0 0 !important
 			}
 
 			#wpopMain {

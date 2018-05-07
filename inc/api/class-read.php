@@ -41,9 +41,9 @@ class Read {
 	 * @param bool $single
 	 */
 	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
-		$wpnonce = isset( $_GET[ $panel_id . '_wpnonce' ] ) ? filter_input( INPUT_GET, $panel_id . '_wpnonce'  ) : null;
-		if ( false !== wp_verify_nonce( $wpnonce, $panel_id ) ) {
-			return false; // check for nonce, only allow panel to use this class
+		$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! is_object( $current_screen ) || false === stripos( $current_screen->id, $panel_id ) ) {
+			return false; // only let panel page use that class to read db
 		}
 		$this->type   = $type;
 		$this->key    = $key;
@@ -52,6 +52,7 @@ class Read {
 		// 1. Data API switchboard
 		$this->get_data();
 		// 2. Return data for use by field
+
 		return $this->response;
 	}
 

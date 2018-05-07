@@ -51,7 +51,7 @@ class Part {
 	public function input( $field_id = '', $type = '', $stored = '' ) {
 		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
 		$type            = ! empty( $type ) ? $type : $this->input_type;
-		$established     = ( false === $this->saved || empty( $this->saved ) ) ? $this->default_value : $this->saved;
+		$established     = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 		$value           = ! empty( $stored ) ? $stored : $established;
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
@@ -79,14 +79,14 @@ class Part {
 	}
 
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->panel_id ) ) {
 			return false; // only run logic if asked to run & auth'd by nonce
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_GET, $this->id ) : false;
+		$field_input = isset( $_POST[ $this->id ] ) ? $_POST[ $this->id ] : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
@@ -130,13 +130,13 @@ class Part {
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
 		// codesniffer is being annoying and wants another nonce check
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_GET, '_wpnonce' ) : null;
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
 			return false; // only run logic if asked to run & auth'd by nonce
 		}
 		switch ( $input_type ) {
 			case 'password':
-				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_GET, 'stored_' . $id ) : null;
+				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
 				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
