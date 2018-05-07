@@ -241,7 +241,7 @@ class Page extends Panel {
 					/**
 					 * Print Nonce Field
 					 */
-					echo wp_nonce_field( esc_attr( $this->id, '_wpnonce' ), true, false );
+					echo wp_nonce_field( esc_attr( $this->id ), '_wpnonce', true, false );
 					?>
 				</form>
 			</section>
