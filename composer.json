@@ -1,21 +1,29 @@
 {
-    "name": "wordpress-phoenix/wordpress-options-builder-class",
-    "description": "Library that helps you setup theme or plugin options that store data in the database with just a line or two of code",
-    "keywords": ["wordpress","site-options","utility","helper"],
-    "homepage": "https://github.com/WordPress-Phoenix/wordpress-options-builder-class",
-    "license": "GPL-3.0-or-later",
-    "authors": [
-        {
-            "name": "Seth Carstens",
-            "email": "seth.carstens@gmail.com",
-            "homepage": "http://github.com/scarstens",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-		"composer/installers": "~1.0"
-    },
-    "autoload": {
-        "classmap": ["/"]
+  "name": "wordpress-phoenix/wordpress-options-builder-class",
+  "description": "Library that helps you setup theme or plugin options that store data in the database with just a line or two of code",
+  "keywords": [
+    "wordpress",
+    "site-options",
+    "utility",
+    "helper"
+  ],
+  "homepage": "https://github.com/WordPress-Phoenix/wordpress-options-builder-class",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Seth Carstens",
+      "email": "seth.carstens@gmail.com",
+      "homepage": "http://github.com/scarstens",
+      "role": "Developer"
     }
+  ],
+  "require": {
+    "composer/installers": "~1.0",
+    "erusev/parsedown": "^1.7"
+  },
+  "autoload": {
+    "classmap": [
+      "/"
+    ]
+  }
 }
