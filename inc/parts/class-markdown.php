@@ -11,7 +11,7 @@ namespace WPOP\V_4_1;
 /**
  * Class Markdown
  *
- * @package WPOP\V_3_1
+ * @package WPOP\V_4_1
  */
 class Markdown extends Include_Partial {
 	/**
