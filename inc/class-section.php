@@ -1,39 +1,58 @@
 <?php
+/**
+ * Section
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
+/**
+ * Class Section
+ */
 class Section {
 
 	/**
-	 * @var
+	 * ID
+	 *
+	 * @var string
 	 */
 	public $id;
 
 	/**
+	 * Classes
+	 *
 	 * @var array
 	 */
-	public $classes = array( 'section' );
+	public $classes = [ 'section' ];
 
 	/**
+	 * Section Title
+	 *
 	 * @var string
 	 */
 	public $label = 'My Custom Section';
 
 	/**
-	 * @var
+	 * WP Admin Nav Icon
+	 *
+	 * @var string
 	 */
 	public $dashicon;
 
 	/**
-	 * @var
+	 * Parts are typically sections or fields.
+	 *
+	 * @var Part Custom object of type part which is a parent class for sections and fields.
 	 */
 	protected $parts;
 
 	/**
 	 * Section constructor.
 	 *
-	 * @param string $id
-	 * @param array  $args
+	 * @param string $id   ID.
+	 * @param array  $args Arguments.
 	 */
 	public function __construct( $id, $args = [] ) {
 		$this->id = $id;
@@ -51,7 +70,17 @@ class Section {
 			class="<?php echo esc_attr( implode( ' ', $this->classes ) ); ?>">
 			<ul>
 				<?php
+				/**
+				 * Typehinting $part
+				 *
+				 * @var Part $part
+				 */
 				foreach ( $this->parts as $part ) {
+					/**
+					 * IDE type hinting for $part variable.
+					 *
+					 * @var $part Part Field or section.
+					 */
 					$part_type = strtolower( $part->get_clean_classname() );
 					?>
 					<li class="wpop-option <?php echo esc_attr( $part_type ); ?>"
@@ -59,15 +88,15 @@ class Section {
 						data-type="<?php echo esc_attr( $part_type ); ?>">
 						<h4 class="label"><?php echo esc_html( $part->label ); ?></h4>
 						<?php
-						// render main unique field output
+						// Render main unique field output.
 						$part->render();
 						if ( ! empty( $part->description ) ) {
-						?>
+							?>
 							<div class="desc clear"><?php echo esc_html( $part->description ); ?></div>
 						<?php } ?>
 						<div class="clear"></div>
 					</li><span class="spacer"></span>
-				<?php
+					<?php
 				}
 				?>
 			</ul>

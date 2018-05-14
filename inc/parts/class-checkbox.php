@@ -1,22 +1,35 @@
 <?php
+/**
+ * Checkbox
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
 /**
  * Class Checkbox
- * @package WPOP\V_3_0
  */
 class Checkbox extends Part {
 
 	/**
+	 * Value
+	 *
 	 * @var string
 	 */
 	public $value = 'on';
+
 	/**
+	 * Input type for form field.
+	 *
 	 * @var string
 	 */
 	public $input_type = 'checkbox';
+
 	/**
+	 * Data store status
+	 *
 	 * @var bool
 	 */
 	public $data_store = true;
@@ -24,8 +37,8 @@ class Checkbox extends Part {
 	/**
 	 * Checkbox constructor.
 	 *
-	 * @param       $i
-	 * @param array $args
+	 * @param string $i    ID of the field.
+	 * @param array  $args Arguments to customize the object instance.
 	 */
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
@@ -38,15 +51,18 @@ class Checkbox extends Part {
 	 * Used by extending Toggle_Switch class
 	 */
 	public function label_markup() {
-		// silence is golden
+		return '';
 	}
 
+	/**
+	 * Main render function.
+	 */
 	public function render() {
 		?>
 		<div class="cb-wrap">
 			<?php
-				$this->input( esc_attr( $this->id ), 'checkbox' );
-				$this->label_markup();
+			$this->input( esc_attr( $this->id ), 'checkbox' );
+			$this->label_markup();
 			?>
 		</div>
 		<?php

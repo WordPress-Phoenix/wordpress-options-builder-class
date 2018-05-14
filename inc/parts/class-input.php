@@ -1,17 +1,27 @@
 <?php
+/**
+ * Input (Default field object)
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
 /**
  * Class Input
- * @package WPOP\V_4_0
  */
 class Input extends Part {
 	/**
-	 * @var
+	 * Input Type
+	 *
+	 * @var string
 	 */
 	public $input_type;
+
 	/**
+	 * Data store status
+	 *
 	 * @var bool
 	 */
 	public $data_store = true;

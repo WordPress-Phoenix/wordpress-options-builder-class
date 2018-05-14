@@ -29,7 +29,7 @@ class Markdown extends Include_Partial {
 	public function render() {
 		if ( is_file( $this->filename ) && class_exists( '\\Parsedown' ) ) {
 			$converter = new \Parsedown();
-			$markup    = static::wpvip_safe_get_contents( $this->filename );
+			$markup    = static::file_get_contents( $this->filename );
 			if ( ! empty( $markup ) ) {
 				return 'To do, fix markdown field.';
 			}

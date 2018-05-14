@@ -1,11 +1,21 @@
 <?php
+/**
+ * Number
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
 /**
  * Class Number
- * @package WPOP\V_3_0
  */
 class Number extends Input {
+	/**
+	 * Input type
+	 *
+	 * @var string
+	 */
 	public $input_type = 'number';
 }

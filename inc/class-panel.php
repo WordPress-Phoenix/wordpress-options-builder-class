@@ -1,78 +1,111 @@
 <?php
+/**
+ * Panel - is actually the options controller. Typically used as an extension of the Page class.
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
+/**
+ * Class Panel
+ */
 class Panel {
 	/**
-	 * @var null - string used by class to determine WordPress data api
+	 * API Setting
+	 *
+	 * @var null|string Used by class to determine WordPress data api
 	 */
 	public $api = null;
 
 	/**
-	 * @var null|string - string/slug for a panel
+	 * Panel ID
+	 *
+	 * @var null|string slug or title of a panel
 	 */
 	public $id = null;
 
 	/**
-	 * @var string - capability user must have for panel to display.
+	 * Required Capabilities
+	 *
+	 * @var string Matches WordPress capabilities required to access this set of options.
 	 */
 	public $capability = 'manage_options';
 
 	/**
-	 * @var array - array of fields (aka parts because fields can also be file includes or markup)
+	 * Field Parts
+	 *
+	 * @var array Array holds list of all parts (usually HTML fields).
 	 */
 	public $parts = [];
 
 	/**
+	 * Notifications
+	 *
 	 * @var array - string notifications to print at top of panel
 	 */
 	public $notifications = [];
 
 	/**
+	 * WordPress Object ID
+	 *
 	 * @var null|void - preset with WP Core Object ID from query param
 	 * @see $this->maybe_capture_wp_object_id();
 	 */
 	public $obj_id = null;
 
 	/**
-	 * @var
+	 * Page Title
+	 *
+	 * @var string Title for Page object type
 	 */
 	public $page_title;
 
 	/**
-	 * @var
+	 * Panel Object Instance
+	 *
+	 * @var Panel
 	 */
 	public $panel_object;
 
 	/**
-	 * @var int
+	 * Part Count
+	 *
+	 * @var int Sum of parts included in this Page of options.
 	 */
 	public $part_count = 0;
 
 	/**
-	 * @var int
+	 * Section Count
+	 *
+	 * @var int Sum of parts included in this Section of options.
 	 */
 	public $section_count = 0;
 
 	/**
-	 * @var int
+	 * Data Counts
+	 *
+	 * @var int Sum of all data found?
 	 */
 	public $data_count = 0;
 
 	/**
+	 * Update Counts
+	 *
 	 * @var array used to track what happens during save process
 	 */
-	public $updated_counts = array(
+	public $updated_counts = [
 		'created' => 0,
 		'updated' => 0,
 		'deleted' => 0,
-	);
+	];
 
 	/**
 	 * Container constructor.
 	 *
-	 * @param array $args
-	 * @param array $sections
+	 * @param array $args     Arguments used to customize instance of this class.
+	 * @param array $sections Sections (vertical tabs) to create as a part of this options set.
 	 */
 	public function __construct( $args = [], $sections = [] ) {
 		if ( ! isset( $args['id'] ) ) {
@@ -85,25 +118,25 @@ class Panel {
 			$trimmed_key = substr( wp_salt(), 0, 15 );
 			define( 'WPOP_ENCRYPTION_KEY', Password::pad_key( sha1( $trimmed_key, true ) ) );
 		}
-		// establish panel id
+		// Establish panel id.
 		$this->id = preg_replace( '/_/', '-', $args['id'] );
 
-		// magic-set class object vars from array
+		// Magic-set class object vars from array.
 		foreach ( $args as $key => $val ) {
 			$this->$key = $val;
 		}
 
-		// establish data storage api
+		// Establish data storage api.
 		$this->api = $this->detect_data_api_and_permissions();
 
-		// maybe establish WordPress object id when api is one of the metadata APIs
+		// Maybe establish WordPress object id when api is one of the metadata APIs.
 		$this->obj_id = $this->maybe_capture_wp_object_id();
 
-		// loop over sections
+		// Loop over sections.
 		foreach ( $sections as $section_id => $section ) {
 			if ( isset( $section['parts'] ) ) {
 				$this->section_count ++;
-				// loop over current section's parts
+				// Loop over current section's parts.
 				foreach ( $section['parts'] as $part_id => $part_config ) {
 					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
 					$part_config['obj_id']     = $this->obj_id;
@@ -111,10 +144,10 @@ class Panel {
 					$part_config['section_id'] = $section_id;
 					$part_config['panel_api']  = $this->api;
 
-					// create part class
+					// Create part class.
 					$current_part = new $current_part_classname( $part_id, $part_config );
 
-					// add part to panel/section
+					// Add part to panel/section.
 					$this->add_part( $section_id, $section, $current_part );
 					$this->part_count ++;
 					if ( is_object( $current_part ) && $current_part->data_store ) {
@@ -138,6 +171,8 @@ class Panel {
 	}
 
 	/**
+	 * Default string representing Class object
+	 *
 	 * @return null|string|string
 	 */
 	public function __toString() {
@@ -188,16 +223,18 @@ class Panel {
 			$api = '';
 		}
 
-		// safety valve for all metadata apis to prevent creating arbitrary meta for non-existent objects
+		// Safety valve for all metadata apis to prevent creating arbitrary meta for non-existent objects.
 		if ( ! empty( $api ) && 'network' !== $api && 'site' !== $api ) {
 			if ( empty( $this->panel_object ) || is_wp_error( $this->panel_object ) ) {
-				$api = null; // use null here to distinguish between empty string above and failure here
+				$api = null; // Use null here to distinguish between empty string above and failure here.
 			}
 		}
 
-		// allow api auto detection if 'api' not set in config, but if it doesn't match what was determined above
-		// then ignore the presumed API and defined config value
-		//  (will ignore &term=1 param when $config['api] === 'site' or 'network' to prevent accidental override)
+		/**
+		 * Allow api auto detection if 'api' not set in config, but if it doesn't match what was determined above then
+		 * ignore the presumed API and defined config value (will ignore &term=1 param when $config['api] === 'site' or
+		 * 'network' to prevent accidental override)
+		 */
 		if ( null !== $api && $api !== $this->api ) {
 			return $this->api;
 		}
@@ -206,6 +243,8 @@ class Panel {
 	}
 
 	/**
+	 * Get WP Object ID
+	 *
 	 * @return int|null
 	 */
 	public function maybe_capture_wp_object_id() {
@@ -242,14 +281,14 @@ class Panel {
 	 *
 	 * Now used internally, but still available public
 	 *
-	 * @param $section_id
-	 * @param $section
-	 * @param $part object - one of the part classes from this file
+	 * @param string  $section_id Section ID.
+	 * @param Section $section    Section Object.
+	 * @param Part    $part       object One of the part classes from this file.
 	 */
 	public function add_part( $section_id, $section, $part ) {
 		if ( ! isset( $this->parts[ $section_id ] ) ) {
 			$this->parts[ $section_id ]          = $section;
-			$this->parts[ $section_id ]['parts'] = array();
+			$this->parts[ $section_id ]['parts'] = [];
 		}
 
 		array_push( $this->parts[ $section_id ]['parts'], $part );
@@ -257,6 +296,7 @@ class Panel {
 
 	/**
 	 * Print WordPress Admin Notifications
+	 *
 	 * @example $note_data = array( 'notification' => 'My text', 'type' => 'notice-success' )
 	 */
 	public function echo_notifications() {
@@ -268,7 +308,7 @@ class Panel {
 	/**
 	 * Create single notification markup
 	 *
-	 * @param $notification
+	 * @param string $notification The text to display in the notification.
 	 */
 	public function single_notification( $notification ) {
 		$data      = is_array( $notification ) ? $notification : [ 'notification' => $notification ];

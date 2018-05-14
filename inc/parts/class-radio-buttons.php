@@ -1,23 +1,51 @@
 <?php
+/**
+ * Radio Buttons
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
 /**
  * Class Radio_Buttons
- * @package WPOP\V_3_0
  */
 class Radio_Buttons extends Part {
 
+	/**
+	 * Value options for radio buttons
+	 *
+	 * @var array
+	 */
 	public $values;
+
+	/**
+	 * Default selected value
+	 *
+	 * @var string
+	 */
 	public $default_value = '';
-	public $input_type    = 'radio_buttons';
-	public $data_store    = true;
+
+	/**
+	 * Input type
+	 *
+	 * @var string
+	 */
+	public $input_type = 'radio_buttons';
+
+	/**
+	 * Data store status
+	 *
+	 * @var bool
+	 */
+	public $data_store = true;
 
 	/**
 	 * Radio_Buttons constructor.
 	 *
-	 * @param $i
-	 * @param $c
+	 * @param string $i Slug or ID.
+	 * @param array  $c Array of value options.
 	 */
 	public function __construct( $i, $c ) {
 		parent::__construct( $i, $c );
@@ -25,7 +53,7 @@ class Radio_Buttons extends Part {
 	}
 
 	/**
-	 *
+	 * Main render function
 	 */
 	public function render() {
 		foreach ( $this->values as $key => $value ) {
@@ -41,8 +69,9 @@ class Radio_Buttons extends Part {
 						</td>
 						<td>
 							<input type="radio" id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
-							name="<?php echo esc_attr( $this->field_id ); ?>" value="<?php echo esc_attr( $value ); ?>"
-							class="radio-item" <?php checked( $value, $selected_val ); ?> />
+								   name="<?php echo esc_attr( $this->field_id ); ?>"
+								   value="<?php echo esc_attr( $value ); ?>"
+								   class="radio-item" <?php checked( $value, $selected_val ); ?> />
 						</td>
 					</tr>
 				</table>
@@ -50,4 +79,5 @@ class Radio_Buttons extends Part {
 			<?php
 		}
 	}
+
 }

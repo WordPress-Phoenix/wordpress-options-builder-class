@@ -1,25 +1,144 @@
 <?php
+/**
+ * Part (usually section or field)
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
+/**
+ * Class Part
+ */
 class Part {
 
+	/**
+	 * Unique ID for the part - db store key for keystore parts.
+	 *
+	 * @var string
+	 */
 	public $id;
+
+	/**
+	 * Field ID - currently used for Radio Buttons
+	 *
+	 * @var string
+	 */
 	public $field_id;
+
+	/**
+	 * The value of this part if data was stored in the database.
+	 *
+	 * @var mixed|string
+	 */
 	public $saved;
+
+	/**
+	 * Type of part (partial)
+	 *
+	 * @var string
+	 */
 	public $part_type = 'option';
+
+	/**
+	 * Input or form type - for field parts.
+	 *
+	 * @var string
+	 */
 	public $input_type = 'hidden';
+
+	/**
+	 * Part label or title.
+	 *
+	 * @var string
+	 */
 	public $label = 'Option';
+
+	/**
+	 * Part description is usually printed in small text near the partial.
+	 *
+	 * @var string
+	 */
 	public $description = '';
+
+	/**
+	 * Default value associated with form parts that have database values.
+	 *
+	 * @var string
+	 */
 	public $default_value = '';
-	public $classes = array();
+
+	/**
+	 * HTML classes to associate with parts wrappers.
+	 *
+	 * @var array
+	 */
+	public $classes = [];
+
+	/**
+	 * Attributes that controls and customizes each part.
+	 * TODO: Maybe remove since it seems unused.
+	 *
+	 * @var array
+	 */
 	public $atts = [];
+
+	/**
+	 * Enable this if the panel needs to run save/get operations.
+	 *
+	 * @var bool
+	 */
 	public $data_store = false;
+
+	/**
+	 * Panel API
+	 *
+	 * @var bool
+	 */
 	public $panel_api = false;
+
+	/**
+	 * Panel ID part is attached to?
+	 *
+	 * @var bool
+	 */
 	public $panel_id = false;
+
+	/**
+	 * Object ID?
+	 *
+	 * @var null
+	 */
 	public $obj_id = null;
+
+	/**
+	 * Type of update?
+	 *
+	 * @var string
+	 */
 	public $update_type = '';
 
+	/**
+	 * Value of part from DB.
+	 *
+	 * @var string
+	 */
+	public $value = '';
+
+	/**
+	 * Status of save options execution.
+	 *
+	 * @var bool|int
+	 */
+	public $updated;
+
+	/**
+	 * Part constructor.
+	 *
+	 * @param string $i    ID of this partial.
+	 * @param array  $args Arguments used to customize the partial.
+	 */
 	public function __construct( $i, $args = [] ) {
 		$this->id       = $i;
 		$this->field_id = $this->id;
@@ -43,30 +162,43 @@ class Part {
 		}
 	}
 
+	/**
+	 * Standardize and return classname value.
+	 *
+	 * @return mixed
+	 */
 	public function get_clean_classname() {
 		return explode( '\\', get_called_class() )[2];
 	}
 
-	public function input( $field_id = '', $type = '', $stored = '' ) {
+	/**
+	 * Input thats output 😺
+	 *
+	 * @param string $field_id ID of the field.
+	 * @param string $type     Type of field.
+	 */
+	public function input( $field_id = '', $type = '' ) {
 		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
 		$type            = ! empty( $type ) ? $type : $this->input_type;
 		$established     = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
-		$value           = ! empty( $stored ) ? $stored : $established;
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 		?>
 		<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
 			   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
 			   data-part="<?php echo esc_attr( $clean_classname ); ?>"
+			   title="<?php echo esc_attr( $field_id ); ?>"
 			   class="<?php echo esc_attr( $class_str ); ?>"
 			<?php $this->input_value( $type, $established ); ?> />
 		<?php
 	}
 
 	/**
-	 * @param $type             string - type of input field
-	 * @param $established_data string - either saved data or default value for field
-	 * @param $use_data_value   bool
+	 * Standardized function to retreive and output html form values from DB data.
+	 *
+	 * @param string $type             Type of input field.
+	 * @param string $established_data Either saved data or default value for field.
+	 * @param bool   $use_data_value   TODO: Use Data Value?.
 	 */
 	public function input_value( $type, $established_data, $use_data_value = false ) {
 		if ( 'checkbox' === $type || 'toggle-switch' === $type || true === $use_data_value ) {
@@ -77,10 +209,15 @@ class Part {
 		}
 	}
 
+	/**
+	 * Run Save DB Values Process
+	 *
+	 * @return bool|string
+	 */
 	public function run_save_process() {
 		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->panel_id ) ) {
-			return false; // only run logic if asked to run & auth'd by nonce
+			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
@@ -94,7 +231,7 @@ class Part {
 			$this->panel_api, // doing this way to allow multi-api saving from single panel down-the-road
 			$this->id, // this is the data storage key in the database
 			$sanitize_input, // sanitized input (maybe empty, triggering delete)
-			isset( $this->obj_id ) ? $this->obj_id : null // maybe an object ID needed for metadata API
+			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
 		);
 
 		if ( $updated ) {
@@ -104,6 +241,11 @@ class Part {
 		return false;
 	}
 
+	/**
+	 * Read in value related to object.
+	 *
+	 * @return mixed|string
+	 */
 	public function get_saved() {
 
 		$response = new Read(
@@ -120,17 +262,17 @@ class Part {
 	/**
 	 * Master sanitization function used to clean user input
 	 *
-	 * @param $input_type
-	 * @param $id
-	 * @param $value
+	 * @param string $input_type Input Type.
+	 * @param string $id         ID.
+	 * @param string $value      Value.
 	 *
 	 * @return bool|string
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
-		// codesniffer is being annoying and wants another nonce check
+		// Codesniffer is being annoying and wants another nonce check.
 		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
-			return false; // only run logic if asked to run & auth'd by nonce
+			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 		switch ( $input_type ) {
 			case 'password':
@@ -159,7 +301,7 @@ class Part {
 				break;
 			case 'multiselect':
 				if ( ! empty( $value ) && is_array( $value ) ) {
-					return json_encode( array_map( 'sanitize_key', $value ) );
+					return wp_json_encode( array_map( 'sanitize_key', $value ) );
 				}
 
 				return false;
@@ -175,6 +317,13 @@ class Part {
 				return sanitize_text_field( $value );
 				break;
 		}
+	}
+
+	/**
+	 * Render is an output placeholder for sub parts.
+	 */
+	public function render() {
+		echo 'Error: Part missing render callback.';
 	}
 
 }
