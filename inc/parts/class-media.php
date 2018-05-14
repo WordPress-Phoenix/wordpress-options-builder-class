@@ -61,7 +61,7 @@ class Media extends Part {
 			   data-title="<?php echo esc_attr( 'Select or Upload ' . $this->media_label ); ?>"/>
 		<input id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>" type="hidden"
 			   value="<?php echo esc_attr( $saved['id'] ); ?>"
-			   data-part="<?php esc_attr( strtolower( $this->get_clean_classname() ) ); ?>"/>
+			   data-part="<?php echo esc_attr( strtolower( $this->get_clean_classname() ) ); ?>"/>
 		<a href="#" class="button img-remove" data-media-label="<?php echo esc_attr( $this->media_label ); ?>">
 			<?php echo esc_html( 'Remove ' . $this->media_label ); ?>
 		</a>
