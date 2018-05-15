@@ -1,44 +1,67 @@
 <?php
+/**
+ * Page
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
+/**
+ * Class Page
+ */
 class Page extends Panel {
 
 	/**
-	 * @var string
+	 * Parent Page ID
+	 *
+	 * @var string if it has a parent page, represents the slug or ID.
 	 */
 	public $parent_page_id = '';
 
 	/**
+	 * Page Title
+	 *
 	 * @var string
 	 */
 	public $page_title = 'Custom Site Options';
 
 	/**
+	 * WP Admin Primary Nav Title
+	 *
 	 * @var string
 	 */
 	public $menu_title = 'Custom Site Options';
 
 	/**
-	 * @var
+	 * WP Admin Primary Nav Icon
+	 *
+	 * @var string
 	 */
 	public $dashicon;
 
 	/**
-	 * @var bool
+	 * Disable default styles option
+	 *
+	 * @var bool Set to true to disable rending of default CSS.
 	 */
 	public $disable_styles = false;
 
-
+	/**
+	 * Initialized state variable
+	 *
+	 * @var bool Represents the current state of the object.
+	 */
 	public $initialized = false;
 
 	/**
 	 * Page constructor.
 	 *
-	 * @param array $args
-	 * @param array $fields
+	 * @param array $args   Arguments used to customize the object.
+	 * @param array $fields Fields Fields created on the page, outside of sections.
 	 */
-	public function __construct( $args = [], $fields ) {
+	public function __construct( $args = [], $fields ) { // @codingStandardsIgnoreLine
 		parent::__construct( $args, $fields );
 	}
 
@@ -51,9 +74,9 @@ class Page extends Panel {
 		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
 			$hook = ( 'network' === $this->api || 'user-network' === $this->api ) ? 'network_admin_menu' : 'admin_menu';
 
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_dependencies' ) );
-			add_action( $hook, array( $this, 'add_settings_submenu_page' ) );
-			add_action( 'current_screen', array( $this, 'maybe_run_footer_scripts' ) );
+			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dependencies' ] );
+			add_action( $hook, [ $this, 'add_settings_submenu_page' ] );
+			add_action( 'current_screen', [ $this, 'maybe_run_footer_scripts' ] );
 		}
 	}
 
@@ -67,17 +90,22 @@ class Page extends Panel {
 			$this->menu_title,
 			$this->capability,
 			$this->id,
-			array( $this, 'build_parts' )
+			[ $this, 'build_parts' ]
 		);
 	}
 
-	function maybe_run_footer_scripts( $screen ) {
+	/**
+	 * Load footer scripts on relevant pages.
+	 *
+	 * @param \WP_Screen $screen WordPress screen slug or ID.
+	 */
+	public function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
 			add_action(
-				'admin_print_footer_scripts-' . $screen->id, array(
+				'admin_print_footer_scripts-' . $screen->id, [
 					__NAMESPACE__ . '\\Assets',
 					'inline_js_footer',
-				)
+				]
 			);
 		}
 	}
@@ -90,10 +118,10 @@ class Page extends Panel {
 		<header class="wpop-head">
 			<div class="inner">
 				<h1>
-					<?php if ( ! empty( $this->dashicon ) ) { ?>
+					<?php if ( ! empty( $this->dashicon ) ) : ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
-						<?php
-}
+					<?php
+					endif;
 					echo esc_attr( $this->page_title );
 					?>
 				</h1>
@@ -131,17 +159,17 @@ class Page extends Panel {
 					?>
 					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
-							<?php if ( ! empty( $section['dashicon'] ) ) { ?>
+							<?php if ( ! empty( $section['dashicon'] ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-								<?php
-}
+							<?php
+							endif;
 							echo esc_html( $section['label'] );
-if ( count( $section['parts'] ) > 1 ) {
-	?>
-	<small class="part-count">
-		<?php echo esc_attr( count( $section['parts'] ) ); ?>
+							?>
+							<?php if ( count( $section['parts'] ) > 1 ) : ?>
+								<small class="part-count">
+									<?php echo esc_attr( count( $section['parts'] ) ); ?>
 								</small>
-							<?php } ?>
+							<?php endif; ?>
 						</a>
 					</li>
 					<?php
@@ -192,7 +220,7 @@ if ( count( $section['parts'] ) > 1 ) {
 
 
 	/**
-	 *
+	 * Build Parts - output parts to DOM
 	 */
 	public function build_parts() {
 		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
@@ -250,6 +278,8 @@ if ( count( $section['parts'] ) > 1 ) {
 	}
 
 	/**
+	 * Dynamic get data function, based on current objects param->api value.
+	 *
 	 * @return string
 	 */
 	public function get_storage_table() {
@@ -275,17 +305,13 @@ if ( count( $section['parts'] ) > 1 ) {
 	}
 
 	/**
-	 *
+	 * Enqueue dependencies
 	 */
 	public function enqueue_dependencies() {
-		// Enqueue media (needed for media modal)
+		// Enqueue media needed for media modal.
 		wp_enqueue_media();
-		wp_enqueue_script(
-			array(
-				'iris',
-				'wp-util',
-				'wp-shortcode',
-			)
-		);
+		wp_enqueue_script( 'iris' );
+		wp_enqueue_script( 'wp-util' );
+		wp_enqueue_script( 'wp-shortcode' );
 	}
 }

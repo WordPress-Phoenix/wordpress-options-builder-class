@@ -1,4 +1,10 @@
 <?php
+/**
+ * Include Partial
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
@@ -9,10 +15,15 @@ namespace WPOP\V_4_1;
  */
 class Include_Partial extends Part {
 	/**
+	 * File name
+	 *
 	 * @var string
 	 */
 	public $filename;
+
 	/**
+	 * Input type
+	 *
 	 * @var string
 	 */
 	public $input_type = 'include_partial';
@@ -20,8 +31,8 @@ class Include_Partial extends Part {
 	/**
 	 * Include_Partial constructor.
 	 *
-	 * @param $i
-	 * @param $config
+	 * @param string $i      Slug or ID.
+	 * @param array  $config Configuration arguments for customizing object instance.
 	 */
 	public function __construct( $i, $config ) {
 		parent::__construct( $i, [] );
@@ -29,25 +40,15 @@ class Include_Partial extends Part {
 	}
 
 	/**
-	 *
+	 * Main render function.
 	 */
 	public function render() {
 		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) { ?>
 			<li class="<?php echo esc_attr( $this->get_clean_classname() ); ?>">
-				<?php echo esc_html( static::wpvip_safe_get_contents( $this->filename ) ); ?>
+				<?php echo esc_html( file_get_contents( $this->filename ) ); ?>
 			</li>
 			<?php
 		}
 	}
 
-	/**
-	 * Try VIP function for get contents.
-	 */
-	public static function wpvip_safe_get_contents( $filename ) {
-		if ( function_exists( 'wpcom_vip_file_get_contents' ) ) {
-			return wpcom_vip_file_get_contents( $filename );
-		} else {
-			return file_get_contents( $filename );
-		}
-	}
 }

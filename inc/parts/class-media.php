@@ -10,8 +10,6 @@ namespace WPOP\V_4_1;
 
 /**
  * Class Media
- *
- * @package WPOP\V_3_0
  */
 class Media extends Part {
 	/**

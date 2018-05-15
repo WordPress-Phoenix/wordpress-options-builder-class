@@ -14,30 +14,30 @@
  * * The resulting Panel supports tabbed Sections.
  * * Sections contain Parts (which are either inputs or non-data display values)
  */
-if ( ! function_exists( 'add_filter' ) ) { // avoid direct calls to file
+if ( ! function_exists( 'add_filter' ) ) { // Avoid direct calls to file.
 	header( 'Status: 403 Forbidden' );
 	header( 'HTTP/1.1 403 Forbidden' );
 	exit();
 }
 
-// data api wrappers
+// Data api wrappers.
 require_once 'inc/api/class-read.php';
-require_once 'inc/api/class-update.php'; // contains delete functions as well, relies on Update for creation
+require_once 'inc/api/class-update.php'; // Contains delete functions as well, relies on Update for creation.
 
-// base part
+// Base part.
 require_once 'inc/class-part.php';
 
-// core files
+// Core files.
 require_once 'inc/class-assets.php';
 require_once 'inc/class-section.php';
 require_once 'inc/class-panel.php';
 require_once 'inc/class-page.php';
 
-// must require base input class first because others extend
+// Must require base input class first because others extend.
 require_once 'inc/parts/class-input.php';
 foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
 	if ( false !== stripos( $file, 'inc/parts/class-input.php' ) ) {
-		continue; // don't re-require file
+		continue; // Don't re-require file.
 	}
 	require_once $file;
 }

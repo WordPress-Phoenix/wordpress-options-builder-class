@@ -1,25 +1,30 @@
 <?php
+/**
+ * Update
+ *
+ * @package    WordPress
+ * @subpackage WPOP
+ */
 
 namespace WPOP\V_4_1;
 
 /**
  * Class Update
- * @package WPOP\V_4_0
  */
 class Update {
 	/**
 	 * Update constructor.
 	 *
-	 * @param      $panel_id
-	 * @param      $type
-	 * @param      $key
-	 * @param      $value
-	 * @param null $obj_id
-	 * @param bool $autoload
+	 * @param string $panel_id Panel slug or id.
+	 * @param string $type     Type.
+	 * @param string $key      Key.
+	 * @param string $value    Value.
+	 * @param null   $obj_id   Object ID.
+	 * @param bool   $autoload Autoload status.
 	 */
-	function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
+	public function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-		// only allow class to be used by panel OR encrypted pwds never updated after insert
+		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
 
 			return false;
@@ -29,12 +34,14 @@ class Update {
 	}
 
 	/**
-	 * @param      $panel_id
-	 * @param      $type
-	 * @param      $key
-	 * @param      $value
-	 * @param null $obj_id
-	 * @param bool $autoload
+	 * Save Data
+	 *
+	 * @param string $panel_id Panel slug or id.
+	 * @param string $type     Type.
+	 * @param string $key      Key.
+	 * @param string $value    Value.
+	 * @param null   $obj_id   Object ID.
+	 * @param bool   $autoload Autoload status.
 	 *
 	 * @return bool|int|\WP_Error
 	 */
@@ -48,7 +55,7 @@ class Update {
 				break;
 			case 'user':
 				return self::handle_user_site_meta_save( $obj_id, $key, $value );
-				break; // traditional user meta
+				break; // Traditional user meta.
 			case 'user-network':
 				return self::handle_user_network_meta_save( $obj_id, $key, $value );
 				break;
@@ -61,27 +68,86 @@ class Update {
 			default:
 				return new \WP_Error(
 					'400',
-					'WPOP failed to select proper WordPress Data API -- check your config.',
+					'WPOP panel ' . $panel_id . 'failed to select proper WordPress Data API -- check your config.',
 					compact( $type, $key, $value, $obj_id, $autoload )
 				);
 				break;
 		}
 	}
+
+	/**
+	 * Site option save callback
+	 *
+	 * @param string $key      Key.
+	 * @param string $value    Value.
+	 * @param bool   $autoload Autoload status.
+	 *
+	 * @return bool
+	 */
 	private static function handle_site_option_save( $key, $value, $autoload ) {
 		return empty( $value ) ? delete_option( $key ) : update_option( $key, $value, $autoload );
 	}
+
+	/**
+	 * Network option save callback
+	 *
+	 * @param string $key   Key.
+	 * @param string $value Value.
+	 *
+	 * @return bool
+	 */
 	private static function handle_network_option_save( $key, $value ) {
 		return empty( $value ) ? delete_site_option( $key ) : update_site_option( $key, $value );
 	}
+
+	/**
+	 * User per site meta save callback
+	 *
+	 * @param int    $user_id Users ID.
+	 * @param string $key     Key.
+	 * @param string $value   Value.
+	 *
+	 * @return bool
+	 */
 	private static function handle_user_site_meta_save( $user_id, $key, $value ) {
 		return empty( $value ) ? delete_metadata( 'user', $user_id, $key ) : update_metadata( 'user', $user_id, $key, $value );
 	}
+
+	/**
+	 * User network wide meta save callback
+	 *
+	 * @param int    $id    Users ID.
+	 * @param string $key   Key.
+	 * @param string $value Value.
+	 *
+	 * @return bool
+	 */
 	private static function handle_user_network_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_user_option( $id, $key, true ) : update_user_option( $id, $key, true );
 	}
+
+	/**
+	 * Term meta save callback
+	 *
+	 * @param int    $id    Term ID.
+	 * @param string $key   Key.
+	 * @param string $value Value.
+	 *
+	 * @return bool
+	 */
 	private static function handle_term_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_metadata( 'term', $id, $key ) : update_metadata( 'term', $id, $key, $value );
 	}
+
+	/**
+	 * Post meta save callback
+	 *
+	 * @param int    $id    Post ID.
+	 * @param string $key   Key.
+	 * @param string $value Value.
+	 *
+	 * @return bool
+	 */
 	private static function handle_post_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_post_meta( $id, $key ) : update_post_meta( $id, $key, $value );
 	}
