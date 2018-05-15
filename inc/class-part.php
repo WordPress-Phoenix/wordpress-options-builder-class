@@ -172,7 +172,7 @@ class Part {
 	}
 
 	/**
-	 * Input thats output 😺
+	 * Input is the output 😺
 	 *
 	 * @param string $field_id ID of the field.
 	 * @param string $type     Type of field.
@@ -227,10 +227,10 @@ class Part {
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
 		$updated = new Update(
-			$this->panel_id, // used to check nonce
-			$this->panel_api, // doing this way to allow multi-api saving from single panel down-the-road
-			$this->id, // this is the data storage key in the database
-			$sanitize_input, // sanitized input (maybe empty, triggering delete)
+			$this->panel_id, // Used to check nonce.
+			$this->panel_api, // Doing this way to allow multi-api saving from single panel down-the-road.
+			$this->id, // This is the data storage key in the database.
+			$sanitize_input, // Sanitized input (maybe empty, triggering delete).
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
 		);
 

@@ -8,7 +8,6 @@
 
 namespace WPOP\V_4_1;
 
-
 /**
  * Class password
  *
@@ -79,7 +78,7 @@ class Password extends Input {
 	 *
 	 * @return bool|string
 	 */
-	static function pad_key( $key ) {
+	public static function pad_key( $key ) {
 
 		if ( strlen( $key ) > 32 ) { // Key too large.
 			return false;
@@ -88,7 +87,8 @@ class Password extends Input {
 		$sizes = [ 16, 24, 32 ];
 
 		foreach ( $sizes as $s ) { // Loop sizes, pad key.
-			while ( strlen( $key ) < $s ) {
+			$key_length = strlen( $key );
+			while ( $key_length < $s ) {
 				$key = $key . "\0";
 			}
 			if ( strlen( $key ) === $s ) {

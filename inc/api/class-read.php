@@ -56,7 +56,7 @@ class Read {
 	 * @param null   $obj_id   Object ID.
 	 * @param bool   $single   Is single object type status.
 	 */
-	function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
+	public function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
 		$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		if ( ! is_object( $current_screen ) || false === stripos( $current_screen->id, $panel_id ) ) {
 			return false; // Only let panel page use that class to read db.
@@ -75,7 +75,7 @@ class Read {
 	/**
 	 * Retrieves value from Database APIs
 	 */
-	function get_data() {
+	public function get_data() {
 		switch ( $this->type ) {
 			case 'site':
 				$this->response = get_option( $this->key, '' );
@@ -101,4 +101,5 @@ class Read {
 				break;
 		}
 	}
+
 }

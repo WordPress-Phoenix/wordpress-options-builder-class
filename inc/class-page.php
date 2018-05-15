@@ -99,7 +99,7 @@ class Page extends Panel {
 	 *
 	 * @param \WP_Screen $screen WordPress screen slug or ID.
 	 */
-	function maybe_run_footer_scripts( $screen ) {
+	public function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
 			add_action(
 				'admin_print_footer_scripts-' . $screen->id, [
@@ -161,8 +161,10 @@ class Page extends Panel {
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-							<?php endif;
-							echo esc_html( $section['label'] ); ?>
+							<?php
+							endif;
+							echo esc_html( $section['label'] );
+							?>
 							<?php if ( count( $section['parts'] ) > 1 ) : ?>
 								<small class="part-count">
 									<?php echo esc_attr( count( $section['parts'] ) ); ?>
