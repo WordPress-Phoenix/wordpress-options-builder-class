@@ -194,7 +194,7 @@ class Part {
 	}
 
 	/**
-	 * Standardized function to retreive and output html form values from DB data.
+	 * Standardized function to retrieve and output html form values from DB data.
 	 *
 	 * @param string $type             Type of input field.
 	 * @param string $established_data Either saved data or default value for field.
