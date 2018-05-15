@@ -56,12 +56,32 @@ class Page extends Panel {
 	public $initialized = false;
 
 	/**
+	 * Installed Directory (on server)
+	 *
+	 * @var string
+	 */
+	public $installed_dir;
+
+	/**
+	 * Installed Directory URI
+	 *
+	 * @var string
+	 */
+	public $installed_dir_uri;
+
+	/**
 	 * Page constructor.
 	 *
 	 * @param array $args   Arguments used to customize the object.
 	 * @param array $fields Fields Fields created on the page, outside of sections.
 	 */
 	public function __construct( $args = [], $fields ) { // @codingStandardsIgnoreLine
+		if ( isset( $args['installed_dir'] ) ) {
+			$this->installed_dir = $args['installed_dir'];
+		}
+		if ( isset( $args['installed_dir_uri'] ) ) {
+			$this->installed_dir_uri = $args['installed_dir_uri'];
+		}
 		parent::__construct( $args, $fields );
 	}
 
@@ -232,8 +252,8 @@ class Page extends Panel {
 		<div id="wpopOptions">
 			<?php
 			if ( ! $this->disable_styles ) {
-				Assets::inline_css();
-				Assets::inline_js_header();
+				Assets::inline_css( $this->installed_dir_uri );
+				Assets::inline_js_header( $this->installed_dir_uri );
 			}
 			?>
 			<!-- IMPORTANT: allows core admin notices -->

@@ -90,6 +90,7 @@ class Password extends Input {
 			$key_length = strlen( $key );
 			while ( $key_length < $s ) {
 				$key = $key . "\0";
+				$key_length = strlen( $key );
 			}
 			if ( strlen( $key ) === $s ) {
 				break; // Finish if the key matches a size.
