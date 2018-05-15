@@ -50,9 +50,7 @@ class Textarea extends Part {
 		?><textarea title="<?php echo esc_attr( $this->id ); ?>"
 					id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>"
 					cols="<?php echo esc_attr( $this->cols ); ?>" rows="<?php echo esc_attr( $this->rows ); ?>">
-		<?php
-		echo esc_html( $this->saved ); ?></textarea>
-		<?php
+		<?php echo esc_html( $this->saved ); ?></textarea><?php
 	}
 
 }

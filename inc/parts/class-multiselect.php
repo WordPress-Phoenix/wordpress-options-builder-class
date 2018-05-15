@@ -81,7 +81,8 @@ class Multiselect extends Part {
 				<option value="<?php echo esc_attr( $key ); ?>" selected="selected">
 					<?php
 					echo esc_html( $this->values[ $key ] );
-					unset( $this->values[ $key ] ); ?>
+					unset( $this->values[ $key ] );
+					?>
 				</option>
 			<?php
 			endforeach;
