@@ -26,7 +26,7 @@ Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Pho
 ```json
 {
   "require": {
-    "WordPress-Phoenix/wordpress-options-builder-class": "3.*"
+    "WordPress-Phoenix/wordpress-options-builder-class": "4.*"
   }
 }
 ```
