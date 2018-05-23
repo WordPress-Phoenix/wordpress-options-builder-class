@@ -45,7 +45,10 @@ class Include_Partial extends Part {
 	public function render() {
 		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) { ?>
 			<li class="<?php echo esc_attr( $this->get_clean_classname() ); ?>">
-				<?php echo esc_html( file_get_contents( $this->filename ) ); ?>
+				<?php
+				// @codingStandardsIgnoreLine - old phpcs notation
+				echo wp_kses( file_get_contents( $this->filename ), wp_kses_allowed_html() ); // phpcs:ignore - allow file get contents.
+				?>
 			</li>
 			<?php
 		}
