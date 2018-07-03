@@ -13,13 +13,12 @@ jobs:
       - run:
           name: Install Testing Dependencies
           command: |
-            composer require --dev --no-update "wp-coding-standards/wpcs" ; \
-            composer install --dev --no-autoloader ; \
-            sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs ;
+            env COMPOSER=composer-test.json composer install --prefer-source --no-interaction; \
+            sudo ./bin/phpcs --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
       - run:
           name: Running Tests
           command: |
-            ./vendor/bin/phpcs -p -s -v -n --standard=.circleci/codesniffer.ruleset.xml .
+            env COMPOSER=composer-test.json composer test
   notify:
     docker:
       - image: circleci/node:latest
