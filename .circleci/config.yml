@@ -11,8 +11,8 @@ jobs:
             name: Prepare CLI
             command: sudo chmod 777 -R ~ ; echo $PWD ; ls -lart ;
       - run: composer require --dev --no-update "wp-coding-standards/wpcs" ; composer install --dev --no-autoloader ;
-      - run: sudo ./repo/vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
-      - run: ./repo/vendor/bin/phpcs -p -s -v -n --standard=~/repo/.circleci/codesniffer.ruleset.xml .
+      - run: sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
+      - run: ./vendor/bin/phpcs -p -s -v -n --standard=.circleci/codesniffer.ruleset.xml .
   notify:
     docker:
       - image: circleci/node:latest
