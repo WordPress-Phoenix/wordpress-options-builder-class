@@ -25,5 +25,8 @@
     "classmap": [
       "/"
     ]
+  },
+  "require-dev": {
+    "wp-coding-standards/wpcs": "^0.14.1"
   }
 }
