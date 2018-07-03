@@ -16,8 +16,10 @@ jobs:
             composer require --dev --no-update "wp-coding-standards/wpcs" ; \
             composer install --dev --no-autoloader ; \
             sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs ;
-      - run: sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
-      - run: ./vendor/bin/phpcs -p -s -v -n --standard=.circleci/codesniffer.ruleset.xml .
+      - run:
+          name: Running Tests
+          command: |
+            ./vendor/bin/phpcs -p -s -v -n --standard=.circleci/codesniffer.ruleset.xml .
   notify:
     docker:
       - image: circleci/node:latest
