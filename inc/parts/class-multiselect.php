@@ -98,9 +98,9 @@ class Multiselect extends Part {
 		return false;
 	}
 
-		/**
-		 * Main render function.
-		 */
+	/**
+	 * Main render function.
+	 */
 	public function render() {
 		$stored = ! empty( $this->get_saved() ) ? json_decode( $this->get_saved() ) : false;
 		?>
