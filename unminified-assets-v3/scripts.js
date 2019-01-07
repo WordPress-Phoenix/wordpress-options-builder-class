@@ -4,7 +4,7 @@
  */
 ! function( t, n ) {
 	"use strict";
-	t.wp = t.wp || {}, t.wp.hooks = t.wp.hooks || new function() {
+	t.wp = t.wp || {}, t.wpop.hooks = t.wpop.hooks || new function() {
 		function t( t, n, r, i ) {
 			var e, o, c;
 			if ( f[t][n] ) {
@@ -74,57 +74,57 @@ jQuery( document ).ready(
 	function( $ ) {
 			var wpModal;
 			registerAllActions();
-			wp.hooks.doAction( 'wpopPreInit' );
+			wpop.hooks.doAction( 'wpopPreInit' );
 			var mediaStats = wp.template( 'wpop-media-stats' );
 
 			$( '#wpopNav li a' ).click(
 				function( evt ) {
-					wp.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
+					wpop.hooks.doAction( 'wpopSectionNav', this, evt ); // reg. here to allow "click" from hash to select a section
 				}
 			);
 
-			wp.hooks.doAction( 'wpopInit' ); // main init
+			wpop.hooks.doAction( 'wpopInit' ); // main init
 
 			$( 'input[type="submit"]' ).click(
 				function( evt ) {
-					wp.hooks.doAction( 'wpopSubmit', this, evt );
+					wpop.hooks.doAction( 'wpopSubmit', this, evt );
 				}
 			);
 
 			$( '.pwd-clear' ).click(
 				function( evt ) {
-					wp.hooks.doAction( 'wpopPwdClear', this, evt );
+					wpop.hooks.doAction( 'wpopPwdClear', this, evt );
 				}
 			);
 
 			$( '.img-upload' ).on(
 				'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgUpload', this, event );
+					wpop.hooks.doAction( 'wpopImgUpload', this, event );
 				}
 			);
 
 			$( '.img-remove' ).on(
 				'click', function( event ) {
-					wp.hooks.doAction( 'wpopImgRemove', this, event );
+					wpop.hooks.doAction( 'wpopImgRemove', this, event );
 				}
 			);
 
 		function registerAllActions() {
-			wp.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
-			wp.hooks.addAction( 'wpopInit', handleInitHashSelection, 5 );
-			wp.hooks.addAction( 'wpopFooterScripts', initIrisColorSwatches );
-			wp.hooks.addAction( 'wpopInit', initSelectizeInputs );
-			wp.hooks.addAction( 'wpopInit', initMediaUploadField );
+			wpop.hooks.addAction( 'wpopPreInit', nixHashJumpJank );
+			wpop.hooks.addAction( 'wpopInit', handleInitHashSelection, 5 );
+			wpop.hooks.addAction( 'wpopFooterScripts', initIrisColorSwatches );
+			wpop.hooks.addAction( 'wpopInit', initSelectizeInputs );
+			wpop.hooks.addAction( 'wpopInit', initMediaUploadField );
 
-			wp.hooks.addAction( 'wpopInit', wpopDisableSpinner, 100 );
+			wpop.hooks.addAction( 'wpopInit', wpopDisableSpinner, 100 );
 
-			wp.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
+			wpop.hooks.addAction( 'wpopSectionNav', handleSectionNavigation );
 
-			wp.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
-			wp.hooks.addAction( 'wpopImgUpload', doMediaUpload );
-			wp.hooks.addAction( 'wpopImgRemove', doMediaRemove );
+			wpop.hooks.addAction( 'wpopPwdClear', doPwdFieldClear );
+			wpop.hooks.addAction( 'wpopImgUpload', doMediaUpload );
+			wpop.hooks.addAction( 'wpopImgRemove', doMediaRemove );
 
-			wp.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
+			wpop.hooks.addAction( 'wpopSubmit', wpopShowSpinner );
 		}
 
 			/* CORE */
