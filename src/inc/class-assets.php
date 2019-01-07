@@ -575,7 +575,7 @@ class Assets {
 		<script type="text/javascript">
 					!function ( t, o ) {
 						"use strict";
-						t.wp = t.wp || {}, t.wp.hooks = t.wp.hooks || new function () {
+                        t.wpop = t.wpop || {}, t.wpop.hooks = t.wpop.hooks || new function() {
 							function t( t, o, i, n ) {
 								var e, r, p;
 								if ( a[ t ][ o ] ) if ( i ) if ( e = a[ t ][ o ], n ) for ( p = e.length; p--; ) (r = e[ p ]).callback === i && r.context === n && e.splice( p, 1 ); else for ( p = e.length; p--; ) e[ p ].callback === i && e.splice( p, 1 ); else a[ t ][ o ] = []
@@ -620,7 +620,7 @@ class Assets {
 						}
 					}( window ), jQuery( document ).ready( function ( t ) {
 						var o;
-						wp.hooks.addAction( "wpopPreInit", p ), wp.hooks.addAction( "wpopInit", r, 5 ), wp.hooks.addAction( "wpopFooterScripts", c ), wp.hooks.addAction( "wpopInit", l ), wp.hooks.addAction( "wpopInit", f ), wp.hooks.addAction( "wpopInit", e, 100 ), wp.hooks.addAction( "wpopSectionNav", n ), wp.hooks.addAction( "wpopPwdClear", d ), wp.hooks.addAction( "wpopImgUpload", u ), wp.hooks.addAction( "wpopImgRemove", w ), wp.hooks.addAction( "wpopSubmit", a ), wp.hooks.doAction( "wpopPreInit" );
+						wpop.hooks.addAction( "wpopPreInit", p ), wpop.hooks.addAction( "wpopInit", r, 5 ), wpop.hooks.addAction( "wpopFooterScripts", c ), wpop.hooks.addAction( "wpopInit", l ), wpop.hooks.addAction( "wpopInit", f ), wpop.hooks.addAction( "wpopInit", e, 100 ), wpop.hooks.addAction( "wpopSectionNav", n ), wpop.hooks.addAction( "wpopPwdClear", d ), wpop.hooks.addAction( "wpopImgUpload", u ), wpop.hooks.addAction( "wpopImgRemove", w ), wpop.hooks.addAction( "wpopSubmit", a ), wpop.hooks.doAction( "wpopPreInit" );
 
 						var i = wp.template( "wpop-media-stats" );
 
@@ -709,15 +709,15 @@ class Assets {
 						}
 
 						t( "#wpopNav li a" ).click( function ( t ) {
-							wp.hooks.doAction( "wpopSectionNav", this, t )
-						} ), wp.hooks.doAction( "wpopInit" ), t( 'input[type="submit"]' ).click( function ( t ) {
-							wp.hooks.doAction( "wpopSubmit", this, t )
+							wpop.hooks.doAction( "wpopSectionNav", this, t )
+						} ), wpop.hooks.doAction( "wpopInit" ), t( 'input[type="submit"]' ).click( function ( t ) {
+							wpop.hooks.doAction( "wpopSubmit", this, t )
 						} ), t( ".pwd-clear" ).click( function ( t ) {
-							wp.hooks.doAction( "wpopPwdClear", this, t )
+							wpop.hooks.doAction( "wpopPwdClear", this, t )
 						} ), t( ".img-upload" ).on( "click", function ( t ) {
-							wp.hooks.doAction( "wpopImgUpload", this, t )
+							wpop.hooks.doAction( "wpopImgUpload", this, t )
 						} ), t( ".img-remove" ).on( "click", function ( t ) {
-							wp.hooks.doAction( "wpopImgRemove", this, t )
+							wpop.hooks.doAction( "wpopImgRemove", this, t )
 						} )
 					} );
 		</script>
@@ -766,7 +766,7 @@ class Assets {
 
 		<script type="text/javascript">
 					jQuery( document ).ready( function () {
-						wp.hooks.doAction( 'wpopFooterScripts' );
+						wpop.hooks.doAction( 'wpopFooterScripts' );
 					} );
 		</script>
 		<?php
