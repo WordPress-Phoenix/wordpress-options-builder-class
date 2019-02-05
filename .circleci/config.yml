@@ -13,7 +13,7 @@ jobs:
       - run:
           name: Install Testing Dependencies
           command: |
-            composer require --dev --no-update "wp-coding-standards/wpcs^0.14.1" ; \
+            composer require --dev --no-update "wp-coding-standards/wpcs:^0.14.1" ; \
             composer install --dev --no-autoloader ; \
             sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs ;
       - run: sudo ./vendor/bin/phpcs  --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
