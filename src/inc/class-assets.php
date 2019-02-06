@@ -49,6 +49,8 @@ class Assets {
 	 * @see selectize.js Version 0.12.4 | https://github.com/selectize/selectize.js | Apache License (v2).
 	 */
 	public static function selectize_js( $installed_dir_uri ) {
+		// Using inline javascript to load script only when needed.
+		// So ignoring the coding standards.
 		// @codingStandardsIgnoreStart
 		echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.js"></script>';
 		// @codingStandardsIgnoreEnd
