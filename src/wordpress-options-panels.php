@@ -8,6 +8,9 @@
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
+/**
+ * Class WordPress_Options_Panels
+ */
 class WordPress_Options_Panels {
 	/**
 	 * Installed Directory
