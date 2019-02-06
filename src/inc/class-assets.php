@@ -25,7 +25,9 @@ class Assets {
 	 * Copyright (c) Nicolas Gallagher and Jonathan Neal
 	 */
 	public static function yahoo_purecss( $installed_dir_uri ) {
+		// @codingStandardsIgnoreStart
 		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-css\'  href=\'' . $installed_dir_uri . '/assets/yahoo-purecss.css\' type=\'text/css\' media=\'all\' />';
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
@@ -38,7 +40,9 @@ class Assets {
 	 * @see     https://github.com/yahoo/pure/blob/master/LICENSE.md
 	 */
 	public static function yahoo_purecss_responsive_grid( $installed_dir_uri ) {
+		// @codingStandardsIgnoreStart
 		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-responsive-grid-css\'  href=\'' . $installed_dir_uri . '/assets/yahoo-purecss-responsive-grid.css\' type=\'text/css\' media=\'all\' />';
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
@@ -49,7 +53,9 @@ class Assets {
 	 * @see selectize.js Version 0.12.4 | https://github.com/selectize/selectize.js | Apache License (v2).
 	 */
 	public static function selectize_js( $installed_dir_uri ) {
+		// @codingStandardsIgnoreStart
 		echo '<script type="text/javascript" src="' . $installed_dir_uri . '/assets/selectize.js"></script>';
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
@@ -70,7 +76,9 @@ class Assets {
 	 * @author Brian Reavis <brian@thirdroute.com>
 	 */
 	public static function selectize_css( $installed_dir_uri ) {
+		// @codingStandardsIgnoreStart
 		echo '<link rel=\'stylesheet\' id=\'selectize-css\'  href=\'' . $installed_dir_uri . '/assets/selectize.css\' type=\'text/css\' media=\'all\' />';
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
