@@ -50,7 +50,7 @@ class Assets {
 	 */
 	public static function selectize_js( $installed_dir_uri ) {
 		// @codingStandardsIgnoreStart
-		echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri )  . '/assets/selectize.js"></script>';
+		echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.js"></script>';
 		// @codingStandardsIgnoreEnd
 	}
 
