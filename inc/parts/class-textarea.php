@@ -47,12 +47,14 @@ class Textarea extends Part {
 	public function render() {
 		$this->cols = ! empty( $this->cols ) ? $this->cols : 80;
 		$this->rows = ! empty( $this->rows ) ? $this->rows : 10;
+		// @codingStandardsIgnoreStart
 		?><textarea title="<?php echo esc_attr( $this->id ); ?>"
                     id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>"
                     cols="<?php echo esc_attr( $this->cols ); ?>" rows="<?php echo esc_attr( $this->rows ); ?>"><?php
 		echo esc_html( $this->get_saved() );
 		?></textarea>
 		<?php
+		// @codingStandardsIgnoreEnd
 	}
 
 }
