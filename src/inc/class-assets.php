@@ -16,6 +16,8 @@ class Assets {
 	 * Pure v1.0.0
 	 * Copyright 2013 Yahoo!
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @license BSD License.
 	 * @see     https://github.com/yahoo/pure/blob/master/LICENSE.md
 	 *
@@ -30,6 +32,8 @@ class Assets {
 	 * Pure v1.0.0
 	 * Copyright 2013 Yahoo!
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @license BSD License.
 	 * @see     https://github.com/yahoo/pure/blob/master/LICENSE.md
 	 */
@@ -40,6 +44,8 @@ class Assets {
 	/**
 	 * Selectize Plugin
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @see selectize.js Version 0.12.4 | https://github.com/selectize/selectize.js | Apache License (v2).
 	 */
 	public static function selectize_js( $installed_dir_uri ) {
@@ -49,6 +55,8 @@ class Assets {
 	/**
 	 * CSS selectize.css (v0.12.4)
 	 * Copyright (c) 2013–2015 Brian Reavis & contributors
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 *
 	 * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 	 * file except in compliance with the License. You may obtain a copy of the License at:
@@ -67,6 +75,8 @@ class Assets {
 
 	/**
 	 * Inline Stylesheet (printed below header but above panel in <body>)
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 */
 	public static function inline_css( $installed_dir_uri = '' ) {
 		self::yahoo_purecss( $installed_dir_uri );
@@ -568,6 +578,8 @@ class Assets {
 
 	/**
 	 * Inline JavaScript above </head> close tag
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 */
 	public static function inline_js_header( $installed_dir_uri = '' ) {
 		self::selectize_js( $installed_dir_uri );
@@ -575,7 +587,7 @@ class Assets {
 		<script type="text/javascript">
 					!function ( t, o ) {
 						"use strict";
-                        t.wpop = t.wpop || {}, t.wpop.hooks = t.wpop.hooks || new function() {
+						t.wpop = t.wpop || {}, t.wpop.hooks = t.wpop.hooks || new function() {
 							function t( t, o, i, n ) {
 								var e, r, p;
 								if ( a[ t ][ o ] ) if ( i ) if ( e = a[ t ][ o ], n ) for ( p = e.length; p--; ) (r = e[ p ]).callback === i && r.context === n && e.splice( p, 1 ); else for ( p = e.length; p--; ) e[ p ].callback === i && e.splice( p, 1 ); else a[ t ][ o ] = []
