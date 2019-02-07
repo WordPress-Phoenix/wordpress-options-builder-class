@@ -6,6 +6,7 @@
 
 # composer
 composer.phar
+composer-test.lock
 /vendor/
 /lib/autoload.php
 !/lib/composer/
