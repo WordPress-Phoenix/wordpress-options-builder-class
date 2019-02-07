@@ -6,7 +6,7 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_4_1;
+namespace WPOP\V_5_0;
 
 /**
  * Class Input
