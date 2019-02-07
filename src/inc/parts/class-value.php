@@ -13,20 +13,20 @@ namespace WPOP\V_5_0;
  *
  * @package WPOP\V_5_0
  */
-class String extends Part {
+class Value extends Part {
 	/**
 	 * String value
 	 *
 	 * @var string
 	 */
-	public $string = '';
+	public $value = '';
 
 	/**
 	 * Input type
 	 *
 	 * @var string
 	 */
-	public $input_type = 'string';
+	public $input_type = 'value';
 
 	/**
 	 * Include_Partial constructor.
@@ -36,7 +36,7 @@ class String extends Part {
 	 */
 	public function __construct( $i, $config ) {
 		parent::__construct( $i, [] );
-		$this->string = ( ! empty( $config['string'] ) ) ? $config['string'] : '';
+		$this->value = ( ! empty( $config['value'] ) ) ? $config['value'] : '';
 	}
 
 	/**
@@ -44,7 +44,7 @@ class String extends Part {
 	 */
 	public function render() {
 		// Guard clause to return early if we don't have a value.
-		if ( empty( $this->string ) ) {
+		if ( empty( $this->value ) ) {
 			return;
 		}
 
