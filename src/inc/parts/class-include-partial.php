@@ -6,12 +6,12 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_4_1;
+namespace WPOP\V_5_0;
 
 /**
  * Class Include_Partial
  *
- * @package WPOP\V_3_0
+ * @package WPOP\V_5_0
  */
 class Include_Partial extends Part {
 	/**
