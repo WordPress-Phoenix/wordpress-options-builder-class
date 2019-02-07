@@ -61,7 +61,7 @@ class Checkbox extends Part {
 		?>
 		<div class="cb-wrap">
 			<?php
-			$this->input( esc_attr( $this->id ), 'checkbox' );
+			$this->input( esc_attr( $this->id ), 'checkbox', $this->atts );
 			$this->label_markup();
 			?>
 		</div>
