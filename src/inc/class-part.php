@@ -77,14 +77,6 @@ class Part {
 	public $classes = [];
 
 	/**
-	 * Attributes that controls and customizes each part.
-	 * TODO: Maybe remove since it seems unused.
-	 *
-	 * @var array
-	 */
-	public $atts = [];
-
-	/**
 	 * Enable this if the panel needs to run save/get operations.
 	 *
 	 * @var bool
@@ -174,8 +166,9 @@ class Part {
 	/**
 	 * Input is the output 😺
 	 *
-	 * @param string $field_id ID of the field.
-	 * @param string $type     Type of field.
+	 * @param string $field_id   ID of the field.
+	 * @param string $type       Type of field.
+	 * @param array  $attributes Array of optional attributes for a field.
 	 */
 	public function input( $field_id = '', $type = '', $attributes = [] ) {
 		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
