@@ -14,6 +14,13 @@ namespace WPOP\V_5_0;
 class Checkbox extends Part {
 
 	/**
+	 * Optional array of input attributes
+	 *
+	 * @var array
+	 */
+	public $attributes = [];
+
+	/**
 	 * Value
 	 *
 	 * @var string
