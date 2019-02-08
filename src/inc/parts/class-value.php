@@ -33,7 +33,6 @@ class Value extends Part {
 	 * Main render function.
 	 */
 	public function render() {
-		var_dump($this);die;
 		// Guard clause to return early if we don't have a value.
 		if ( empty( $this->value ) ) {
 			return;
