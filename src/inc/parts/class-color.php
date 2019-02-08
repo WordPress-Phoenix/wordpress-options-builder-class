@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Color
  */
 class Color extends Input {
+
 	/**
 	 * HTML form input field type.
 	 *

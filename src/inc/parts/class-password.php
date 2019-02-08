@@ -11,9 +11,10 @@ namespace WPOP\V_5_0;
 /**
  * Class password
  *
- * @notes   how to use: echo $this->decrypt( get_option( $this->id ) );
+ * @notes how to use: echo $this->decrypt( get_option( $this->id ) );
  */
 class Password extends Input {
+
 
 	/**
 	 * This value is used during saving to denote new field value matches prior database value, preventing overwriting

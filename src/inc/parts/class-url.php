@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Url
  */
 class Url extends Input {
+
 	/**
 	 * Input type.
 	 *

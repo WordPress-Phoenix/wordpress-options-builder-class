@@ -14,6 +14,7 @@ namespace WPOP\V_5_0;
  * Class WordPress_Options_Panels
  */
 class WordPress_Options_Panels {
+
 	/**
 	 * Installed Directory
 	 *
@@ -31,7 +32,7 @@ class WordPress_Options_Panels {
 	/**
 	 * WordPress_Options_Panels constructor.
 	 *
-	 * @param string $installed_dir Installed directory from plugin or theme.
+	 * @param string $installed_dir     Installed directory from plugin or theme.
 	 * @param string $installed_dir_uri Installed URI from plugin or theme.
 	 */
 	function __construct( $installed_dir, $installed_dir_uri ) {
@@ -45,23 +46,23 @@ class WordPress_Options_Panels {
 	 */
 	public function load_files() {
 		// Data api wrappers.
-		require_once 'inc/api/class-read.php';
-		require_once 'inc/api/class-update.php';
+		include_once 'inc/api/class-read.php';
+		include_once 'inc/api/class-update.php';
 
-		require_once 'inc/class-assets.php';
+		include_once 'inc/class-assets.php';
 
-		require_once 'inc/class-panel.php';
-		require_once 'inc/class-page.php';
-		require_once 'inc/class-section.php';
-		require_once 'inc/class-part.php';
+		include_once 'inc/class-panel.php';
+		include_once 'inc/class-page.php';
+		include_once 'inc/class-section.php';
+		include_once 'inc/class-part.php';
 
 		// Must require base input class first because others extend.
-		require_once 'inc/parts/class-input.php';
+		include_once 'inc/parts/class-input.php';
 		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
 			if ( false !== stripos( $file, 'inc/parts/class-input.php' ) ) {
 				continue; // Don't re-require file.
 			}
-			require_once $file;
+			include_once $file;
 		}
 	}
 }

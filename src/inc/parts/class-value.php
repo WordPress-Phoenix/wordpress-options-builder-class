@@ -15,6 +15,7 @@ namespace WPOP\V_5_0;
  */
 class Value extends Part {
 
+
 	/**
 	 * String value
 	 *

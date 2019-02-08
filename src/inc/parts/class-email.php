@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Email extends Input {
 
+
 	/**
 	 * Input type.
 	 *

@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Radio_Buttons extends Part {
 
+
 	/**
 	 * Value options for radio buttons
 	 *
@@ -64,7 +65,7 @@ class Radio_Buttons extends Part {
 					<tr>
 						<td>
 							<label class="opt-label" for="<?php echo esc_attr( $this->id . '_' . $key ); ?>">
-								<?php echo esc_html( $value ); ?>
+			<?php echo esc_html( $value ); ?>
 							</label>
 						</td>
 						<td>

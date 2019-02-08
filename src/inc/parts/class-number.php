@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Number
  */
 class Number extends Input {
+
 	/**
 	 * Input type
 	 *

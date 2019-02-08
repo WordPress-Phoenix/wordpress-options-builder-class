@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Panel
  */
 class Panel {
+
 	/**
 	 * API Setting
 	 *
@@ -96,9 +97,9 @@ class Panel {
 	 * @var array used to track what happens during save process
 	 */
 	public $updated_counts = [
-		'created' => 0,
-		'updated' => 0,
-		'deleted' => 0,
+	'created' => 0,
+	'updated' => 0,
+	'deleted' => 0,
 	];
 
 	/**
@@ -145,7 +146,7 @@ class Panel {
 					$part_config['panel_api']  = $this->api;
 
 					// Create part class.
-					$current_part = new $current_part_classname( $part_id, $part_config );
+					$current_part = new $current_part_classname($part_id, $part_config);
 
 					// Add part to panel/section.
 					$this->add_part( $section_id, $section, $current_part );
@@ -154,7 +155,7 @@ class Panel {
 						$this->data_count ++;
 						if ( $current_part->updated ) {
 							if ( isset( $this->updated_counts[ $current_part->update_type ] ) ) {
-								$this->updated_counts[ $current_part->update_type ] ++;
+								   $this->updated_counts[ $current_part->update_type ] ++;
 							}
 						}
 					}
@@ -250,17 +251,17 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
-				break;
+			return isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
+			break;
 			case 'user':
-				return isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
-				break;
+			return isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
+			break;
 			case 'term':
-				return isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
-				break;
+			return isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
+			break;
 			default:
-				return null;
-				break;
+			return null;
+			break;
 		}
 	}
 

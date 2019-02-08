@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Multiselect extends Part {
 
+
 	/**
 	 * Value options for select
 	 *
@@ -79,21 +80,21 @@ class Multiselect extends Part {
 			foreach ( $stored as $key ) :
 				?>
 				<option value="<?php echo esc_attr( $key ); ?>" selected="selected">
-					<?php
-					echo esc_html( $this->values[ $key ] );
-					unset( $this->values[ $key ] );
-					?>
+				<?php
+				 echo esc_html( $this->values[ $key ] );
+				 unset( $this->values[ $key ] );
+				?>
 				</option>
-			<?php
+				<?php
 			endforeach;
 		endif;
 		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
 			foreach ( $this->values as $key => $value ) {
 				?>
 				<option value="<?php echo esc_attr( $key ); ?>">
-					<?php echo esc_html( $value ); ?>
+				<?php echo esc_html( $value ); ?>
 				</option>
-			<?php
+				<?php
 			}
 		}
 		echo '</select>';

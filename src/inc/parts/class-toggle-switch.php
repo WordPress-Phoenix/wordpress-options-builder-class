@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Toggle_Switch extends Checkbox {
 
+
 	/**
 	 * Input type
 	 *

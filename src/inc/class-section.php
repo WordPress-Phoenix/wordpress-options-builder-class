@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Section {
 
+
 	/**
 	 * ID
 	 *
@@ -69,36 +70,36 @@ class Section {
 		<li id="<?php echo esc_attr( $this->id ); ?>"
 			class="<?php echo esc_attr( implode( ' ', $this->classes ) ); ?>">
 			<ul>
-				<?php
-				/**
-				 * Typehinting $part
-				 *
-				 * @var Part $part
-				 */
-				foreach ( $this->parts as $part ) {
-					/**
-					 * IDE type hinting for $part variable.
-					 *
-					 * @var $part Part Field or section.
-					 */
-					$part_type = strtolower( $part->get_clean_classname() );
-					?>
+		<?php
+		/**
+		 * Typehinting $part
+		 *
+		 * @var Part $part
+		 */
+		foreach ( $this->parts as $part ) {
+			/**
+			 * IDE type hinting for $part variable.
+			 *
+			 * @var $part Part Field or section.
+			 */
+			$part_type = strtolower( $part->get_clean_classname() );
+			?>
 					<li class="wpop-option <?php echo esc_attr( $part_type ); ?>"
 						data-part="<?php echo esc_attr( $part->id ); ?>"
 						data-type="<?php echo esc_attr( $part_type ); ?>">
 						<h4 class="label"><?php echo esc_html( $part->label ); ?></h4>
-						<?php
-						// Render main unique field output.
-						$part->render();
-						if ( ! empty( $part->description ) ) {
-							?>
+			<?php
+			// Render main unique field output.
+			$part->render();
+			if ( ! empty( $part->description ) ) {
+				?>
 							<div class="desc clear"><?php echo esc_html( $part->description ); ?></div>
-						<?php } ?>
+			<?php } ?>
 						<div class="clear"></div>
 					</li><span class="spacer"></span>
-					<?php
-				}
-				?>
+			<?php
+		}
+		?>
 			</ul>
 		</li>
 		<?php

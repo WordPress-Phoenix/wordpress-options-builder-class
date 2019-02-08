@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Assets
  */
 class Assets {
+
 	/**
 	 * Pure v1.0.0
 	 * Copyright 2013 Yahoo!
@@ -51,9 +52,9 @@ class Assets {
 	public static function selectize_js( $installed_dir_uri ) {
 		// Using inline javascript to load script only when needed.
 		// So ignoring the coding standards.
-		// @codingStandardsIgnoreStart
-		echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.js"></script>';
-		// @codingStandardsIgnoreEnd
+     // @codingStandardsIgnoreStart
+     echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.js"></script>';
+     // @codingStandardsIgnoreEnd
 	}
 
 	/**
@@ -62,14 +63,14 @@ class Assets {
 	 *
 	 * @param string $installed_dir_uri Installed dir URI.
 	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
-	 * file except in compliance with the License. You may obtain a copy of the License at:
-	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *                                  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+	 *                                  file except in compliance with the License. You may obtain a copy of the License at:
+	 *                                  http://www.apache.org/licenses/LICENSE-2.0
 	 *
-	 * Unless required by applicable law or agreed to in writing, software distributed under
-	 * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-	 * ANY KIND, either express or implied. See the License for the specific language
-	 * governing permissions and limitations under the License.
+	 *                                  Unless required by applicable law or agreed to in writing, software distributed under
+	 *                                  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+	 *                                  ANY KIND, either express or implied. See the License for the specific language
+	 *                                  governing permissions and limitations under the License.
 	 *
 	 * @author Brian Reavis <brian@thirdroute.com>
 	 */

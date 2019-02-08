@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Input
  */
 class Input extends Part {
+
 	/**
 	 * Input Type
 	 *

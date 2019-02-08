@@ -15,6 +15,7 @@ namespace WPOP\V_5_0;
  */
 class Read {
 
+
 	/**
 	 * Response
 	 *
@@ -79,26 +80,26 @@ class Read {
 		switch ( $this->type ) {
 			case 'site':
 				$this->response = get_option( $this->key, '' );
-				break;
+			break;
 			case 'network':
 				$this->response = get_site_option( $this->key );
-				break;
+			break;
 			case 'user': // Single-site user option, or per-site user option in multisite.
 				$this->response = is_multisite() ? get_user_option( $this->key, $this->obj_id )
-					: get_metadata( 'user', $this->obj_id, $this->key, $this->single );
-				break; // Traditional user meta.
+				: get_metadata( 'user', $this->obj_id, $this->key, $this->single );
+			break; // Traditional user meta.
 			case 'user-network': // User network option applied globally across all blogs/sites.
 				$this->response = get_metadata( 'user', $this->obj_id, $this->key, $this->single );
-				break;
+			break;
 			case 'term':
 				$this->response = get_metadata( 'term', $this->obj_id, $this->key, $this->single );
-				break;
+			break;
 			case 'post':
 				$this->response = get_metadata( 'post', $this->obj_id, $this->key, $this->single );
-				break;
+			break;
 			default:
 				$this->response = false;
-				break;
+			break;
 		}
 	}
 

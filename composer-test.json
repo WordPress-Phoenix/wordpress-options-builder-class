@@ -5,10 +5,9 @@
     "vendor-dir": "vendor"
   },
   "require-dev": {
-    "wp-coding-standards/wpcs": "^0.10"
+    "wp-coding-standards/wpcs": "^0.10.0"
   },
   "scripts": {
-    "test": "./bin/phpcs --standard=./.circleci/codesniffer.ruleset.xml --extensions='php' ./",
-    "wp-coding-standards/wpcs": "^0.14.1"
+    "test": "./bin/phpcs --standard=./.circleci/codesniffer.ruleset.xml --extensions='php' ./"
   }
 }

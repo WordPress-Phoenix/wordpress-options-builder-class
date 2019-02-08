@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Select
  */
 class Select extends Part {
+
 	/**
 	 * Possible values
 	 *
@@ -67,18 +68,18 @@ class Select extends Part {
 		<select title="<?php echo esc_attr( $this->id ); ?>"
 				id="<?php echo esc_attr( $this->id ); ?>" name="<?php echo esc_attr( $this->id ); ?>"
 				data-select="true" data-placeholder="<?php echo esc_attr( $default_option ); ?>">
-			<?php if ( $this->empty_default ) : ?>
+		<?php if ( $this->empty_default ) : ?>
 				<option value=""></option>
-			<?php endif; ?>
-			<?php
-			foreach ( $this->values as $value => $label ) :
-				?>
+		<?php endif; ?>
+		<?php
+		foreach ( $this->values as $value => $label ) :
+			?>
 				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $this->get_saved() ); ?>>
-					<?php echo esc_html( $label ); ?>
+			<?php echo esc_html( $label ); ?>
 				</option>
 			<?php
-			endforeach;
-			?>
+		endforeach;
+		?>
 		</select>
 		<?php
 	}

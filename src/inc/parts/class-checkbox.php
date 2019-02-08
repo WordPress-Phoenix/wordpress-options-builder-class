@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Checkbox extends Part {
 
+
 	/**
 	 * Optional array of input attributes
 	 *
@@ -54,10 +55,10 @@ class Checkbox extends Part {
 	public function render() {
 		?>
 		<div class="cb-wrap">
-			<?php
-			$this->input( esc_attr( $this->id ), 'checkbox', $this->attributes );
-			$this->label_markup();
-			?>
+		<?php
+		$this->input( esc_attr( $this->id ), 'checkbox', $this->attributes );
+		$this->label_markup();
+		?>
 		</div>
 		<?php
 	}

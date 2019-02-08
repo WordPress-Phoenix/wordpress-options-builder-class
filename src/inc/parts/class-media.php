@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Media
  */
 class Media extends Part {
+
 	/**
 	 * Defines text in button.
 	 *
@@ -38,15 +39,15 @@ class Media extends Part {
 	 */
 	public function render() {
 		$saved        = [
-			'url' => '',
-			'id'  => '',
+		'url' => '',
+		'id'  => '',
 		];
 		$insert_label = 'Insert ' . esc_html( $this->media_label );
 		if ( ! empty( $this->get_saved() ) && absint( $this->get_saved() ) ) {
 			$img          = wp_get_attachment_image_src( $this->get_saved() );
 			$saved        = [
-				'url' => is_array( $img ) ? $img[0] : 'err',
-				'id'  => $this->get_saved(),
+			'url' => is_array( $img ) ? $img[0] : 'err',
+			'id'  => $this->get_saved(),
 			];
 			$insert_label = esc_html( 'Replace ' . $this->media_label );
 		} ?>
@@ -61,7 +62,7 @@ class Media extends Part {
 			   value="<?php echo esc_attr( $saved['id'] ); ?>"
 			   data-part="<?php echo esc_attr( strtolower( $this->get_clean_classname() ) ); ?>"/>
 		<a href="#" class="button img-remove" data-media-label="<?php echo esc_attr( $this->media_label ); ?>">
-			<?php echo esc_html( 'Remove ' . $this->media_label ); ?>
+		<?php echo esc_html( 'Remove ' . $this->media_label ); ?>
 		</a>
 		<?php
 	}

@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Part {
 
+
 	/**
 	 * Unique ID for the part - db store key for keystore parts.
 	 *
@@ -178,22 +179,24 @@ class Part {
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
 		// Set some default attributes.
-		$attributes = wp_parse_args( $attributes, [
+		$attributes = wp_parse_args(
+			$attributes, [
 			'disabled' => false,
 			'readonly' => false,
-		] );
+			]
+		);
 		?>
 		<input
 			id="<?php echo esc_attr( $field_id ); ?>"
 			name="<?php echo esc_attr( $field_id ); ?>"
 			type="<?php echo esc_attr( $type ); ?>"
 			autocomplete="false"
-			<?php echo boolval( $attributes['disabled'] ) ? 'disabled="disabled"' : ''; ?>"
-			<?php echo boolval( $attributes['readonly'] ) ? 'readonly="readonly"' : ''; ?>"
+		<?php echo boolval( $attributes['disabled'] ) ? 'disabled="disabled"' : ''; ?>"
+		<?php echo boolval( $attributes['readonly'] ) ? 'readonly="readonly"' : ''; ?>"
 			data-part="<?php echo esc_attr( $clean_classname ); ?>"
 			title="<?php echo esc_attr( $field_id ); ?>"
 			class="<?php echo esc_attr( $class_str ); ?>"
-			<?php $this->input_value( $type, $established ); ?>
+		<?php $this->input_value( $type, $established ); ?>
 		/>
 		<?php
 	}
@@ -283,44 +286,44 @@ class Part {
 			case 'password':
 				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
 				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
-					return '### wpop-encrypted-pwd-field-val-unchanged ###';
+					 return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
 
-				return ! empty( $value ) ? Password::encrypt( $value ) : false;
-				break;
+			return ! empty( $value ) ? Password::encrypt( $value ) : false;
+			break;
 			case 'media':
-				return absint( $value );
-				break;
+			return absint( $value );
+			break;
 			case 'color':
-				return sanitize_hex_color_no_hash( $value );
-				break;
+			return sanitize_hex_color_no_hash( $value );
+			break;
 			case 'editor':
-				return wp_filter_post_kses( $value );
-				break;
+			return wp_filter_post_kses( $value );
+			break;
 			case 'textarea':
-				return sanitize_textarea_field( $value );
-				break;
+			return sanitize_textarea_field( $value );
+			break;
 			case 'checkbox':
 			case 'toggle_switch':
-				return sanitize_key( $value );
-				break;
+			return sanitize_key( $value );
+			break;
 			case 'multiselect':
 				if ( ! empty( $value ) && is_array( $value ) ) {
-					return wp_json_encode( array_map( 'sanitize_key', $value ) );
+					 return wp_json_encode( array_map( 'sanitize_key', $value ) );
 				}
 
-				return false;
-				break;
+			return false;
+			break;
 			case 'email':
-				return sanitize_email( $value );
-				break;
+			return sanitize_email( $value );
+			break;
 			case 'url':
-				return esc_url_raw( $value );
-				break;
+			return esc_url_raw( $value );
+			break;
 			case 'text':
 			default:
-				return sanitize_text_field( $value );
-				break;
+			return sanitize_text_field( $value );
+			break;
 		}
 	}
 

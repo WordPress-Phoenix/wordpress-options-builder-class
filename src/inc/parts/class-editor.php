@@ -13,6 +13,7 @@ namespace WPOP\V_5_0;
  */
 class Editor extends Part {
 
+
 	/**
 	 * Input Type
 	 *
@@ -35,12 +36,12 @@ class Editor extends Part {
 			stripslashes( $this->get_saved() ),
 			$this->id . '_editor', // Unique editor ID.
 			[
-				'textarea_name' => $this->id, // Field key used for DB storage.
-				'tinymce'       => [ 'min_height' => 300 ],
-				'editor_class'  => 'edit',
-				'quicktags'     => isset( $this->no_quicktags ) ? false : true,
-				'teeny'         => isset( $this->teeny ) ? true : false,
-				'media_buttons' => isset( $this->no_media ) ? false : true,
+			'textarea_name' => $this->id, // Field key used for DB storage.
+			'tinymce'       => [ 'min_height' => 300 ],
+			'editor_class'  => 'edit',
+			'quicktags'     => isset( $this->no_quicktags ) ? false : true,
+			'teeny'         => isset( $this->teeny ) ? true : false,
+			'media_buttons' => isset( $this->no_media ) ? false : true,
 			]
 		);
 	}
