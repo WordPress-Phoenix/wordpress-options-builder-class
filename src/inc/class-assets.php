@@ -6,7 +6,7 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_4_1;
+namespace WPOP\V_5_0;
 
 /**
  * Class Assets
@@ -16,6 +16,8 @@ class Assets {
 	 * Pure v1.0.0
 	 * Copyright 2013 Yahoo!
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @license BSD License.
 	 * @see     https://github.com/yahoo/pure/blob/master/LICENSE.md
 	 *
@@ -23,32 +25,42 @@ class Assets {
 	 * Copyright (c) Nicolas Gallagher and Jonathan Neal
 	 */
 	public static function yahoo_purecss( $installed_dir_uri ) {
-		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-css\'  href=\'' . $installed_dir_uri . '/assets/yahoo-purecss.css\' type=\'text/css\' media=\'all\' />';
+		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-css\'  href=\'' . esc_url_raw( $installed_dir_uri ) . '/assets/yahoo-purecss.css\' type=\'text/css\' media=\'all\' />';
 	}
 
 	/**
 	 * Pure v1.0.0
 	 * Copyright 2013 Yahoo!
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @license BSD License.
 	 * @see     https://github.com/yahoo/pure/blob/master/LICENSE.md
 	 */
 	public static function yahoo_purecss_responsive_grid( $installed_dir_uri ) {
-		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-responsive-grid-css\'  href=\'' . $installed_dir_uri . '/assets/yahoo-purecss-responsive-grid.css\' type=\'text/css\' media=\'all\' />';
+		echo '<link rel=\'stylesheet\' id=\'yahoo-purecss-responsive-grid-css\'  href=\'' . esc_url_raw( $installed_dir_uri ) . '/assets/yahoo-purecss-responsive-grid.css\' type=\'text/css\' media=\'all\' />';
 	}
 
 	/**
 	 * Selectize Plugin
 	 *
+	 * @param string $installed_dir_uri Installed dir URI.
+	 *
 	 * @see selectize.js Version 0.12.4 | https://github.com/selectize/selectize.js | Apache License (v2).
 	 */
 	public static function selectize_js( $installed_dir_uri ) {
-		echo '<script type="text/javascript" src="' . $installed_dir_uri . '/assets/selectize.js"></script>';
+		// Using inline javascript to load script only when needed.
+		// So ignoring the coding standards.
+		// @codingStandardsIgnoreStart
+		echo '<script type="text/javascript" src="' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.js"></script>';
+		// @codingStandardsIgnoreEnd
 	}
 
 	/**
 	 * CSS selectize.css (v0.12.4)
 	 * Copyright (c) 2013–2015 Brian Reavis & contributors
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 *
 	 * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
 	 * file except in compliance with the License. You may obtain a copy of the License at:
@@ -62,11 +74,13 @@ class Assets {
 	 * @author Brian Reavis <brian@thirdroute.com>
 	 */
 	public static function selectize_css( $installed_dir_uri ) {
-		echo '<link rel=\'stylesheet\' id=\'selectize-css\'  href=\'' . $installed_dir_uri . '/assets/selectize.css\' type=\'text/css\' media=\'all\' />';
+		echo '<link rel=\'stylesheet\' id=\'selectize-css\'  href=\'' . esc_url_raw( $installed_dir_uri ) . '/assets/selectize.css\' type=\'text/css\' media=\'all\' />';
 	}
 
 	/**
 	 * Inline Stylesheet (printed below header but above panel in <body>)
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 */
 	public static function inline_css( $installed_dir_uri = '' ) {
 		self::yahoo_purecss( $installed_dir_uri );
@@ -568,6 +582,8 @@ class Assets {
 
 	/**
 	 * Inline JavaScript above </head> close tag
+	 *
+	 * @param string $installed_dir_uri Installed dir URI.
 	 */
 	public static function inline_js_header( $installed_dir_uri = '' ) {
 		self::selectize_js( $installed_dir_uri );
@@ -575,7 +591,7 @@ class Assets {
 		<script type="text/javascript">
 					!function ( t, o ) {
 						"use strict";
-                        t.wpop = t.wpop || {}, t.wpop.hooks = t.wpop.hooks || new function() {
+						t.wpop = t.wpop || {}, t.wpop.hooks = t.wpop.hooks || new function() {
 							function t( t, o, i, n ) {
 								var e, r, p;
 								if ( a[ t ][ o ] ) if ( i ) if ( e = a[ t ][ o ], n ) for ( p = e.length; p--; ) (r = e[ p ]).callback === i && r.context === n && e.splice( p, 1 ); else for ( p = e.length; p--; ) e[ p ].callback === i && e.splice( p, 1 ); else a[ t ][ o ] = []

@@ -6,12 +6,19 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_4_1;
+namespace WPOP\V_5_0;
 
 /**
  * Class Checkbox
  */
 class Checkbox extends Part {
+
+	/**
+	 * Optional array of input attributes
+	 *
+	 * @var array
+	 */
+	public $attributes = [];
 
 	/**
 	 * Value
@@ -35,19 +42,6 @@ class Checkbox extends Part {
 	public $data_store = true;
 
 	/**
-	 * Checkbox constructor.
-	 *
-	 * @param string $i    ID of the field.
-	 * @param array  $args Arguments to customize the object instance.
-	 */
-	public function __construct( $i, $args = [] ) {
-		parent::__construct( $i, $args );
-		foreach ( $args as $name => $value ) {
-			$this->$name = $value;
-		}
-	}
-
-	/**
 	 * Used by extending Toggle_Switch class
 	 */
 	public function label_markup() {
@@ -61,7 +55,7 @@ class Checkbox extends Part {
 		?>
 		<div class="cb-wrap">
 			<?php
-			$this->input( esc_attr( $this->id ), 'checkbox' );
+			$this->input( esc_attr( $this->id ), 'checkbox', $this->attributes );
 			$this->label_markup();
 			?>
 		</div>

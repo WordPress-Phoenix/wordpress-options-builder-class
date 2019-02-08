@@ -6,7 +6,7 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_4_1;
+namespace WPOP\V_5_0;
 
 /**
  * Class Part
@@ -75,14 +75,6 @@ class Part {
 	 * @var array
 	 */
 	public $classes = [];
-
-	/**
-	 * Attributes that controls and customizes each part.
-	 * TODO: Maybe remove since it seems unused.
-	 *
-	 * @var array
-	 */
-	public $atts = [];
 
 	/**
 	 * Enable this if the panel needs to run save/get operations.
@@ -174,22 +166,35 @@ class Part {
 	/**
 	 * Input is the output 😺
 	 *
-	 * @param string $field_id ID of the field.
-	 * @param string $type     Type of field.
+	 * @param string $field_id   ID of the field.
+	 * @param string $type       Type of field.
+	 * @param array  $attributes Array of optional attributes for a field.
 	 */
-	public function input( $field_id = '', $type = '' ) {
+	public function input( $field_id = '', $type = '', $attributes = [] ) {
 		$field_id        = ! empty( $field_id ) ? $field_id : $this->field_id;
 		$type            = ! empty( $type ) ? $type : $this->input_type;
 		$established     = ( false === $this->get_saved() || empty( $this->get_saved() ) ) ? $this->default_value : $this->get_saved();
 		$clean_classname = strtolower( $this->get_clean_classname() );
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
+
+		// Set some default attributes.
+		$attributes = wp_parse_args( $attributes, [
+			'disabled' => false,
+			'readonly' => false,
+		] );
 		?>
-		<input id="<?php echo esc_attr( $field_id ); ?>" name="<?php echo esc_attr( $field_id ); ?>"
-			   type="<?php echo esc_attr( $type ); ?>" autocomplete="false"
-			   data-part="<?php echo esc_attr( $clean_classname ); ?>"
-			   title="<?php echo esc_attr( $field_id ); ?>"
-			   class="<?php echo esc_attr( $class_str ); ?>"
-			<?php $this->input_value( $type, $established ); ?> />
+		<input
+			id="<?php echo esc_attr( $field_id ); ?>"
+			name="<?php echo esc_attr( $field_id ); ?>"
+			type="<?php echo esc_attr( $type ); ?>"
+			autocomplete="false"
+			<?php echo boolval( $attributes['disabled'] ) ? 'disabled="disabled"' : ''; ?>"
+			<?php echo boolval( $attributes['readonly'] ) ? 'readonly="readonly"' : ''; ?>"
+			data-part="<?php echo esc_attr( $clean_classname ); ?>"
+			title="<?php echo esc_attr( $field_id ); ?>"
+			class="<?php echo esc_attr( $class_str ); ?>"
+			<?php $this->input_value( $type, $established ); ?>
+		/>
 		<?php
 	}
 
