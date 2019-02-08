@@ -8,6 +8,8 @@
  * @license GPL-2.0+ - please retain comments that express original build of this file by the author.
  */
 
+namespace WPOP\V_5_0;
+
 /**
  * Class WordPress_Options_Panels
  */
