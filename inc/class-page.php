@@ -123,7 +123,7 @@ class Page extends Panel {
 						<?php
 					endif;
 					echo esc_attr( $this->page_title );
-?>
+					?>
 				</h1>
 				<input type="submit" class="button button-primary button-hero save-all" value="Save All" name="submit"/>
 			</div>
@@ -164,7 +164,7 @@ class Page extends Panel {
 								<?php
 							endif;
 							echo esc_html( $section['label'] );
-?>
+							?>
 							<?php if ( count( $section['parts'] ) > 1 ) : ?>
 								<small class="part-count">
 									<?php echo esc_attr( count( $section['parts'] ) ); ?>
