@@ -76,13 +76,15 @@ class Page extends Panel {
 	 * @param array $fields Fields Fields created on the page, outside of sections.
 	 */
 	public function __construct( $args = [], $fields ) { // @codingStandardsIgnoreLine
-		if ( isset( $args['installed_dir'] ) ) {
-			$this->installed_dir = $args['installed_dir'];
-		}
-		if ( isset( $args['installed_dir_uri'] ) ) {
-			$this->installed_dir_uri = $args['installed_dir_uri'];
-		}
 		parent::__construct( $args, $fields );
+
+		if ( isset( $args['installed_dir'] ) ) {
+			$this->installed_dir = $args['installed_dir'] . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
+		}
+
+		if ( isset( $args['installed_dir_uri'] ) ) {
+			$this->installed_dir_uri = $args['installed_dir_uri'] . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
+		}
 	}
 
 	/**
