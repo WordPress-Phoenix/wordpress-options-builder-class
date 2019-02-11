@@ -46,8 +46,23 @@ class Include_Partial extends Part {
 		if ( ! empty( $this->filename ) && is_file( $this->filename ) ) { ?>
 			<li class="<?php echo esc_attr( $this->get_clean_classname() ); ?>">
 				<?php
-				// @codingStandardsIgnoreLine - old phpcs notation
-				echo wp_kses( file_get_contents( $this->filename ), wp_kses_allowed_html() ); // phpcs:ignore - allow file get contents.
+				if ( function_exists( 'wpcom_vip_file_get_contents' ) ) {
+					$contents = wpcom_vip_file_get_contents( $this->filename );
+				} else {
+					/**
+					 * We need to ignore this file_get_contents call, because it's
+					 * required outside of a WordPress VIP environment (where the
+					 * safer `wpcom_vip_file_get_contents()` is available).
+					 *
+					 * In a VIP environment, this will never be called.
+					 */
+
+					// phpcs:disable
+					$contents = file_get_contents( $this->filename );
+					// phpcs:enable
+				}
+
+				echo wp_kses( $contents, wp_kses_allowed_html() );
 				?>
 			</li>
 			<?php
