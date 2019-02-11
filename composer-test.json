@@ -9,6 +9,7 @@
     "wp-coding-standards/wpcs": "^1.2.0"
   },
   "scripts": {
-    "test": "./bin/phpcs --standard=./.circleci/codesniffer.ruleset.xml --extensions='php' ./"
+    "test": "./bin/phpcs --standard=./.circleci/codesniffer.ruleset.xml --extensions='php' ./",
+    "fix": "./bin/phpcbf --standard=./.circleci/codesniffer.ruleset.xml --extensions='php' ./"
   }
 }
