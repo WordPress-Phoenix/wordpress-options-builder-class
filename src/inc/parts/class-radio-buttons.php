@@ -68,10 +68,14 @@ class Radio_Buttons extends Part {
 							</label>
 						</td>
 						<td>
-							<input type="radio" id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
-								   name="<?php echo esc_attr( $this->field_id ); ?>"
-								   value="<?php echo esc_attr( $value ); ?>"
-								   class="radio-item" <?php checked( $value, $selected_val ); ?> />
+							<input
+								type="radio"
+								id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
+								name="<?php echo esc_attr( $this->field_id ); ?>"
+								value="<?php echo esc_attr( $value ); ?>"
+								class="radio-item"
+								<?php checked( $value, $selected_val ); ?>
+							/>
 						</td>
 					</tr>
 				</table>
