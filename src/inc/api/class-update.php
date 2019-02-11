@@ -49,29 +49,22 @@ class Update {
 		switch ( $type ) {
 			case 'site':
 				return self::handle_site_option_save( $key, $value, $autoload );
-				break;
 			case 'network':
 				return self::handle_network_option_save( $key, $value );
-				break;
 			case 'user':
 				return self::handle_user_site_meta_save( $obj_id, $key, $value );
-				break; // Traditional user meta.
 			case 'user-network':
 				return self::handle_user_network_meta_save( $obj_id, $key, $value );
-				break;
 			case 'term':
 				return self::handle_term_meta_save( $obj_id, $key, $value );
-				break;
 			case 'post':
 				return self::handle_post_meta_save( $obj_id, $key, $value );
-				break;
 			default:
 				return new \WP_Error(
 					'400',
 					'WPOP panel ' . $panel_id . 'failed to select proper WordPress Data API -- check your config.',
 					compact( $type, $key, $value, $obj_id, $autoload )
 				);
-				break;
 		}
 	}
 
