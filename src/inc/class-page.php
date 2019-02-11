@@ -310,20 +310,15 @@ class Page extends Panel {
 		switch ( $this->api ) {
 			case 'post':
 				return $wpdb->prefix . 'postmeta';
-				break;
 			case 'term':
 				return $wpdb->prefix . 'termmeta';
-				break;
 			case 'user':
 				return is_multisite() ? $wpdb->base_prefix . 'usermeta' : $wpdb->prefix . 'usermeta';
-				break;
 			case 'network':
 				return $wpdb->prefix . 'sitemeta';
-				break;
 			case 'site':
 			default:
 				return $wpdb->prefix . 'options';
-				break;
 		}
 	}
 

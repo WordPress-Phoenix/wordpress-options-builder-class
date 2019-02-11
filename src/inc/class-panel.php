@@ -251,16 +251,12 @@ class Panel {
 		switch ( $this->api ) {
 			case 'post':
 				return isset( $_GET['post'] ) ? filter_input( INPUT_GET, 'post' ) : null;
-				break;
 			case 'user':
 				return isset( $_GET['user'] ) ? filter_input( INPUT_GET, 'user' ) : null;
-				break;
 			case 'term':
 				return isset( $_GET['term'] ) ? filter_input( INPUT_GET, 'term' ) : null;
-				break;
 			default:
 				return null;
-				break;
 		}
 	}
 

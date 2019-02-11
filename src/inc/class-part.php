@@ -290,40 +290,30 @@ class Part {
 				}
 
 				return ! empty( $value ) ? Password::encrypt( $value ) : false;
-				break;
 			case 'media':
 				return absint( $value );
-				break;
 			case 'color':
 				return sanitize_hex_color_no_hash( $value );
-				break;
 			case 'editor':
 				return wp_filter_post_kses( $value );
-				break;
 			case 'textarea':
 				return sanitize_textarea_field( $value );
-				break;
 			case 'checkbox':
 			case 'toggle_switch':
 				return sanitize_key( $value );
-				break;
 			case 'multiselect':
 				if ( ! empty( $value ) && is_array( $value ) ) {
 					return wp_json_encode( array_map( 'sanitize_key', $value ) );
 				}
 
 				return false;
-				break;
 			case 'email':
 				return sanitize_email( $value );
-				break;
 			case 'url':
 				return esc_url_raw( $value );
-				break;
 			case 'text':
 			default:
 				return sanitize_text_field( $value );
-				break;
 		}
 	}
 
