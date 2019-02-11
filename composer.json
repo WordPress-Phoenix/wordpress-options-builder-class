@@ -17,10 +17,6 @@
       "role": "Developer"
     }
   ],
-  "require": {
-    "composer/installers": "~1.0",
-    "erusev/parsedown": "^1.7"
-  },
   "config": {
     "vendor-dir": "src/lib"
   },
