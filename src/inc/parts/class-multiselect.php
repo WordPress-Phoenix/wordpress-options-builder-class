@@ -84,7 +84,7 @@ class Multiselect extends Part {
 					unset( $this->values[ $key ] );
 					?>
 				</option>
-			<?php
+				<?php
 			endforeach;
 		endif;
 		if ( ! empty( $this->values ) && is_array( $this->values ) ) {
@@ -93,7 +93,7 @@ class Multiselect extends Part {
 				<option value="<?php echo esc_attr( $key ); ?>">
 					<?php echo esc_html( $value ); ?>
 				</option>
-			<?php
+				<?php
 			}
 		}
 		echo '</select>';

@@ -76,7 +76,7 @@ class Select extends Part {
 				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $this->get_saved() ); ?>>
 					<?php echo esc_html( $label ); ?>
 				</option>
-			<?php
+				<?php
 			endforeach;
 			?>
 		</select>

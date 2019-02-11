@@ -178,10 +178,13 @@ class Part {
 		$class_str       = ! empty( $this->classes ) && is_array( $this->classes ) ? implode( ' ', $this->classes ) : '';
 
 		// Set some default attributes.
-		$attributes = wp_parse_args( $attributes, [
-			'disabled' => false,
-			'readonly' => false,
-		] );
+		$attributes = wp_parse_args(
+			$attributes,
+			[
+				'disabled' => false,
+				'readonly' => false,
+			]
+		);
 		?>
 		<input
 			id="<?php echo esc_attr( $field_id ); ?>"

@@ -124,7 +124,8 @@ class Page extends Panel {
 	public function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
 			add_action(
-				'admin_print_footer_scripts-' . $screen->id, [
+				'admin_print_footer_scripts-' . $screen->id,
+				[
 					__NAMESPACE__ . '\\Assets',
 					'inline_js_footer',
 				]
@@ -142,7 +143,7 @@ class Page extends Panel {
 				<h1>
 					<?php if ( ! empty( $this->dashicon ) ) : ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
-					<?php
+						<?php
 					endif;
 					echo esc_attr( $this->page_title );
 					?>
@@ -183,7 +184,7 @@ class Page extends Panel {
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-							<?php
+								<?php
 							endif;
 							echo esc_html( $section['label'] );
 							?>
