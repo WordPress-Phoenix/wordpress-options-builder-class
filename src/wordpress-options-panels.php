@@ -35,7 +35,7 @@ class WordPress_Options_Panels {
 	 * @param string $installed_dir_uri Installed URI from plugin or theme.
 	 */
 	function __construct( $installed_dir, $installed_dir_uri ) {
-		$this->installed_dir = $installed_dir . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
+		$this->installed_dir     = $installed_dir . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
 		$this->installed_dir_uri = $installed_dir_uri . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
 		$this->load_files();
 	}

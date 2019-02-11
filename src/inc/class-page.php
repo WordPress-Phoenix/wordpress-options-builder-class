@@ -124,7 +124,8 @@ class Page extends Panel {
 	public function maybe_run_footer_scripts( $screen ) {
 		if ( false !== stristr( $screen->id, $this->id ) ) {
 			add_action(
-				'admin_print_footer_scripts-' . $screen->id, [
+				'admin_print_footer_scripts-' . $screen->id,
+				[
 					__NAMESPACE__ . '\\Assets',
 					'inline_js_footer',
 				]
