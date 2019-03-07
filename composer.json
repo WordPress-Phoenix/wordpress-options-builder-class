@@ -19,6 +19,7 @@
   ],
   "config": {
     "bin-dir": "bin",
+	"sort-packages": true,
     "vendor-dir": "vendor"
   },
   "require-dev": {
@@ -28,6 +29,8 @@
   },
   "scripts": {
     "test": "phpcs",
-    "fix": "phpcbf"
+    "fix": "phpcbf",
+	"lib-install": "env COMPOSER=composer-lib.json composer install --no-autoloader",
+	"lib-update": "env COMPOSER=composer-lib.json composer update --no-autoloader"
   }
 }
