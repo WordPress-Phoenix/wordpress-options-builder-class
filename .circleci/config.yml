@@ -13,12 +13,11 @@ jobs:
       - run:
           name: Install Testing Dependencies
           command: |
-            env COMPOSER=composer-test.json composer install --prefer-source --no-interaction; \
-            sudo ./bin/phpcs --config-set installed_paths $PWD/vendor/wp-coding-standards/wpcs
+            composer install --prefer-source --no-interaction
       - run:
           name: Running Tests
           command: |
-            env COMPOSER=composer-test.json composer test
+            composer test
   notify:
     docker:
       - image: circleci/node:latest
