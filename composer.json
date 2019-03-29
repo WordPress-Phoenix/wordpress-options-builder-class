@@ -1,6 +1,23 @@
 {
+  "name": "wordpress-phoenix/wordpress-options-builder-class",
+  "description": "Library that helps you setup theme or plugin options that store data in the database with just a line or two of code",
+  "keywords": [
+    "wordpress",
+    "site-options",
+    "utility",
+    "helper"
+  ],
+  "homepage": "https://github.com/WordPress-Phoenix/wordpress-options-builder-class",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Seth Carstens",
+      "email": "seth.carstens@gmail.com",
+      "homepage": "http://github.com/scarstens",
+      "role": "Developer"
+    }
+  ],
   "config": {
-    "bin-dir": "bin",
 	"sort-packages": true,
     "vendor-dir": "vendor"
   },
@@ -14,5 +31,10 @@
     "fix": "phpcbf",
 	"lib-install": "env COMPOSER=composer-lib.json composer install --no-autoloader",
 	"lib-update": "env COMPOSER=composer-lib.json composer update --no-autoloader"
+  },
+  "autoload": {
+    "classmap": [
+      "/"
+    ]
   }
 }
