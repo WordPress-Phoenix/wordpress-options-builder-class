@@ -2,8 +2,8 @@
 <ruleset name="wpphx">
 	<description>Code standard for the WordPress VIP</description>
 
-	<exclude-pattern>../vendor/*</exclude-pattern>
-	<exclude-pattern>../src/assets/*</exclude-pattern>
+	<exclude-pattern>/vendor/</exclude-pattern>
+	<exclude-pattern>/src/assets/</exclude-pattern>
 
 	<rule ref="WordPress-VIP">
 		<exclude name="WordPress.VIP.SuperGlobalInputUsage"/>
