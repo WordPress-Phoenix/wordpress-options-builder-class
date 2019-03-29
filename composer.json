@@ -18,8 +18,7 @@
     }
   ],
   "config": {
-	"sort-packages": true,
-    "vendor-dir": "vendor"
+	"sort-packages": true
   },
   "require-dev": {
     "automattic/vipwpcs": "^0.4.0",
@@ -27,14 +26,12 @@
     "wp-coding-standards/wpcs": "^1.2.0"
   },
   "scripts": {
-    "test": "phpcs",
-    "fix": "phpcbf",
-	"lib-install": "env COMPOSER=composer-lib.json composer install --no-autoloader",
-	"lib-update": "env COMPOSER=composer-lib.json composer update --no-autoloader"
+    "test": "phpcs --standard=./.circleci/codesniffer.ruleset.xml .",
+    "fix": "phpcbf --standard=./.circleci/codesniffer.ruleset.xml ."
   },
   "autoload": {
     "classmap": [
-      "/"
+      "./"
     ]
   }
 }
