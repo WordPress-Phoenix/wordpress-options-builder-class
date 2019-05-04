@@ -26,8 +26,8 @@
     "wp-coding-standards/wpcs": "^1.2.0"
   },
   "scripts": {
-    "test": "phpcs --standard=./.circleci/codesniffer.ruleset.xml .",
-    "fix": "phpcbf --standard=./.circleci/codesniffer.ruleset.xml ."
+    "lint:check": "phpcs --standard=./.circleci/phpcs.xml .",
+    "lint:fix": "phpcbf --standard=./.circleci/phpcs.xml ."
   },
   "autoload": {
     "classmap": [

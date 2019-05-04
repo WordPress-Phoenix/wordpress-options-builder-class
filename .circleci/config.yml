@@ -17,7 +17,7 @@ jobs:
       - run:
           name: Running Tests
           command: |
-            composer test
+            composer lint:check
   notify:
     docker:
       - image: circleci/node:latest
