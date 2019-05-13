@@ -14,11 +14,12 @@ Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Pho
 
 ## Table of Contents:
 - [Installation](#installation)
+- [Upgrading to version 5.x](#upgrading)
 - [Usage](#usage)
 
-# Installation
+## Installation
 
-## Composer style (recommended)
+### Composer style (recommended)
 
 1. Include in your plugin by creating or adding the following to your composer.json file in the root of the plugin
 ```json
@@ -38,12 +39,25 @@ if ( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
 }
 ```
 
-## Manual Installation
+### Manual Installation
 1. Download the most updated copy of this repository from `https://api.github.com/repos/WordPress-Phoenix/wordpress-options-builder-class/zipball`
 2. Extract the zip file, and copy the PHP file into your plugin project.
-3. Use SSI (Server Side Includes) to include the file into your plugin.
+3. Include the `src/class-wordpress-options-panels.php` file in your plugin.
 
-# Usage
+## Upgrading to version 5.x
+
+Version 5.0 is a major rewrite of the WordPress Phoenix Options Panel and there are a few required update steps.
+
+*   Include `src/class-wordpress-options-panels.php` instead of `wpop-init.php`
+*   Reference the `\WPOP\V_5_0\*` namespace instead of `\WPOP\V_4_1\*`
+*   If you use the Markdown field type, consider switching to `include_partial` and rendering the markdown through a PHP class of your choosing (WordPress Phoenix Options Panel) version 4.x used [erusev/parsedown](https://packagist.org/packages/erusev/parsedown))
+*   If you aren't using an autoloader, manually load the class files into memory:
+    ```php
+\WPOP\V_5_0\WordPress_Options_Panels::load_files();
+```
+*   Update your array of `$args` to `new \WPOP\V_5_0\Page( $args, $fields );` to include an `installed_dir_uri` key and value, representing the public URL path to your installation of this library (required to load CSS and JS assets used to style the options panels)
+
+## Usage
 
 * [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
 * [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/blob/master/app/admin/class-options-panel.php) in the WPOP Example Plugin

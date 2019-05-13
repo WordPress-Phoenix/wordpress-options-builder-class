@@ -67,23 +67,30 @@ class Page extends Panel {
 	 *
 	 * @var string
 	 */
-	public $installed_dir_uri;
+	public $installed_dir_uri = null;
 
 	/**
 	 * Page constructor.
 	 *
 	 * @param array $args   Arguments used to customize the object.
 	 * @param array $fields Fields Fields created on the page, outside of sections.
+	 *
+	 * @return void
 	 */
 	public function __construct( $args = [], $fields ) { // @codingStandardsIgnoreLine
 		parent::__construct( $args, $fields );
 
-		if ( isset( $args['installed_dir'] ) ) {
-			$this->installed_dir = $args['installed_dir'] . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
+		// This allows you to override the relative path to WPOP, in case you put it in a `vendor` folder, or elsewhere.
+		if ( ! isset( $args['wpop_path'] ) ) {
+			$args['wpop_path'] = 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
 		}
 
+		// Get the install path.
+		$this->installed_dir = trailingslashit( dirname( __DIR__ ) ) . $args['wpop_path'];
+
+		// Get the install URL (so static assets can be loaded publicly).
 		if ( isset( $args['installed_dir_uri'] ) ) {
-			$this->installed_dir_uri = $args['installed_dir_uri'] . 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
+			$this->installed_dir_uri = trailingslashit( $args['installed_dir_uri'] ) . $args['wpop_path'];
 		}
 	}
 
@@ -91,19 +98,25 @@ class Page extends Panel {
 	 * !!! USE ME TO RUN THE PANEL !!!
 	 *
 	 * Main method called by extending class to initialize the panel
+	 *
+	 * @return void
 	 */
 	public function initialize_panel() {
-		if ( ! empty( $this->api ) && is_string( $this->api ) ) {
-			$hook = ( 'network' === $this->api || 'user-network' === $this->api ) ? 'network_admin_menu' : 'admin_menu';
-
-			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dependencies' ] );
-			add_action( $hook, [ $this, 'add_settings_submenu_page' ] );
-			add_action( 'current_screen', [ $this, 'maybe_run_footer_scripts' ] );
+		if ( empty( $this->api ) || ! is_string( $this->api ) ) {
+			return;
 		}
+
+		$hook = ( 'network' === $this->api || 'user-network' === $this->api ) ? 'network_admin_menu' : 'admin_menu';
+
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dependencies' ] );
+		add_action( $hook, [ $this, 'add_settings_submenu_page' ] );
+		add_action( 'current_screen', [ $this, 'maybe_run_footer_scripts' ] );
 	}
 
 	/**
 	 * Register Submenu Page with WordPress to display the panel on
+	 *
+	 * @return void
 	 */
 	public function add_settings_submenu_page() {
 		add_submenu_page(
@@ -120,9 +133,11 @@ class Page extends Panel {
 	 * Load footer scripts on relevant pages.
 	 *
 	 * @param \WP_Screen $screen WordPress screen slug or ID.
+	 *
+	 * @return void
 	 */
 	public function maybe_run_footer_scripts( $screen ) {
-		if ( false === stristr( $screen->id, $this->id ) ) {
+		if ( false === stristr( $screen->id, $this->id ) || null === $this->installed_dir_uri ) {
 			return;
 		}
 
@@ -149,6 +164,8 @@ class Page extends Panel {
 
 	/**
 	 * Builds <header>
+	 *
+	 * @return void
 	 */
 	public function page_header() {
 		?>
@@ -157,10 +174,8 @@ class Page extends Panel {
 				<h1>
 					<?php if ( ! empty( $this->dashicon ) ) : ?>
 						<span class="dashicons <?php echo esc_attr( $this->dashicon ); ?> page-icon"></span>
-						<?php
-					endif;
-					echo esc_attr( $this->page_title );
-					?>
+					<?php endif; ?>
+					<?php echo esc_attr( $this->page_title ); ?>
 				</h1>
 				<input type="submit" class="button button-primary button-hero save-all" value="Save All" name="submit"/>
 			</div>
@@ -170,6 +185,8 @@ class Page extends Panel {
 
 	/**
 	 * Build container holding left sidebar and main content area
+	 *
+	 * @return void
 	 */
 	public function page_content() {
 		?>
@@ -186,22 +203,22 @@ class Page extends Panel {
 
 	/**
 	 * Left-sidebar in page_content()
+	 *
+	 * @return void
 	 */
 	public function page_content_sidebar() {
 		?>
 		<div class="pure-menu wpop-options-menu">
 			<ul class="pure-menu-list">
-				<?php
-				foreach ( $this->parts as $section_id => $section ) {
-					?>
+				<?php foreach ( $this->parts as $section_id => $section ) : ?>
 					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
 						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section['dashicon'] ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-								<?php
-							endif;
-							echo esc_html( $section['label'] );
-							?>
+							<?php endif; ?>
+
+							<?php echo esc_html( $section['label'] ); ?>
+
 							<?php if ( count( $section['parts'] ) > 1 ) : ?>
 								<small class="part-count">
 									<?php echo esc_attr( count( $section['parts'] ) ); ?>
@@ -209,9 +226,7 @@ class Page extends Panel {
 							<?php endif; ?>
 						</a>
 					</li>
-					<?php
-				}
-				?>
+				<?php endforeach; ?>
 			</ul>
 		</div>
 		<?php
@@ -219,6 +234,8 @@ class Page extends Panel {
 
 	/**
 	 * Main area in page_content()
+	 *
+	 * @return void
 	 */
 	public function page_content_main() {
 		?>
@@ -235,6 +252,8 @@ class Page extends Panel {
 
 	/**
 	 * <footer> for panel page
+	 *
+	 * @return void
 	 */
 	public function page_footer() {
 		?>
@@ -258,6 +277,8 @@ class Page extends Panel {
 
 	/**
 	 * Build Parts - output parts to DOM
+	 *
+	 * @return void
 	 */
 	public function build_parts() {
 		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
@@ -332,6 +353,8 @@ class Page extends Panel {
 
 	/**
 	 * Enqueue dependencies
+	 *
+	 * @return void
 	 */
 	public function enqueue_dependencies() {
 		// Enqueue media needed for media modal.
