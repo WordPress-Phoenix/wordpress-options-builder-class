@@ -122,36 +122,29 @@ class Page extends Panel {
 	 * @param \WP_Screen $screen WordPress screen slug or ID.
 	 */
 	public function maybe_run_footer_scripts( $screen ) {
-		if ( false !== stristr( $screen->id, $this->id ) ) {
-			$asset_class_path = __NAMESPACE__ . '\\Assets';
-
-			// Instantiate the Asset class with the installed directory as a parameter.
-			$asset_class = new $asset_class_path( $this->installed_dir_uri );
-
-			add_action(
-				'admin_print_footer_scripts-' . $screen->id,
-				[
-					$asset_class,
-					'inline_js_footer',
-				]
-			);
-
-			add_action(
-				'admin_enqueue_scripts',
-				[
-					$asset_class,
-					'register_js',
-				]
-			);
-
-			add_action(
-				'admin_enqueue_scripts',
-				[
-					$asset_class,
-					'register_css',
-				]
-			);
+		if ( false === stristr( $screen->id, $this->id ) ) {
+			return;
 		}
+
+		$asset_class_path = __NAMESPACE__ . '\\Assets';
+
+		// Instantiate the Asset class with the installed directory as a parameter.
+		$asset_class = new $asset_class_path( $this->installed_dir_uri );
+
+		add_action(
+			'admin_print_footer_scripts-' . $screen->id,
+			[ $asset_class, 'inline_js_footer' ]
+		);
+
+		add_action(
+			'admin_enqueue_scripts',
+			[ $asset_class, 'register_js' ]
+		);
+
+		add_action(
+			'admin_enqueue_scripts',
+			[ $asset_class, 'register_css' ]
+		);
 	}
 
 	/**
