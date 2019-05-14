@@ -21,12 +21,14 @@ class Update {
 	 * @param string $value    Value.
 	 * @param null   $obj_id   Object ID.
 	 * @param bool   $autoload Autoload status.
+	 *
+	 * @return array|int|string|null|bool
 	 */
 	public function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
-
 			return false;
 		}
 
@@ -144,4 +146,5 @@ class Update {
 	private static function handle_post_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_post_meta( $id, $key ) : update_post_meta( $id, $key, $value );
 	}
+
 }

@@ -56,6 +56,7 @@ class Section {
 	 */
 	public function __construct( $id, $args = [] ) {
 		$this->id = $id;
+
 		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
 		}
@@ -75,7 +76,7 @@ class Section {
 				 *
 				 * @var Part $part
 				 */
-				foreach ( $this->parts as $part ) {
+				foreach ( $this->parts as $part ) :
 					/**
 					 * IDE type hinting for $part variable.
 					 *
@@ -83,22 +84,23 @@ class Section {
 					 */
 					$part_type = strtolower( $part->get_clean_classname() );
 					?>
-					<li class="wpop-option <?php echo esc_attr( $part_type ); ?>"
+					<li
+						class="wpop-option <?php echo esc_attr( $part_type ); ?>"
 						data-part="<?php echo esc_attr( $part->id ); ?>"
-						data-type="<?php echo esc_attr( $part_type ); ?>">
+						data-type="<?php echo esc_attr( $part_type ); ?>"
+						>
 						<h4 class="label"><?php echo esc_html( $part->label ); ?></h4>
-						<?php
-						// Render main unique field output.
-						$part->render();
-						if ( ! empty( $part->description ) ) {
-							?>
+
+						<?php $part->render(); // Render main unique field output. ?>
+
+						<?php if ( ! empty( $part->description ) ) : ?>
 							<div class="desc clear"><?php echo esc_html( $part->description ); ?></div>
-						<?php } ?>
+						<?php endif; ?>
+
 						<div class="clear"></div>
-					</li><span class="spacer"></span>
-					<?php
-				}
-				?>
+					</li>
+					<span class="spacer"></span>
+				<?php endforeach; ?>
 			</ul>
 		</li>
 		<?php

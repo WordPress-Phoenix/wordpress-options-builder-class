@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Panel
  */
 class Panel {
+
 	/**
 	 * API Setting
 	 *
@@ -112,12 +113,14 @@ class Panel {
 			echo 'Setting a panel ID is required';
 			exit;
 		}
+
 		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
 			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
 			// locking the encrypted value to the current environment.
 			$trimmed_key = substr( wp_salt(), 0, 15 );
 			define( 'WPOP_ENCRYPTION_KEY', Password::pad_key( sha1( $trimmed_key, true ) ) );
 		}
+
 		// Establish panel id.
 		$this->id = preg_replace( '/_/', '-', $args['id'] );
 
@@ -134,39 +137,43 @@ class Panel {
 
 		// Loop over sections.
 		foreach ( $sections as $section_id => $section ) {
-			if ( isset( $section['parts'] ) ) {
-				$this->section_count ++;
-				// Loop over current section's parts.
-				foreach ( $section['parts'] as $part_id => $part_config ) {
-					$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
-					$part_config['obj_id']     = $this->obj_id;
-					$part_config['panel_id']   = $this->id;
-					$part_config['section_id'] = $section_id;
-					$part_config['panel_api']  = $this->api;
+			if ( ! isset( $section['parts'] ) ) {
+				return;
+			}
 
-					// Create part class.
-					$current_part = new $current_part_classname( $part_id, $part_config );
+			$this->section_count++;
 
-					// Add part to panel/section.
-					$this->add_part( $section_id, $section, $current_part );
-					$this->part_count ++;
-					if ( is_object( $current_part ) && $current_part->data_store ) {
-						$this->data_count ++;
-						if ( $current_part->updated ) {
-							if ( isset( $this->updated_counts[ $current_part->update_type ] ) ) {
-								$this->updated_counts[ $current_part->update_type ] ++;
-							}
-						}
+			// Loop over current section's parts.
+			foreach ( $section['parts'] as $part_id => $part_config ) {
+				$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
+				$part_config['obj_id']     = $this->obj_id;
+				$part_config['panel_id']   = $this->id;
+				$part_config['section_id'] = $section_id;
+				$part_config['panel_api']  = $this->api;
+
+				// Create part class.
+				$current_part = new $current_part_classname( $part_id, $part_config );
+
+				// Add part to panel/section.
+				$this->add_part( $section_id, $section, $current_part );
+				$this->part_count++;
+
+				if ( is_object( $current_part ) && $current_part->data_store ) {
+					$this->data_count++;
+
+					if ( $current_part->updated && isset( $this->updated_counts[ $current_part->update_type ] ) ) {
+						$this->updated_counts[ $current_part->update_type ]++;
 					}
 				}
-
-				$update_message = '';
-				foreach ( $this->updated_counts as $count_type => $count ) {
-					$update_message .= $count . ' ' . ucfirst( $count_type ) . '. ';
-				}
-
-				$this->notifications = [ 'notification' => $update_message ];
 			}
+
+			$update_message = '';
+
+			foreach ( $this->updated_counts as $count_type => $count ) {
+				$update_message .= $count . ' ' . ucfirst( $count_type ) . '. ';
+			}
+
+			$this->notifications = [ 'notification' => $update_message ];
 		}
 	}
 
@@ -328,4 +335,5 @@ class Panel {
 	public function get_clean_classname() {
 		return strtolower( explode( '\\', get_called_class() )[2] );
 	}
+
 }
