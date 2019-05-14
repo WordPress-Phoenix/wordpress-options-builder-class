@@ -24,15 +24,6 @@ class Password extends Input {
 	public static $default_existing_value = '### wpop-encrypted-pwd-field-val-unchanged ###';
 
 	/**
-	 * Encryption type
-	 *
-	 * Default to mcrypt until its completely removed instead of deprecated.
-	 *
-	 * @var string
-	 */
-	public $encyption_type = 'mcrypt';
-
-	/**
 	 * Input type
 	 *
 	 * @var string
@@ -52,6 +43,7 @@ class Password extends Input {
 	 */
 	public function __construct( $i, $args = [] ) {
 		parent::__construct( $i, $args );
+
 		if ( ! defined( 'WPOP_EXISTING_ENCRYPTED_VALUE' ) ) {
 			define( 'WPOP_EXISTING_ENCRYPTED_VALUE', self::$default_existing_value );
 		}
@@ -79,7 +71,6 @@ class Password extends Input {
 	 * @return bool|string
 	 */
 	public static function pad_key( $key ) {
-
 		if ( strlen( $key ) > 32 ) { // Key too large.
 			return false;
 		}
@@ -88,16 +79,53 @@ class Password extends Input {
 
 		foreach ( $sizes as $s ) { // Loop sizes, pad key.
 			$key_length = strlen( $key );
+
 			while ( $key_length < $s ) {
 				$key        = $key . "\0";
 				$key_length = strlen( $key );
 			}
+
 			if ( strlen( $key ) === $s ) {
 				break; // Finish if the key matches a size.
 			}
 		}
 
 		return $key;
+	}
+
+	/**
+	 * Whether or not to use OpenSSL encryption.
+	 *
+	 * @return bool
+	 */
+	public static function use_openssl_encryption() {
+		return defined( 'WPOP_ENCRYPTION_METHOD' ) && ( strtoupper( WPOP_ENCRYPTION_METHOD ) === 'OPENSSL' );
+	}
+
+	/**
+	 * Encrypt the string with the appropriate method.
+	 *
+	 * @param string $unencrypted_string The unencrypted string.
+	 *
+	 * @return string
+	 */
+	public static function encrypt( $unencrypted_string ) {
+		return static::use_openssl_encryption()
+			? static::openssl_encrypt( $unencrypted_string )
+			: static::mcrypt_encrypt( $unencrypted_string );
+	}
+
+	/**
+	 * Decrypt the string with the appropriate method.
+	 *
+	 * @param string $encrypted_string The encrypted string.
+	 *
+	 * @return string
+	 */
+	public static function decrypt( $encrypted_string ) {
+		return static::use_openssl_encryption()
+			? static::openssl_decrypt( $encrypted_string )
+			: static::mcrypt_decrypt( $encrypted_string );
 	}
 
 	/**
@@ -109,7 +137,7 @@ class Password extends Input {
 	 *
 	 * @return string
 	 */
-	public static function encrypt( $unencrypted_string ) {
+	public static function mcrypt_encrypt( $unencrypted_string ) {
 		return base64_encode(
 			mcrypt_encrypt(
 				MCRYPT_RIJNDAEL_256,
@@ -131,7 +159,7 @@ class Password extends Input {
 	 *
 	 * @return string
 	 */
-	public static function decrypt( $encrypted_encoded ) {
+	public static function mcrypt_decrypt( $encrypted_encoded ) {
 		return trim(
 			mcrypt_decrypt(
 				MCRYPT_RIJNDAEL_256,
@@ -200,4 +228,5 @@ class Password extends Input {
 			$iv
 		);
 	}
+
 }
