@@ -16,7 +16,7 @@ Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Pho
 ## Table of Contents
 
 *   [Installation](#installation)
-*   [Upgrading to version 5.x](#upgrading)
+*   [Upgrading to version 5.x](#upgrading-to-version-5x)
 *   [Usage](#usage)
 
 ## Installation
