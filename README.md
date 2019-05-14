@@ -3,6 +3,7 @@
 WordPress options builder class is a library that helps you setup theme or plugin options that store data in the database with just a few lines of code.
 
 ### Updated in 5.0
+
 * Updated WordPress Coding Standards
 * Improved Composer configuration
 * Added support for the [.editorconfig standard](https://editorconfig.org)
@@ -12,10 +13,11 @@ WordPress options builder class is a library that helps you setup theme or plugi
 
 Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Phoenix/wordpress-options-builder-class.svg?style=svg)](https://circleci.com/gh/WordPress-Phoenix/wordpress-options-builder-class)
 
-## Table of Contents:
-- [Installation](#installation)
-- [Upgrading to version 5.x](#upgrading)
-- [Usage](#usage)
+## Table of Contents
+
+*   [Installation](#installation)
+*   [Upgrading to version 5.x](#upgrading)
+*   [Usage](#usage)
 
 ## Installation
 
@@ -40,6 +42,7 @@ Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Pho
     ```
 
 ### Manual Installation
+
 1.  Download the most updated copy of this repository from `https://api.github.com/repos/WordPress-Phoenix/wordpress-options-builder-class/zipball`
 2.  Extract the zip file, and copy the PHP file into your plugin project.
 3.  Include the `src/class-wordpress-options-panels.php` file in your plugin.
