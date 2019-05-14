@@ -194,10 +194,10 @@ class Panel {
 	public function detect_data_api_and_permissions() {
 		$api = null;
 
-		$page = array_key_exists( $_GET, 'page' ) ? filter_input( INPUT_GET, 'page' ) : null;
-		$post = array_key_exists( $_GET, 'post' ) ? filter_input( INPUT_GET, 'post' ) : null;
-		$user = array_key_exists( $_GET, 'user' ) ? filter_input( INPUT_GET, 'user' ) : null;
-		$term = array_key_exists( $_GET, 'term' ) ? filter_input( INPUT_GET, 'term' ) : null;
+		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page' ) : null;
+		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
+		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
+		$term = array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
 
 		if ( ! empty( $page ) ) {
 			if ( isset( $post ) && absint( $post ) ) {
@@ -261,11 +261,11 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return array_key_exists( $_GET, 'post' ) ? filter_input( INPUT_GET, 'post' ) : null;
+				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
 			case 'user':
-				return array_key_exists( $_GET, 'user' ) ? filter_input( INPUT_GET, 'user' ) : null;
+				return array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
 			case 'term':
-				return array_key_exists( $_GET, 'term' ) ? filter_input( INPUT_GET, 'term' ) : null;
+				return array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
 			default:
 				return null;
 		}
