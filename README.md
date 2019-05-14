@@ -21,44 +21,44 @@ Builds protected by CircleCI: [![CircleCI](https://circleci.com/gh/WordPress-Pho
 
 ### Composer style (recommended)
 
-1. Include in your plugin by creating or adding the following to your composer.json file in the root of the plugin
-```json
-{
-  "require": {
-    "WordPress-Phoenix/wordpress-options-builder-class": "^5.0.0"
-  }
-}
-```
-2. Confirm that composer is installed in your development enviroment using `which composer`.
-3. Open CLI into your plugins root directory and run `composer install`.
-4. Confirm that it created the vendor folder in your plugin.
-5. In your plugins main file, near the code where you include other files place the following:
-```php
-if ( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
-  include_once dirname( __FILE__ ) . 'vendor/autoload.php';
-}
-```
+1.  Include in your plugin by creating or adding the following to your composer.json file in the root of the plugin
+    ```json
+    {
+      "require": {
+        "WordPress-Phoenix/wordpress-options-builder-class": "^5.0.0"
+      }
+    }
+    ```
+2.  Confirm that composer is installed in your development enviroment using `which composer`.
+3.  Open CLI into your plugins root directory and run `composer install`.
+4.  Confirm that it created the vendor folder in your plugin.
+5.  In your plugins main file, near the code where you include other files place the following:
+    ```php
+    if ( file_exists( dirname( __FILE__ ) . 'vendor/autoload.php' ) ) {
+      include_once dirname( __FILE__ ) . 'vendor/autoload.php';
+    }
+    ```
 
 ### Manual Installation
-1. Download the most updated copy of this repository from `https://api.github.com/repos/WordPress-Phoenix/wordpress-options-builder-class/zipball`
-2. Extract the zip file, and copy the PHP file into your plugin project.
-3. Include the `src/class-wordpress-options-panels.php` file in your plugin.
+1.  Download the most updated copy of this repository from `https://api.github.com/repos/WordPress-Phoenix/wordpress-options-builder-class/zipball`
+2.  Extract the zip file, and copy the PHP file into your plugin project.
+3.  Include the `src/class-wordpress-options-panels.php` file in your plugin.
 
 ## Upgrading to version 5.x
 
 Version 5.0 is a major rewrite of the WordPress Phoenix Options Panel and there are a few required update steps.
 
-* Include `src/class-wordpress-options-panels.php` instead of `wpop-init.php`
-* Reference the `\WPOP\V_5_0\*` namespace instead of `\WPOP\V_4_1\*`
-* If you use the Markdown field type, consider switching to `include_partial` and rendering the markdown through a PHP class of your choosing (WordPress Phoenix Options Panel) version 4.x used [erusev/parsedown](https://packagist.org/packages/erusev/parsedown))
-* If you aren't using an autoloader, manually load the class files into memory:
-```php
-\WPOP\V_5_0\WordPress_Options_Panels::load_files();
-```
-* Update your array of `$args` to `new \WPOP\V_5_0\Page( $args, $fields );` to include an `installed_dir_uri` key and value, representing the public URL path to your installation of this library (required to load CSS and JS assets used to style the options panels)
+*   If not using an autoloader, include `src/class-wordpress-options-panels.php` (instead of `wpop-init.php`)
+*   Reference the `\WPOP\V_5_0\*` namespace instead of `\WPOP\V_4_1\*`
+*   If you aren't using an autoloader, manually load the class files into memory:
+    ```php
+    \WPOP\V_5_0\WordPress_Options_Panels::load_files();
+    ```
+*   The Markdown field type has been removed; consider switching to `include_partial` and rendering the markdown through a PHP class of your choosing (WordPress Phoenix Options Panel version 4.x used [erusev/parsedown](https://packagist.org/packages/erusev/parsedown))
+*   Update your array of `$args` to `new \WPOP\V_5_0\Page( $args, $fields );` to include an `installed_dir_uri` key and value, representing the public URL path to your installation of this library (required to load CSS and JS assets used to style the options panels)
 
 ## Usage
 
-* [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
-* [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/blob/master/app/admin/class-options-panel.php) in the WPOP Example Plugin
-* [Generate a working copy](https://github.com/WordPress-Phoenix/wordpress-development-toolkit/releases) using the WordPress Development Toolkit and the [Abstract Plugin Base](https://github.com/WordPress-Phoenix/abstract-plugin-base).
+*   [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
+*   [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/blob/master/app/admin/class-options-panel.php) in the WPOP Example Plugin
+*   [Generate a working copy](https://github.com/WordPress-Phoenix/wordpress-development-toolkit/releases) using the WordPress Development Toolkit and the [Abstract Plugin Base](https://github.com/WordPress-Phoenix/abstract-plugin-base).
