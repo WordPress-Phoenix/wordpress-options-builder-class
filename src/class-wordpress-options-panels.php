@@ -14,6 +14,7 @@ namespace WPOP\V_5_0;
  * Class WordPress_Options_Panels
  */
 class WordPress_Options_Panels {
+
 	/**
 	 * Load files required to use this utility.
 	 */
@@ -21,6 +22,7 @@ class WordPress_Options_Panels {
 		// Data api wrappers.
 		require_once 'inc/api/class-read.php';
 		require_once 'inc/api/class-update.php';
+		require_once 'inc/api/class-mcrypt.php';
 
 		require_once 'inc/class-assets.php';
 
@@ -41,4 +43,5 @@ class WordPress_Options_Panels {
 			require_once $file;
 		}
 	}
+
 }

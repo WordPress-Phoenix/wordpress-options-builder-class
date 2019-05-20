@@ -279,12 +279,15 @@ class Part {
 	protected function sanitize_data_input( $input_type, $id, $value ) {
 		// Codesniffer is being annoying and wants another nonce check.
 		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+
 		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
+
 		switch ( $input_type ) {
 			case 'password':
 				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
+
 				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
