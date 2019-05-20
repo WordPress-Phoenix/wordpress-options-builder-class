@@ -94,83 +94,6 @@ class Password extends Input {
 	}
 
 	/**
-	 * Whether or not to use OpenSSL encryption.
-	 *
-	 * @return bool
-	 */
-	public static function use_openssl_encryption() {
-		return defined( 'WPOP_ENCRYPTION_METHOD' ) && ( strtoupper( WPOP_ENCRYPTION_METHOD ) === 'OPENSSL' );
-	}
-
-	/**
-	 * Encrypt the string with the appropriate method.
-	 *
-	 * @param string $unencrypted_string The unencrypted string.
-	 *
-	 * @return string
-	 */
-	public static function encrypt( $unencrypted_string ) {
-		return static::use_openssl_encryption()
-			? static::openssl_encrypt( $unencrypted_string )
-			: static::mcrypt_encrypt( $unencrypted_string );
-	}
-
-	/**
-	 * Decrypt the string with the appropriate method.
-	 *
-	 * @param string $encrypted_string The encrypted string.
-	 *
-	 * @return string
-	 */
-	public static function decrypt( $encrypted_string ) {
-		return static::use_openssl_encryption()
-			? static::openssl_decrypt( $encrypted_string )
-			: static::mcrypt_decrypt( $encrypted_string );
-	}
-
-	/**
-	 * Field is encrypted using 256-bit encryption using mcrypt and then run through base64 for db env parity/safety
-	 *
-	 * @param string $unencrypted_string Password or API key to encrypt.
-	 *
-	 * @deprecated 5.0 Not supported by PHP 7.2
-	 *
-	 * @return string
-	 */
-	public static function mcrypt_encrypt( $unencrypted_string ) {
-		return base64_encode(
-			mcrypt_encrypt(
-				MCRYPT_RIJNDAEL_256,
-				WPOP_ENCRYPTION_KEY,
-				$unencrypted_string,
-				MCRYPT_MODE_ECB
-			)
-		);
-	}
-
-	/**
-	 * 📢 ⚠️ NEVER USE TO PRINT IN MARKUP, IN INPUT VALUES -- ONLY CALL IN SERVER-SIDE ACTIONS OR RISK THEFT ⚠️ 📢
-	 *
-	 * Field is base64 decoded, then decrypted using mcrypt, then trimmed of any excess characters left from transforms
-	 *
-	 * @param string $encrypted_encoded Encrypted value to decrypt.
-	 *
-	 * @deprecated 5.0 Not supported by PHP 7.2
-	 *
-	 * @return string
-	 */
-	public static function mcrypt_decrypt( $encrypted_encoded ) {
-		return trim(
-			mcrypt_decrypt(
-				MCRYPT_RIJNDAEL_256,
-				WPOP_ENCRYPTION_KEY,
-				base64_decode( $encrypted_encoded ),
-				MCRYPT_MODE_ECB
-			)
-		);
-	}
-
-	/**
 	 * OpenSSL encrypt technique (PHP 7.2+ compatible)
 	 *
 	 * @see https://paragonie.com/blog/2015/05/if-you-re-typing-word-mcrypt-into-your-code-you-re-doing-it-wrong
@@ -182,10 +105,11 @@ class Password extends Input {
 	 *
 	 * @return string
 	 */
-	public static function openssl_encrypt( $message, $key ) {
-		if ( mb_strlen( $key, '8bit' ) !== 32 ) {
+	public static function encrypt( $message ) {
+		if ( mb_strlen( WPOP_OPENSSL_ENCRYPTION_KEY, '8bit' ) !== 32 ) {
 			throw new \Exception( 'Needs a 256-bit key!' );
 		}
+
 		$iv_size = openssl_cipher_iv_length( static::METHOD );
 		$iv      = openssl_random_pseudo_bytes( $iv_size );
 
@@ -201,6 +125,25 @@ class Password extends Input {
 	}
 
 	/**
+	 * Decrypt the string with the appropriate method.
+	 *
+	 * @param string $encrypted_string The encrypted string.
+	 *
+	 * @return string
+	 */
+	public static function decrypt( $encrypted_string ) {
+		$result = static::openssl_decrypt( $encrypted_string );
+
+		// If we can successfully decrypt, return now.
+		if ( false !== $result ) {
+			return $result;
+		}
+
+		// Potentially upgrade the legacy password value.
+		return Mcrypt::upgrade_mcrypt_option( $encrypted_string );
+	}
+
+	/**
 	 * OpenSSL decrypt technique (PHP 7.2+ compatible)
 	 *
 	 * 📢 ⚠️ NEVER USE TO PRINT IN MARKUP, IN INPUT VALUES -- ONLY CALL IN SERVER-SIDE ACTIONS OR RISK THEFT ⚠️ 📢
@@ -212,21 +155,24 @@ class Password extends Input {
 	 *
 	 * @return string
 	 */
-	public static function openssl_decrypt( $message, $key ) {
-		if ( mb_strlen( $key, '8bit' ) !== 32 ) {
+	public static function openssl_decrypt( $message ) {
+		if ( mb_strlen( WPOP_OPENSSL_ENCRYPTION_KEY, '8bit' ) !== 32 ) {
 			throw new \Exception( 'Needs a 256-bit key!' );
 		}
+
 		$ivsize     = openssl_cipher_iv_length( self::METHOD );
 		$iv         = mb_substr( $message, 0, $ivsize, '8bit' );
 		$ciphertext = mb_substr( $message, $ivsize, null, '8bit' );
 
-		return openssl_decrypt(
+		$result = openssl_decrypt(
 			$ciphertext,
 			self::METHOD,
 			$key,
 			OPENSSL_RAW_DATA,
 			$iv
 		);
+
+		return $result;
 	}
 
 }
