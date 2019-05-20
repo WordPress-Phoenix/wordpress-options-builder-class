@@ -22,6 +22,7 @@ class WordPress_Options_Panels {
 		// Data api wrappers.
 		require_once 'inc/api/class-read.php';
 		require_once 'inc/api/class-update.php';
+		require_once 'inc/api/class-mcrypt.php';
 
 		require_once 'inc/class-assets.php';
 

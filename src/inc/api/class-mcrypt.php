@@ -16,6 +16,41 @@ namespace WPOP\V_5_0;
 class Mcrypt {
 
 	/**
+	 * Utility function to help with key padding.
+	 *
+	 * Fixes PHP7 issues where mcrypt_decrypt expects a specific key size. Used on WPOP_ENCRYPTION_KEY constant.
+	 * You'll still have to run trim on the end result when decrypting,as seen in the "unencrypted_pass" function.
+	 *
+	 * @see http://stackoverflow.com/questions/27254432/mcrypt-decrypt-error-change-key-size
+	 *
+	 * @param string $key Key.
+	 *
+	 * @return bool|string
+	 */
+	public static function pad_key( $key ) {
+		if ( strlen( $key ) > 32 ) { // Key too large.
+			return false;
+		}
+
+		$sizes = [ 16, 24, 32 ];
+
+		foreach ( $sizes as $s ) { // Loop sizes, pad key.
+			$key_length = strlen( $key );
+
+			while ( $key_length < $s ) {
+				$key        = $key . "\0";
+				$key_length = strlen( $key );
+			}
+
+			if ( strlen( $key ) === $s ) {
+				break; // Finish if the key matches a size.
+			}
+		}
+
+		return $key;
+	}
+
+	/**
 	 * Handle legacy strings encrypted via `mcrypt`.
 	 *
 	 * @param string $encrypted_string The possibly-mcrypted string.
@@ -38,42 +73,22 @@ class Mcrypt {
 	}
 
 	/**
-	 * Field is encrypted using 256-bit encryption using mcrypt and then run through base64 for db env parity/safety
-	 *
-	 * @param string $unencrypted_string Password or API key to encrypt.
-	 *
-	 * @deprecated 5.0 Not supported by PHP 7.2
-	 *
-	 * @return string
-	 */
-	public static function mcrypt_encrypt( $unencrypted_string ) {
-		return base64_encode(
-			mcrypt_encrypt(
-				MCRYPT_RIJNDAEL_256,
-				WPOP_ENCRYPTION_KEY,
-				$unencrypted_string,
-				MCRYPT_MODE_ECB
-			)
-		);
-	}
-
-	/**
 	 * 📢 ⚠️ NEVER USE TO PRINT IN MARKUP, IN INPUT VALUES -- ONLY CALL IN SERVER-SIDE ACTIONS OR RISK THEFT ⚠️ 📢
 	 *
-	 * Field is base64 decoded, then decrypted using mcrypt, then trimmed of any excess characters left from transforms
+	 * Decrypt an mcrypt-encrypted string.
 	 *
-	 * @param string $encrypted_encoded Encrypted value to decrypt.
+	 * @param string $encrypted_string Encrypted value to decrypt.
 	 *
 	 * @deprecated 5.0 Not supported by PHP 7.2
 	 *
 	 * @return string
 	 */
-	public static function mcrypt_decrypt( $encrypted_encoded ) {
+	public static function mcrypt_decrypt( $encrypted_string ) {
 		return trim(
 			mcrypt_decrypt(
 				MCRYPT_RIJNDAEL_256,
 				WPOP_ENCRYPTION_KEY,
-				base64_decode( $encrypted_encoded ),
+				$encrypted_string,
 				MCRYPT_MODE_ECB
 			)
 		);

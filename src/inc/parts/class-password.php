@@ -54,58 +54,61 @@ class Password extends Input {
 	 */
 	public function render() {
 		$this->input();
+
 		echo '<a href="#" class="button pwd-clear">clear</a>';
+
 		$this->input( 'stored_' . $this->id, 'hidden' );
 	}
 
 	/**
-	 * Utility function to help with key padding.
+	 * Encrypt a string.
 	 *
-	 * Fixes PHP7 issues where mcrypt_decrypt expects a specific key size. Used on WPOP_ENCRYPTION_KEY constant.
-	 * You'll still have to run trim on the end result when decrypting,as seen in the "unencrypted_pass" function.
+	 * @param string $value String to encrypt.
 	 *
-	 * @see http://stackoverflow.com/questions/27254432/mcrypt-decrypt-error-change-key-size
-	 *
-	 * @param string $key Key.
-	 *
-	 * @return bool|string
+	 * @return string
 	 */
-	public static function pad_key( $key ) {
-		if ( strlen( $key ) > 32 ) { // Key too large.
-			return false;
-		}
+	public static function encrypt( $value ) {
+		$encrypted_string = static::openssl_encrypt( $value );
 
-		$sizes = [ 16, 24, 32 ];
-
-		foreach ( $sizes as $s ) { // Loop sizes, pad key.
-			$key_length = strlen( $key );
-
-			while ( $key_length < $s ) {
-				$key        = $key . "\0";
-				$key_length = strlen( $key );
-			}
-
-			if ( strlen( $key ) === $s ) {
-				break; // Finish if the key matches a size.
-			}
-		}
-
-		return $key;
+		// Encode the string so it can be safely saved to the DB.
+		return base64_encode( $encrypted_string );
 	}
 
 	/**
-	 * OpenSSL encrypt technique (PHP 7.2+ compatible)
+	 * Decrypt a string, falling back to legacy encryption methods.
+	 *
+	 * @param string $encrypted_string The encrypted string.
+	 *
+	 * @return string
+	 */
+	public static function decrypt( $encrypted_string ) {
+		// Start by decoding the string.
+		$encrypted_string = base64_decode( $encrypted_string );
+
+		// Attempt decryption with OpenSSL.
+		$result = static::openssl_decrypt( $encrypted_string );
+
+		// If we can successfully decrypt, return now.
+		if ( false !== $result ) {
+			return $result;
+		}
+
+		// Potentially upgrade the legacy password value.
+		return Mcrypt::upgrade_mcrypt_option( $encrypted_string );
+	}
+
+	/**
+	 * Encrypt a string via OpenSSL.
+	 *
+	 * @param string $message
 	 *
 	 * @see https://paragonie.com/blog/2015/05/if-you-re-typing-word-mcrypt-into-your-code-you-re-doing-it-wrong
-	 *
-	 * @param string $message String to encrypt.
-	 * @param string $key     Key to encrypt with.
 	 *
 	 * @throws \Exception Custom error output.
 	 *
 	 * @return string
 	 */
-	public static function encrypt( $message ) {
+	public static function openssl_encrypt( $message ) {
 		if ( mb_strlen( WPOP_OPENSSL_ENCRYPTION_KEY, '8bit' ) !== 32 ) {
 			throw new \Exception( 'Needs a 256-bit key!' );
 		}
@@ -122,25 +125,6 @@ class Password extends Input {
 		);
 
 		return $iv . $cipher_text;
-	}
-
-	/**
-	 * Decrypt the string with the appropriate method.
-	 *
-	 * @param string $encrypted_string The encrypted string.
-	 *
-	 * @return string
-	 */
-	public static function decrypt( $encrypted_string ) {
-		$result = static::openssl_decrypt( $encrypted_string );
-
-		// If we can successfully decrypt, return now.
-		if ( false !== $result ) {
-			return $result;
-		}
-
-		// Potentially upgrade the legacy password value.
-		return Mcrypt::upgrade_mcrypt_option( $encrypted_string );
 	}
 
 	/**

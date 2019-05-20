@@ -118,7 +118,7 @@ class Panel {
 			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
 			// locking the encrypted value to the current environment.
 			$trimmed_key = substr( wp_salt(), 0, 15 );
-			define( 'WPOP_ENCRYPTION_KEY', Password::pad_key( sha1( $trimmed_key, true ) ) );
+			define( 'WPOP_ENCRYPTION_KEY', Mcrypt::pad_key( sha1( $trimmed_key, true ) ) );
 		}
 
 		if ( ! defined( 'WPOP_OPENSSL_ENCRYPTION_KEY' ) ) {
