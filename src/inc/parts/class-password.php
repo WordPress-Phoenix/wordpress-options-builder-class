@@ -98,11 +98,11 @@ class Password extends Input {
 	}
 
 	/**
-	 * Encrypt a string via OpenSSL.
-	 *
-	 * @param string $message
+	 * Encrypt a string via OpenSSL. PHP 7.2+ compatible.
 	 *
 	 * @see https://paragonie.com/blog/2015/05/if-you-re-typing-word-mcrypt-into-your-code-you-re-doing-it-wrong
+	 *
+	 * @param string $message The value to encrypt.
 	 *
 	 * @throws \Exception Custom error output.
 	 *
@@ -128,12 +128,10 @@ class Password extends Input {
 	}
 
 	/**
-	 * OpenSSL decrypt technique (PHP 7.2+ compatible)
-	 *
+	 * OpenSSL decrypt technique (PHP 7.2+ compatible).
 	 * 📢 ⚠️ NEVER USE TO PRINT IN MARKUP, IN INPUT VALUES -- ONLY CALL IN SERVER-SIDE ACTIONS OR RISK THEFT ⚠️ 📢
 	 *
-	 * @param string $message String to encrypt.
-	 * @param string $key     Key to encrypt with.
+	 * @param string $message String to decrypt.
 	 *
 	 * @throws \Exception Custom error output.
 	 *
