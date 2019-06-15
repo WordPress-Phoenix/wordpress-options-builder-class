@@ -18,14 +18,14 @@ class Panel {
 	 *
 	 * @var null|string Used by class to determine WordPress data api
 	 */
-	public $api = null;
+	public $api;
 
 	/**
 	 * Panel ID
 	 *
 	 * @var null|string slug or title of a panel
 	 */
-	public $id = null;
+	public $slug;
 
 	/**
 	 * Required Capabilities
@@ -35,18 +35,11 @@ class Panel {
 	public $capability = 'manage_options';
 
 	/**
-	 * Field Parts
+	 * Sections
 	 *
 	 * @var array Array holds list of all parts (usually HTML fields).
 	 */
 	public $parts = [];
-
-	/**
-	 * Notifications
-	 *
-	 * @var array - string notifications to print at top of panel
-	 */
-	public $notifications = [];
 
 	/**
 	 * WordPress Object ID
@@ -92,46 +85,30 @@ class Panel {
 	public $data_count = 0;
 
 	/**
-	 * Update Counts
+	 * Page object (parent)
 	 *
-	 * @var array used to track what happens during save process
+	 * @var \WPOP\V_5_0\Page Represent the custom menu page object.
 	 */
-	public $updated_counts = [
-		'created' => 0,
-		'updated' => 0,
-		'deleted' => 0,
-	];
+	public $page;
 
 	/**
 	 * Container constructor.
 	 *
-	 * @param array $args     Arguments used to customize instance of this class.
-	 * @param array $sections Sections (vertical tabs) to create as a part of this options set.
+	 * @param       $page
+	 * @param       $slug
+	 * @param array $default_param_overrides Arguments used to customize instance of this class.
 	 */
-	public function __construct( $args = [], $sections = [] ) {
-		if ( ! isset( $args['id'] ) ) {
-			echo 'Setting a panel ID is required';
-			exit;
-		}
-
-		if ( ! defined( 'WPOP_ENCRYPTION_KEY' ) ) {
-			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
-			// locking the encrypted value to the current environment.
-			$trimmed_key = substr( wp_salt(), 0, 15 );
-			define( 'WPOP_ENCRYPTION_KEY', Mcrypt::pad_key( sha1( $trimmed_key, true ) ) );
-		}
-
-		if ( ! defined( 'WPOP_OPENSSL_ENCRYPTION_KEY' ) ) {
-			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
-			// locking the encrypted value to the current environment.
-			define( 'WPOP_OPENSSL_ENCRYPTION_KEY', hash( 'sha256', wp_salt(), true ) );
-		}
+	public function __construct( &$page, $slug, $default_param_overrides = [] ) {
+		$this->page = $page;
+		$this->slug = $slug;
+		add_action( 'wpop_page_footer', [ $this, 'callback_footer_html' ] );
+		add_action( 'wpop_' . $this->page->slug . '_page_content', [ $this, 'callback_content_html' ] );
 
 		// Establish panel id.
 		$this->id = preg_replace( '/_/', '-', $args['id'] );
 
 		// Magic-set class object vars from array.
-		foreach ( $args as $key => $val ) {
+		foreach ( $default_param_overrides as $key => $val ) {
 			$this->$key = $val;
 		}
 
@@ -140,47 +117,78 @@ class Panel {
 
 		// Maybe establish WordPress object id when api is one of the metadata APIs.
 		$this->obj_id = $this->maybe_capture_wp_object_id();
+	}
 
-		// Loop over sections.
-		foreach ( $sections as $section_id => $section ) {
-			if ( ! isset( $section['parts'] ) ) {
-				return;
+	/**
+	 * Print function to iterate through parts.
+	 */
+	public function callback_content_html() {
+		?>
+		<div id="wpopContent" class="pure-g">
+			<div id="wpopNav" class="pure-u-1 pure-u-md-6-24">
+				<?php $this->content_sidebar(); ?>
+			</div>
+			<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
+				<?php $this->content_main(); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Left-sidebar in callback_content_html()
+	 *
+	 * @return void
+	 */
+	public function content_sidebar() {
+		?>
+		<div class="pure-menu wpop-options-menu">
+			<ul class="pure-menu-list">
+				<?php
+				/**
+				 * @var \WPOP\V_5_0\Section $section
+				 */
+				foreach ( $this->parts as $key => $section ) :
+					/**
+					 * @var \WPOP\V_5_0\Section $section
+					 */
+					?>
+					<li id="<?php echo esc_attr( $section->slug . '-nav' ); ?>" class="pure-menu-item">
+						<a href="<?php echo esc_attr( '#' . $section->slug ); ?>" class="pure-menu-link">
+							<?php if ( ! empty( $section->dashicon ) ) : ?>
+								<span class="dashicons <?php echo sanitize_html_class( $section->dashicon ); ?> menu-icon"></span>
+							<?php endif; ?>
+
+							<?php echo esc_html( $section->label ); ?>
+
+							<?php if ( count( $section->parts ) > 1 ) : ?>
+								<small class="part-count">
+									<?php echo esc_attr( count( $section->parts ) ); ?>
+								</small>
+							<?php endif; ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Main area in callback_content_html()
+	 *
+	 * @return void
+	 */
+	public function content_main() {
+		?>
+		<ul id="wpopOptNavUl" style="list-style: none;">
+			<?php
+			foreach ( $this->parts as $section_key => $section ) {
+				$section->echo_html();
 			}
-
-			$this->section_count++;
-
-			// Loop over current section's parts.
-			foreach ( $section['parts'] as $part_id => $part_config ) {
-				$current_part_classname    = __NAMESPACE__ . '\\' . $part_config['part'];
-				$part_config['obj_id']     = $this->obj_id;
-				$part_config['panel_id']   = $this->id;
-				$part_config['section_id'] = $section_id;
-				$part_config['panel_api']  = $this->api;
-
-				// Create part class.
-				$current_part = new $current_part_classname( $part_id, $part_config );
-
-				// Add part to panel/section.
-				$this->add_part( $section_id, $section, $current_part );
-				$this->part_count++;
-
-				if ( is_object( $current_part ) && $current_part->data_store ) {
-					$this->data_count++;
-
-					if ( $current_part->updated && isset( $this->updated_counts[ $current_part->update_type ] ) ) {
-						$this->updated_counts[ $current_part->update_type ]++;
-					}
-				}
-			}
-
-			$update_message = '';
-
-			foreach ( $this->updated_counts as $count_type => $count ) {
-				$update_message .= $count . ' ' . ucfirst( $count_type ) . '. ';
-			}
-
-			$this->notifications = [ 'notification' => $update_message ];
-		}
+			?>
+		</ul>
+		<?php
 	}
 
 	/**
@@ -189,7 +197,7 @@ class Panel {
 	 * @return null|string
 	 */
 	public function __toString() {
-		return $this->id;
+		return $this->slug;
 	}
 
 	/**
@@ -278,68 +286,53 @@ class Panel {
 	}
 
 	/**
-	 * Check for Automattic server constants denoting we shouldn't add network options or switch_to_blog()
-	 *
-	 * @return bool
-	 */
-	public static function is_wordpress_vip_or_vip_go() {
-		$is_vip    = ( defined( 'WPCOM_IS_VIP_ENV' ) && true === WPCOM_IS_VIP_ENV ) ? true : false;
-		$is_vip_go = ( defined( 'VIP_GO_ENV' ) && ! empty( VIP_GO_ENV ) ) ? true : false;
-
-		return ( $is_vip || $is_vip_go ) ? true : false;
-	}
-
-	/**
-	 * Old external developer method used to add parts (sections/fields/markup/etc) to a Panel
-	 *
-	 * Now used internally, but still available public
-	 *
-	 * @param string  $section_id Section ID.
-	 * @param Section $section    Section Object.
-	 * @param Part    $part       object One of the part classes from this file.
-	 */
-	public function add_part( $section_id, $section, $part ) {
-		if ( ! isset( $this->parts[ $section_id ] ) ) {
-			$this->parts[ $section_id ]          = $section;
-			$this->parts[ $section_id ]['parts'] = [];
-		}
-
-		array_push( $this->parts[ $section_id ]['parts'], $part );
-	}
-
-	/**
-	 * Print WordPress Admin Notifications
-	 *
-	 * @example $note_data = array( 'notification' => 'My text', 'type' => 'notice-success' )
-	 */
-	public function echo_notifications() {
-		foreach ( $this->notifications as $note_data ) {
-			$this->single_notification( $note_data );
-		}
-	}
-
-	/**
-	 * Create single notification markup
-	 *
-	 * @param string $notification The text to display in the notification.
-	 */
-	public function single_notification( $notification ) {
-		$data      = is_array( $notification ) ? $notification : [ 'notification' => $notification ];
-		$note_type = isset( $data['type'] ) ? $data['type'] : 'notice-success';
-		?>
-		<div class="notice <?php echo esc_attr( $note_type ); ?>">
-			<p><strong><?php echo esc_html( $data['notification'] ); ?></p>
-		</div>
-		<?php
-	}
-
-	/**
 	 * Get class name without versioned namespace.
 	 *
 	 * @return string
 	 */
 	public function get_clean_classname() {
 		return strtolower( explode( '\\', get_called_class() )[2] );
+	}
+
+	public function callback_footer_html() {
+		?>
+		<ul>
+			<li>Sections: <code><?php echo esc_attr( $this->section_count ); ?></code></li>
+			<li>Total Data Parts: <code><?php echo esc_attr( $this->data_count ); ?></code></li>
+			<li>Total Parts: <code><?php echo esc_attr( $this->part_count ); ?></code></li>
+		</ul>
+		<?php
+	}
+
+	/**
+	 * Used as the public function to add fields to the section.
+	 *
+	 * @param $section_slug
+	 * @param $params
+	 *
+	 * @return Mixed
+	 */
+	public function add_section( $section_slug, $params ) {
+		$section = new Section( $this, $section_slug, $params );
+
+		return $this->add_part( $section );
+	}
+
+	/**
+	 * Method used to add parts (sections/fields/markup/etc) to a Panel
+	 *
+	 * @param \WPOP\V_5_0\Section $section object One of the part classes from this file.
+	 *
+	 * @return \WPOP\V_5_0\Section
+	 */
+	public function add_part( &$section ) {
+		$length = array_push( $this->parts, $section );
+		// TODO: Move counter to Section constructor
+		if ( is_a( $section, 'WPOP\V_5_0\Section' ) ) {
+			$this->section_count ++;
+		}
+
+		return $this->parts[ $length - 1 ];
 	}
 
 }

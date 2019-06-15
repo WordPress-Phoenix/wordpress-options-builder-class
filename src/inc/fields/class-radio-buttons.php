@@ -6,7 +6,9 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
+
+use WPOP\V_5_0\Part;
 
 /**
  * Class Radio_Buttons
@@ -44,11 +46,12 @@ class Radio_Buttons extends Part {
 	/**
 	 * Radio_Buttons constructor.
 	 *
-	 * @param string $i Slug or ID.
-	 * @param array  $c Array of value options.
+	 * @param \WPOP\V_5_0\Section $section
+	 * @param string              $i Slug or ID.
+	 * @param array               $c Array of value options.
 	 */
-	public function __construct( $i, $c ) {
-		parent::__construct( $i, $c );
+	public function __construct( &$section, $i, $c ) {
+		parent::__construct( $section, $i, $c );
 		$this->values = ( ! empty( $c['values'] ) ) ? $c['values'] : [];
 	}
 
@@ -69,11 +72,11 @@ class Radio_Buttons extends Part {
 						</td>
 						<td>
 							<input
-								type="radio"
-								id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
-								name="<?php echo esc_attr( $this->field_id ); ?>"
-								value="<?php echo esc_attr( $value ); ?>"
-								class="radio-item"
+									type="radio"
+									id="<?php echo esc_attr( $this->id . '_' . $key ); ?>"
+									name="<?php echo esc_attr( $this->field_id ); ?>"
+									value="<?php echo esc_attr( $value ); ?>"
+									class="radio-item"
 								<?php checked( $value, $selected_val ); ?>
 							/>
 						</td>

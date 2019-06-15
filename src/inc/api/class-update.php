@@ -8,6 +8,8 @@
 
 namespace WPOP\V_5_0;
 
+use WP_Error;
+
 /**
  * Class Update
  */
@@ -15,30 +17,33 @@ class Update {
 	/**
 	 * Update constructor.
 	 *
-	 * @param string $panel_id Panel slug or id.
+	 * @param string $page_slug
 	 * @param string $type     Type.
 	 * @param string $key      Key.
 	 * @param string $value    Value.
 	 * @param null   $obj_id   Object ID.
 	 * @param bool   $autoload Autoload status.
 	 *
-	 * @return array|int|string|null|bool
 	 */
-	public function __construct( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
+	public function __construct( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
+		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
+		if ( ! isset( $_POST['_wpnonce'] ) ) {
+			return false;
+		}
 		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
-		if ( ! wp_verify_nonce( $wpnonce, $panel_id ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
+		if ( ! wp_verify_nonce( $wpnonce, $page_slug ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
 			return false;
 		}
 
-		return $this->save_data( $panel_id, $type, $key, $value, $obj_id, $autoload );
+		return $this->save_data( $page_slug, $type, $key, $value, $obj_id, $autoload );
 	}
 
 	/**
 	 * Save Data
 	 *
-	 * @param string $panel_id Panel slug or id.
+	 * @param string $page_slug
 	 * @param string $type     Type.
 	 * @param string $key      Key.
 	 * @param string $value    Value.
@@ -47,7 +52,7 @@ class Update {
 	 *
 	 * @return bool|int|\WP_Error
 	 */
-	private function save_data( $panel_id, $type, $key, $value, $obj_id = null, $autoload = true ) {
+	private function save_data( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		switch ( $type ) {
 			case 'site':
 				return self::handle_site_option_save( $key, $value, $autoload );
@@ -62,9 +67,9 @@ class Update {
 			case 'post':
 				return self::handle_post_meta_save( $obj_id, $key, $value );
 			default:
-				return new \WP_Error(
+				return new WP_Error(
 					'400',
-					'WPOP panel ' . $panel_id . 'failed to select proper WordPress Data API -- check your config.',
+					'WPOP panel ' . $page_slug . 'failed to select proper WordPress Data API -- check your config.',
 					compact( $type, $key, $value, $obj_id, $autoload )
 				);
 		}

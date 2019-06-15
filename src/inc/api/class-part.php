@@ -11,7 +11,7 @@ namespace WPOP\V_5_0;
 /**
  * Class Part
  */
-class Part {
+abstract class Part {
 
 	/**
 	 * Unique ID for the part - db store key for keystore parts.
@@ -77,42 +77,42 @@ class Part {
 	public $classes = [];
 
 	/**
-	 * Enable this if the panel needs to run save/get operations.
+	 * Enable this if the part needs to run save/get operations.
 	 *
 	 * @var bool
 	 */
 	public $data_store = false;
 
 	/**
-	 * Panel API
+	 * CRUD API
 	 *
 	 * @var bool
 	 */
-	public $panel_api = false;
+	public $data_api = 'site';
 
 	/**
-	 * Panel ID part is attached to?
+	 * Page Slug is the ID of the page where the part lives
 	 *
 	 * @var bool
 	 */
-	public $panel_id = false;
+	public $page_slug = false;
 
 	/**
-	 * Object ID?
+	 * Object ID
 	 *
 	 * @var null
 	 */
 	public $obj_id = null;
 
 	/**
-	 * Type of update?
+	 * Type of update recorded for notifications
 	 *
 	 * @var string
 	 */
 	public $update_type = '';
 
 	/**
-	 * Value of part from DB.
+	 * Value of part from DB
 	 *
 	 * @var string
 	 */
@@ -126,20 +126,35 @@ class Part {
 	public $updated;
 
 	/**
+	 * Status of save options execution.
+	 *
+	 * @var \WPOP\V_5_0\Section
+	 */
+	public $section;
+
+	/**
 	 * Part constructor.
 	 *
-	 * @param string $i    ID of this partial.
-	 * @param array  $args Arguments used to customize the partial.
+	 * @param \WPOP\V_5_0\Section $section Reference to section object where this part lives.
+	 * @param string              $field_slug
+	 * @param array               $params
 	 */
-	public function __construct( $i, $args = [] ) {
-		$this->id       = $i;
+	public function __construct( &$section, $field_slug, $params = [] ) {
+		$this->section  = $section;
+		$this->id       = $field_slug;
 		$this->field_id = $this->id;
 
-		foreach ( $args as $name => $value ) {
+		foreach ( $params as $name => $value ) {
 			$this->$name = $value;
 		}
+		$this->maybe_process_update();
+	}
 
-		if ( $this->data_store ) {
+	/**
+	 * Blocks attempting updates to fields unless POST event is happening and part has "data_store" set to true
+	 */
+	public function maybe_process_update() {
+		if ( ! empty( $_POST ) && $this->data_store ) {
 			$old_value     = $this->get_saved();
 			$this->updated = $this->run_save_process();
 			$this->saved   = $this->get_saved();
@@ -160,11 +175,13 @@ class Part {
 	 * @return mixed
 	 */
 	public function get_clean_classname() {
-		return explode( '\\', get_called_class() )[2];
+		$classname_array = explode( '\\', get_called_class() );
+
+		return $classname_array[ count( $classname_array ) - 1 ];
 	}
 
 	/**
-	 * Input is the output 😺
+	 * Dom element printer for <input> html tag
 	 *
 	 * @param string $field_id   ID of the field.
 	 * @param string $type       Type of field.
@@ -187,16 +204,16 @@ class Part {
 		);
 		?>
 		<input
-			id="<?php echo esc_attr( $field_id ); ?>"
-			name="<?php echo esc_attr( $field_id ); ?>"
-			type="<?php echo esc_attr( $type ); ?>"
-			autocomplete="false"
-			<?php echo boolval( $attributes['disabled'] ) ? 'disabled="disabled"' : ''; ?>"
-			<?php echo boolval( $attributes['readonly'] ) ? 'readonly="readonly"' : ''; ?>"
-			data-part="<?php echo esc_attr( $clean_classname ); ?>"
-			title="<?php echo esc_attr( $field_id ); ?>"
-			class="<?php echo esc_attr( $class_str ); ?>"
-			<?php $this->input_value( $type, $established ); ?>
+				id="<?php echo esc_attr( $field_id ); ?>"
+				name="<?php echo esc_attr( $field_id ); ?>"
+				type="<?php echo esc_attr( $type ); ?>"
+				autocomplete="new-password"
+		<?php echo boolval( $attributes['disabled'] ) ? 'disabled="disabled"' : ''; ?>"
+		<?php echo boolval( $attributes['readonly'] ) ? 'readonly="readonly"' : ''; ?>"
+		data-part="<?php echo esc_attr( $clean_classname ); ?>"
+		title="<?php echo esc_attr( $field_id ); ?>"
+		class="<?php echo esc_attr( $class_str ); ?>"
+		<?php $this->input_value( $type, $established ); ?>
 		/>
 		<?php
 	}
@@ -224,7 +241,8 @@ class Part {
 	 */
 	public function run_save_process() {
 		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->panel_id ) ) {
+		$page_slug_as_action = $this->section->panel->page->slug;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $page_slug_as_action ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 
@@ -235,8 +253,8 @@ class Part {
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
 		$updated = new Update(
-			$this->panel_id, // Used to check nonce.
-			$this->panel_api, // Doing this way to allow multi-api saving from single panel down-the-road.
+			$this->section->panel->page->slug, // Used to check nonce.
+			$this->data_api, // Doing this way to allow multi-api saving from single section down-the-road.
 			$this->id, // This is the data storage key in the database.
 			$sanitize_input, // Sanitized input (maybe empty, triggering delete).
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
@@ -257,8 +275,8 @@ class Part {
 	public function get_saved() {
 
 		$response = new Read(
-			$this->panel_id,
-			$this->panel_api,
+			$this->page_slug,
+			$this->data_api,
 			$this->id,
 			$this->default_value,
 			$this->obj_id
@@ -277,13 +295,6 @@ class Part {
 	 * @return bool|string
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
-		// Codesniffer is being annoying and wants another nonce check.
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, $this->panel_id ) ) {
-			return false; // Only run logic if asked to run & auth'd by nonce.
-		}
-
 		switch ( $input_type ) {
 			case 'password':
 				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
@@ -292,7 +303,7 @@ class Part {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
 				}
 
-				return ! empty( $value ) ? Password::encrypt( $value ) : false;
+				return ! empty( $value ) ? \WPOP\V_5_0\Fields\Password::encrypt( $value ) : false;
 			case 'media':
 				return absint( $value );
 			case 'color':
@@ -323,8 +334,6 @@ class Part {
 	/**
 	 * Render is an output placeholder for sub parts.
 	 */
-	public function render() {
-		echo 'Error: Part missing render callback.';
-	}
+	abstract public function render();
 
 }

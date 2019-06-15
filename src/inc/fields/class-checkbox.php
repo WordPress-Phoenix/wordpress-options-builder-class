@@ -6,7 +6,9 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
+
+use WPOP\V_5_0\Part;
 
 /**
  * Class Checkbox

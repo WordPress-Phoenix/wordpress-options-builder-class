@@ -6,9 +6,9 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
 
-/**
+use WPOP\V_5_0\Part;use WPOP\V_5_0\Update;/**
  * Class Multiselect
  */
 class Multiselect extends Part {
@@ -58,11 +58,12 @@ class Multiselect extends Part {
 	/**
 	 * Multiselect constructor.
 	 *
-	 * @param string $i Slug or ID.
-	 * @param array  $m Meta values.
-	 */
-	public function __construct( $i, $m ) {
-		parent::__construct( $i, $m );
+* @param \WPOP\V_5_0\Section $section
+* @param string $i Slug or ID.
+* @param array  $m Meta values.
+*/
+	public function __construct( &$section, $i, $m ) {
+		parent::__construct($section, $i, $m );
 		$this->values = ( ! empty( $m['values'] ) ) ? $m['values'] : [];
 		$this->meta   = ( ! empty( $m ) ) ? $m : [];
 	}
@@ -74,7 +75,7 @@ class Multiselect extends Part {
 	 */
 	public function run_save_process() {
 		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->panel_id ) ) {
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->section->panel->page->slug ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 
@@ -84,8 +85,8 @@ class Multiselect extends Part {
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 		$updated        = new Update(
-			$this->panel_id, // Used to check nonce.
-			$this->panel_api, // Doing this way to allow multi-api saving from single panel down-the-road.
+			$this->section->panel->page->slug, // Used to check nonce.
+			$this->data_api, // Doing this way to allow multi-api saving from single panel down-the-road.
 			$this->id, // This is the data storage key in the database.
 			$sanitize_input, // Sanitized input (maybe empty, triggering delete).
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.

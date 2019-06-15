@@ -6,7 +6,7 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
 
 /**
  * Class Toggle_Switch
@@ -23,11 +23,12 @@ class Toggle_Switch extends Checkbox {
 	/**
 	 * Toggle_Switch constructor.
 	 *
-	 * @param string $i    Slug or ID.
-	 * @param array  $args Arguments to customize instance.
+	 * @param \WPOP\V_5_0\Section $section
+	 * @param string              $i    Slug or ID.
+	 * @param array               $args Arguments to customize instance.
 	 */
-	public function __construct( $i, array $args = [] ) {
-		parent::__construct( $i, $args );
+	public function __construct( &$section, $i, array $args = [] ) {
+		parent::__construct( $section, $i, $args );
 		$this->classes = [ 'onOffSwitch-checkbox' ];
 	}
 

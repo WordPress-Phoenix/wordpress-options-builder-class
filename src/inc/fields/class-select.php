@@ -6,7 +6,9 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
+
+use WPOP\V_5_0\Part;
 
 /**
  * Class Select
@@ -53,8 +55,8 @@ class Select extends Part {
 	 * @param string $i Slug or ID.
 	 * @param array  $m Array of possible values.
 	 */
-	public function __construct( $i, $m ) {
-		parent::__construct( $i, $m );
+	public function __construct( &$section, $i, $m ) {
+		parent::__construct( $section, $i, $m );
 		$this->values = ( ! empty( $m['values'] ) ) ? $m['values'] : [];
 		$this->meta   = ( ! empty( $m ) ) ? $m : [];
 	}

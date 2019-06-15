@@ -63,12 +63,6 @@ class Read {
 	 * @return array|int|string|null|bool
 	 */
 	public function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
-		$current_screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-		if ( ! is_object( $current_screen ) || false === stripos( $current_screen->id, $panel_id ) ) {
-			return false; // Only let panel page use that class to read db.
-		}
-
 		$this->type   = $type;
 		$this->key    = $key;
 		$this->obj_id = $obj_id;
