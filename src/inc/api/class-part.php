@@ -135,9 +135,9 @@ abstract class Part {
 	/**
 	 * Part constructor.
 	 *
-	 * @param \WPOP\V_5_0\Section $section Reference to section object where this part lives.
-	 * @param string              $field_slug
-	 * @param array               $params
+	 * @param \WPOP\V_5_0\Section $section    Reference to section object where this part lives.
+	 * @param string              $field_slug Section page URL.
+	 * @param array               $params     Page params.
 	 */
 	public function __construct( &$section, $field_slug, $params = [] ) {
 		$this->section  = $section;
@@ -154,6 +154,11 @@ abstract class Part {
 	 * Blocks attempting updates to fields unless POST event is happening and part has "data_store" set to true
 	 */
 	public function maybe_process_update() {
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->data_store ) ) {
+			return false;
+		}
+
 		if ( ! empty( $_POST ) && $this->data_store ) {
 			$old_value     = $this->get_saved();
 			$this->updated = $this->run_save_process();
@@ -240,7 +245,7 @@ abstract class Part {
 	 * @return bool|string
 	 */
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$nonce               = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
 		$page_slug_as_action = $this->section->panel->page->slug;
 		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $page_slug_as_action ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
@@ -295,6 +300,11 @@ abstract class Part {
 	 * @return bool|string
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $input_type ) ) {
+			return false;
+		}
+
 		switch ( $input_type ) {
 			case 'password':
 				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;

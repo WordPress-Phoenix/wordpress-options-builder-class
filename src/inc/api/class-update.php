@@ -17,13 +17,12 @@ class Update {
 	/**
 	 * Update constructor.
 	 *
-	 * @param string $page_slug
-	 * @param string $type     Type.
-	 * @param string $key      Key.
-	 * @param string $value    Value.
-	 * @param null   $obj_id   Object ID.
-	 * @param bool   $autoload Autoload status.
-	 *
+	 * @param string $page_slug Page URL.
+	 * @param string $type      Type.
+	 * @param string $key       Key.
+	 * @param string $value     Value.
+	 * @param null   $obj_id    Object ID.
+	 * @param bool   $autoload  Autoload status.
 	 */
 	public function __construct( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
@@ -43,12 +42,12 @@ class Update {
 	/**
 	 * Save Data
 	 *
-	 * @param string $page_slug
-	 * @param string $type     Type.
-	 * @param string $key      Key.
-	 * @param string $value    Value.
-	 * @param null   $obj_id   Object ID.
-	 * @param bool   $autoload Autoload status.
+	 * @param string $page_slug Page URL.
+	 * @param string $type      Type.
+	 * @param string $key       Key.
+	 * @param string $value     Value.
+	 * @param null   $obj_id    Object ID.
+	 * @param bool   $autoload  Autoload status.
 	 *
 	 * @return bool|int|\WP_Error
 	 */
