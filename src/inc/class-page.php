@@ -128,10 +128,10 @@ class Page {
 	 * Page constructor.
 	 *
 	 * @param string      $options_page_slug The slug represents the ID of the page.
-	 * @param string      $options_page_type The type can be either main_menu or sub_menu
-	 * @param string|null $parent_menu_id    The parent id only set if this is a sub_menu
-	 * @param string      $installed_dir
-	 * @param string      $installed_dir_uri
+	 * @param string      $options_page_type The type can be either main_menu or sub_menu.
+	 * @param string|null $parent_menu_id    The parent id only set if this is a sub_menu.
+	 * @param string      $installed_dir     A field value of menu slug.
+	 * @param string      $installed_dir_uri A value of either main_menu or sub_menu.
 	 */
 	public function __construct( $options_page_slug, $options_page_type, $parent_menu_id, $installed_dir, $installed_dir_uri ) {
 		$this->slug              = $options_page_slug;
@@ -161,7 +161,7 @@ class Page {
 
 	/**
 	 * Register Submenu Page with WordPress
-	 * Do not call directly, requires the scope of running during a wordpress action like admin_menu
+	 * Do not call directly, requires the scope of running during a WordPress action like admin_menu
 	 *
 	 * @return void
 	 */
@@ -176,7 +176,6 @@ class Page {
 				[ $this, 'build_parts' ]
 			);
 		} else {
-			//function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '', $position = null ) {
 			add_menu_page(
 				$this->page_title,
 				$this->menu_title,
@@ -377,8 +376,8 @@ class Page {
 	/**
 	 * Used as the public function to add fields to the section.
 	 *
-	 * @param string $page_slug
-	 * @param array  $params
+	 * @param string $page_slug Page slug field.
+	 * @param array  $params    Panels params array.
 	 *
 	 * @return Mixed
 	 */

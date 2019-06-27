@@ -16,11 +16,15 @@ namespace WPOP\V_5_0;
 class WordPress_Options_Panels {
 
 	/**
+	 * Installed Directory
+	 *
 	 * @var string
 	 */
 	public $installed_dir;
 
 	/**
+	 * Installed Directory URL
+	 *
 	 * @var string
 	 */
 	public $installed_url;
@@ -28,9 +32,9 @@ class WordPress_Options_Panels {
 	/**
 	 * Load files required to use this utility.
 	 *
-	 * @param $plugins_installed_dir
-	 * @param $plugins_installed_url
-	 * @param $plugin_basedir
+	 * @param string $plugins_installed_dir Install directory of the plugin.
+	 * @param string $plugins_installed_url Install plugin URL.
+	 * @param string $plugin_basedir        Base plugin directory.
 	 */
 	public function __construct( $plugins_installed_dir, $plugins_installed_url, $plugin_basedir ) {
 		$current_dir         = dirname( __FILE__ );
@@ -42,16 +46,16 @@ class WordPress_Options_Panels {
 			include_once $file;
 		}
 
-		// Register classes that represent root objects
+		// Register classes that represent root objects.
 		include_once 'inc/class-page.php';
 		include_once 'inc/api/class-part.php';
 		include_once 'inc/api/class-mcrypt.php';
 
-		// Register classes that represent objects placed into root objects
+		// Register classes that represent objects placed into root objects.
 		include_once 'inc/page-parts/class-assets.php';
 		include_once 'inc/page-parts/class-panel.php';
 
-		// Register Panel Parts
+		// Register Panel Parts.
 		include_once 'inc/panel-parts/class-section.php';
 
 		// Load the individual parts.
@@ -69,10 +73,11 @@ class WordPress_Options_Panels {
 	/**
 	 * Helper registration function makes it easy to begin using the classes.
 	 *
-	 * @param string      $options_page_slug
-	 * @param string      $options_page_type A value of either main_menu or sub_menu
-	 * @param string|null $parent_menu_id    if sub_menu then parent_menu_id is required, usually a string of the php
-	 *                                       file like options-general.php
+	 * @param string      $options_page_slug A field value of menu slug.
+	 * @param string      $options_page_type A value of either main_menu or sub_menu.
+	 * @param string|null $parent_menu_id    Parent menu id for sub menu.
+	 *                                       if sub_menu then parent_menu_id is required,
+	 *                                       usually a string of the php file like options-general.php
 	 *                                       https://developer.wordpress.org/reference/functions/add_submenu_page/#comment-1404
 	 *
 	 * @return \WPOP\V_5_0\Page
