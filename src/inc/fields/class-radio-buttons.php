@@ -46,9 +46,9 @@ class Radio_Buttons extends Part {
 	/**
 	 * Radio_Buttons constructor.
 	 *
-	 * @param \WPOP\V_5_0\Section $section
-	 * @param string              $i Slug or ID.
-	 * @param array               $c Array of value options.
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i       Slug or ID.
+	 * @param array               $c       Array of value options.
 	 */
 	public function __construct( &$section, $i, $c ) {
 		parent::__construct( $section, $i, $c );

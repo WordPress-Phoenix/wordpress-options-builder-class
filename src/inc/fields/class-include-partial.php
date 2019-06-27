@@ -33,9 +33,9 @@ class Include_Partial extends Part {
 	/**
 	 * Include_Partial constructor.
 	 *
-	 * @param \WPOP\V_5_0\Section $section
-	 * @param string              $i      Slug or ID.
-	 * @param array               $config Configuration arguments for customizing object instance.
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i       Slug or ID.
+	 * @param array               $config  Configuration arguments for customizing object instance.
 	 */
 	public function __construct( &$section, $i, $config ) {
 		parent::__construct( $section, $i, $config );

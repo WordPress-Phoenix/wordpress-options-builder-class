@@ -52,8 +52,9 @@ class Select extends Part {
 	/**
 	 * Select constructor.
 	 *
-	 * @param string $i Slug or ID.
-	 * @param array  $m Array of possible values.
+	 * @param object $section Reference to the parent object (Panel).
+	 * @param string $i       Slug or ID.
+	 * @param array  $m       Array of possible values.
 	 */
 	public function __construct( &$section, $i, $m ) {
 		parent::__construct( $section, $i, $m );

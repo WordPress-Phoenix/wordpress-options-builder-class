@@ -8,7 +8,10 @@
 
 namespace WPOP\V_5_0\Fields;
 
-use WPOP\V_5_0\Part;use WPOP\V_5_0\Update;/**
+use WPOP\V_5_0\Part;
+use WPOP\V_5_0\Update;
+
+/**
  * Class Multiselect
  */
 class Multiselect extends Part {
@@ -58,12 +61,12 @@ class Multiselect extends Part {
 	/**
 	 * Multiselect constructor.
 	 *
-* @param \WPOP\V_5_0\Section $section
-* @param string $i Slug or ID.
-* @param array  $m Meta values.
-*/
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i Slug or ID.
+	 * @param array               $m Meta values.
+	 */
 	public function __construct( &$section, $i, $m ) {
-		parent::__construct($section, $i, $m );
+		parent::__construct( $section, $i, $m );
 		$this->values = ( ! empty( $m['values'] ) ) ? $m['values'] : [];
 		$this->meta   = ( ! empty( $m ) ) ? $m : [];
 	}

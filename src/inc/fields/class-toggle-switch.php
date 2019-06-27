@@ -23,9 +23,9 @@ class Toggle_Switch extends Checkbox {
 	/**
 	 * Toggle_Switch constructor.
 	 *
-	 * @param \WPOP\V_5_0\Section $section
-	 * @param string              $i    Slug or ID.
-	 * @param array               $args Arguments to customize instance.
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i       Slug or ID.
+	 * @param array               $args    Arguments to customize instance.
 	 */
 	public function __construct( &$section, $i, array $args = [] ) {
 		parent::__construct( $section, $i, $args );

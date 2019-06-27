@@ -47,8 +47,9 @@ class Password extends Part {
 	/**
 	 * Password constructor.
 	 *
-	 * @param string $i    Slug or ID.
-	 * @param array  $args Arguments to customize object instance.
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i       Slug or ID.
+	 * @param array               $args    Arguments to customize object instance.
 	 */
 	public function __construct( &$section, $i, $args = [] ) {
 		parent::__construct( $section, $i, $args );
@@ -91,7 +92,6 @@ class Password extends Part {
 	 *
 	 * @return string
 	 * @throws \Exception Custom error output.
-	 *
 	 */
 	public static function decrypt( $encrypted_string ) {
 		// Start by decoding the string.
@@ -110,7 +110,7 @@ class Password extends Part {
 			$result = Mcrypt::upgrade_mcrypt_option( $encrypted_string );
 		} else {
 			$result = null;
-			error_log('WordPress Options Panel Class ERROR: Encryption issue while decrypting value. Either they encryption key has changed requiring a reset of this field or an upgrade from mcrypt to openssl is impossible because mcrypt global function is not available on this servers version of PHP.');
+			error_log( 'WordPress Options Panel Class ERROR: Encryption issue while decrypting value. Either they encryption key has changed requiring a reset of this field or an upgrade from mcrypt to openssl is impossible because mcrypt global function is not available on this servers version of PHP.' ); // @codingStandardsIgnoreLinegit
 		}
 
 		return $result;
@@ -154,7 +154,6 @@ class Password extends Part {
 	 *
 	 * @return string
 	 * @throws \Exception Custom error output.
-	 *
 	 */
 	public static function openssl_decrypt( $message ) {
 		if ( mb_strlen( WPOP_OPENSSL_ENCRYPTION_KEY, '8bit' ) !== 32 ) {
