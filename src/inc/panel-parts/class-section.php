@@ -58,14 +58,15 @@ class Section {
 	/**
 	 * Section constructor.
 	 *
+	 * @param object $panel Reference to the parent panel object.
 	 * @param string $slug  ID.
 	 * @param string $label Printed label.
 	 * @param array  $args  Arguments.
 	 */
 	public function __construct( &$panel, $slug, $label, $args = [] ) {
 		$this->panel = $panel;
-		$this->slug   = $slug;
-		$this->label  = $label;
+		$this->slug  = $slug;
+		$this->label = $label;
 
 		foreach ( $args as $name => $value ) {
 			$this->$name = $value;
@@ -82,6 +83,8 @@ class Section {
 			<ul>
 				<?php
 				/**
+				 * Iterating through panel markup.
+				 *
 				 * @var Part $part
 				 */
 				foreach ( $this->parts as $part ) :
@@ -99,7 +102,8 @@ class Section {
 					>
 						<h4 class="label"><?php echo esc_html( $part->label ); ?></h4>
 
-						<?php $part->render(); // Render main unique field output.
+						<?php
+						$part->render(); // Render main unique field output.
 						?>
 
 						<?php if ( ! empty( $part->description ) ) : ?>
@@ -118,9 +122,9 @@ class Section {
 	/**
 	 * Used as the public function to add fields to the section.
 	 *
-	 * @param $field_type
-	 * @param $field_slug
-	 * @param $params
+	 * @param string $field_type Field type.
+	 * @param string $field_slug Field URL.
+	 * @param array  $params      Field params.
 	 *
 	 * @return Mixed
 	 */
