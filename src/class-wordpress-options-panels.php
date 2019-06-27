@@ -75,10 +75,8 @@ class WordPress_Options_Panels {
 	 *
 	 * @param string      $options_page_slug A field value of menu slug.
 	 * @param string      $options_page_type A value of either main_menu or sub_menu.
-	 * @param string|null $parent_menu_id    Parent menu id for sub menu.
-	 *                                       if sub_menu then parent_menu_id is required,
-	 *                                       usually a string of the php file like options-general.php
-	 *                                       https://developer.wordpress.org/reference/functions/add_submenu_page/#comment-1404
+	 * @param string|null $parent_menu_id    if sub_menu then parent_menu_id is required, usually a string of the php file like options-general.php.
+	 *                                       @example: https://developer.wordpress.org/reference/functions/add_submenu_page/#comment-1404 // @codingStandardsIgnoreLine
 	 *
 	 * @return \WPOP\V_5_0\Page
 	 */
