@@ -94,9 +94,9 @@ class Panel {
 	/**
 	 * Container constructor.
 	 *
-	 * @param       $page
-	 * @param       $slug
-	 * @param array $default_param_overrides Arguments used to customize instance of this class.
+	 * @param object $page                    Referenced page object.
+	 * @param string $slug                    Page URL.
+	 * @param array  $default_param_overrides Arguments used to customize instance of this class.
 	 */
 	public function __construct( &$page, $slug, $default_param_overrides = [] ) {
 		$this->page = $page;
@@ -117,6 +117,17 @@ class Panel {
 
 		// Maybe establish WordPress object id when api is one of the metadata APIs.
 		$this->obj_id = $this->maybe_capture_wp_object_id();
+	}
+
+	/**
+	 * WP nonce verification callback.
+	 */
+	public static function check_nonce() {
+		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -146,12 +157,11 @@ class Panel {
 			<ul class="pure-menu-list">
 				<?php
 				/**
+				 * Iterating through section parts.
+				 *
 				 * @var \WPOP\V_5_0\Section $section
 				 */
 				foreach ( $this->parts as $key => $section ) :
-					/**
-					 * @var \WPOP\V_5_0\Section $section
-					 */
 					?>
 					<li id="<?php echo esc_attr( $section->slug . '-nav' ); ?>" class="pure-menu-item">
 						<a href="<?php echo esc_attr( '#' . $section->slug ); ?>" class="pure-menu-link">
@@ -207,6 +217,11 @@ class Panel {
 	 */
 	public function detect_data_api_and_permissions() {
 		$api = null;
+
+		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
+			return false;
+		}
 
 		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page' ) : null;
 		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
@@ -273,6 +288,11 @@ class Panel {
 	 * @return int|null
 	 */
 	public function maybe_capture_wp_object_id() {
+		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
+		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
+			return false;
+		}
+
 		switch ( $this->api ) {
 			case 'post':
 				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
@@ -294,6 +314,11 @@ class Panel {
 		return strtolower( explode( '\\', get_called_class() )[2] );
 	}
 
+	/**
+	 * Section footer page in callback_footer_html()
+	 *
+	 * @return void
+	 */
 	public function callback_footer_html() {
 		?>
 		<ul>
@@ -307,8 +332,8 @@ class Panel {
 	/**
 	 * Used as the public function to add fields to the section.
 	 *
-	 * @param $section_slug
-	 * @param $params
+	 * @param string $section_slug Page URL.
+	 * @param object $params       Section params.
 	 *
 	 * @return Mixed
 	 */
@@ -327,7 +352,7 @@ class Panel {
 	 */
 	public function add_part( &$section ) {
 		$length = array_push( $this->parts, $section );
-		// TODO: Move counter to Section constructor
+		// TODO: Move counter to Section constructor.
 		if ( is_a( $section, 'WPOP\V_5_0\Section' ) ) {
 			$this->section_count ++;
 		}
