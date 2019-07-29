@@ -6,14 +6,23 @@
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
+
+use WPOP\V_5_0\Mcrypt;
+use WPOP\V_5_0\Part;
 
 /**
  * Class password
  *
  * @notes   how to use: echo $this->decrypt( get_option( $this->id ) );
  */
-class Password extends Input {
+class Password extends Part {
+	/**
+	 * Input type
+	 *
+	 * @var string
+	 */
+	public $input_type = 'password';
 
 	/**
 	 * This value is used during saving to denote new field value matches prior database value, preventing overwriting
@@ -24,11 +33,11 @@ class Password extends Input {
 	public static $default_existing_value = '### wpop-encrypted-pwd-field-val-unchanged ###';
 
 	/**
-	 * Input type
+	 * Data store status
 	 *
-	 * @var string
+	 * @var bool
 	 */
-	public $input_type = 'password';
+	public $data_store = true;
 
 	/**
 	 * OpenSSL Encryption method
@@ -38,11 +47,12 @@ class Password extends Input {
 	/**
 	 * Password constructor.
 	 *
-	 * @param string $i    Slug or ID.
-	 * @param array  $args Arguments to customize object instance.
+	 * @param \WPOP\V_5_0\Section $section Reference to the parent object (Panel) where this section lives.
+	 * @param string              $i       Slug or ID.
+	 * @param array               $args    Arguments to customize object instance.
 	 */
-	public function __construct( $i, $args = [] ) {
-		parent::__construct( $i, $args );
+	public function __construct( &$section, $i, $args = [] ) {
+		parent::__construct( $section, $i, $args );
 
 		if ( ! defined( 'WPOP_EXISTING_ENCRYPTED_VALUE' ) ) {
 			define( 'WPOP_EXISTING_ENCRYPTED_VALUE', self::$default_existing_value );
@@ -66,6 +76,7 @@ class Password extends Input {
 	 * @param string $value String to encrypt.
 	 *
 	 * @return string
+	 * @throws \Exception Custom error output.
 	 */
 	public static function encrypt( $value ) {
 		$encrypted_string = static::openssl_encrypt( $value );
@@ -80,6 +91,7 @@ class Password extends Input {
 	 * @param string $encrypted_string The encrypted string.
 	 *
 	 * @return string
+	 * @throws \Exception Custom error output.
 	 */
 	public static function decrypt( $encrypted_string ) {
 		// Start by decoding the string.
@@ -94,7 +106,14 @@ class Password extends Input {
 		}
 
 		// Potentially upgrade the legacy password value.
-		return Mcrypt::upgrade_mcrypt_option( $encrypted_string );
+		if ( function_exists( 'mcrypt_decrypt' ) ) {
+			$result = Mcrypt::upgrade_mcrypt_option( $encrypted_string );
+		} else {
+			$result = null;
+			error_log( 'WordPress Options Panel Class ERROR: Encryption issue while decrypting value. Either they encryption key has changed requiring a reset of this field or an upgrade from mcrypt to openssl is impossible because mcrypt global function is not available on this servers version of PHP.' ); // @codingStandardsIgnoreLinegit
+		}
+
+		return $result;
 	}
 
 	/**
@@ -119,7 +138,7 @@ class Password extends Input {
 		$cipher_text = openssl_encrypt(
 			$message,
 			self::METHOD,
-			$key,
+			WPOP_OPENSSL_ENCRYPTION_KEY,
 			OPENSSL_RAW_DATA,
 			$iv
 		);
@@ -133,9 +152,8 @@ class Password extends Input {
 	 *
 	 * @param string $message String to decrypt.
 	 *
-	 * @throws \Exception Custom error output.
-	 *
 	 * @return string
+	 * @throws \Exception Custom error output.
 	 */
 	public static function openssl_decrypt( $message ) {
 		if ( mb_strlen( WPOP_OPENSSL_ENCRYPTION_KEY, '8bit' ) !== 32 ) {
@@ -149,7 +167,7 @@ class Password extends Input {
 		$result = openssl_decrypt(
 			$ciphertext,
 			self::METHOD,
-			$key,
+			WPOP_OPENSSL_ENCRYPTION_KEY,
 			OPENSSL_RAW_DATA,
 			$iv
 		);

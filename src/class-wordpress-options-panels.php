@@ -16,32 +16,73 @@ namespace WPOP\V_5_0;
 class WordPress_Options_Panels {
 
 	/**
-	 * Load files required to use this utility.
+	 * Installed Directory
+	 *
+	 * @var string
 	 */
-	public static function load_files() {
+	public $installed_dir;
+
+	/**
+	 * Installed Directory URL
+	 *
+	 * @var string
+	 */
+	public $installed_url;
+
+	/**
+	 * Load files required to use this utility.
+	 *
+	 * @param string $plugins_installed_dir Install directory of the plugin.
+	 * @param string $plugins_installed_url Install plugin URL.
+	 * @param string $plugin_basedir        Base plugin directory.
+	 */
+	public function __construct( $plugins_installed_dir, $plugins_installed_url, $plugin_basedir ) {
+		$current_dir         = dirname( __FILE__ );
+		$relative_dir        = str_replace( $plugin_basedir . '/', '', $current_dir );
+		$this->installed_dir = $plugin_basedir . '/' . $relative_dir;
+		$this->installed_url = $plugins_installed_url . $relative_dir;
 		// Data api wrappers.
-		require_once 'inc/api/class-read.php';
-		require_once 'inc/api/class-update.php';
-		require_once 'inc/api/class-mcrypt.php';
+		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/api/class-*.php' ) as $file ) {
+			include_once $file;
+		}
 
-		require_once 'inc/class-assets.php';
+		// Register classes that represent root objects.
+		include_once 'inc/class-page.php';
+		include_once 'inc/api/class-part.php';
+		include_once 'inc/api/class-mcrypt.php';
 
-		require_once 'inc/class-panel.php';
-		require_once 'inc/class-page.php';
-		require_once 'inc/class-section.php';
-		require_once 'inc/class-part.php';
+		// Register classes that represent objects placed into root objects.
+		include_once 'inc/page-parts/class-assets.php';
+		include_once 'inc/page-parts/class-panel.php';
 
-		// Must require base input class first because others extend.
-		require_once 'inc/parts/class-input.php';
+		// Register Panel Parts.
+		include_once 'inc/panel-parts/class-section.php';
 
 		// Load the individual parts.
-		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/parts/class-*.php' ) as $file ) {
-			if ( false !== stripos( $file, 'inc/parts/class-input.php' ) ) {
-				continue; // Don't re-require file.
-			}
-
+		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/fields/class-*.php' ) as $file ) {
 			require_once $file;
 		}
+
+		if ( ! defined( 'WPOP_OPENSSL_ENCRYPTION_KEY' ) ) {
+			// IMPORTANT: If you don't define a key, the class hashes the AUTH_KEY found in wp-config.php,
+			// locking the encrypted value to the current environment.
+			define( 'WPOP_OPENSSL_ENCRYPTION_KEY', hash( 'sha256', wp_salt(), true ) );
+		}
+	}
+
+	/**
+	 * Helper registration function makes it easy to begin using the classes.
+	 *
+	 * @param string      $options_page_slug A field value of menu slug.
+	 * @param string      $options_page_type A value of either main_menu or sub_menu.
+	 * @param string|null $parent_menu_id    if sub_menu then parent_menu_id is required, usually a string of the php file like options-general.php.
+	 *                                       @example: https://developer.wordpress.org/reference/functions/add_submenu_page/#comment-1404 // @codingStandardsIgnoreLine
+	 *
+	 * @return \WPOP\V_5_0\Page
+	 */
+	public function register_page( $options_page_slug, $options_page_type, $parent_menu_id = null ) {
+
+		return new Page( $options_page_slug, $options_page_type, $parent_menu_id, $this->installed_dir, $this->installed_url );
 	}
 
 }

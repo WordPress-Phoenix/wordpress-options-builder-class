@@ -1,23 +1,32 @@
 <?php
 /**
- * Input (Default field object)
+ * Color
  *
  * @package    WordPress
  * @subpackage WPOP
  */
 
-namespace WPOP\V_5_0;
+namespace WPOP\V_5_0\Fields;
+
+use WPOP\V_5_0\Part;
 
 /**
- * Class Input
+ * Class Color
  */
-class Input extends Part {
+class Color extends Part {
 	/**
-	 * Input Type
+	 * HTML form input field type.
 	 *
 	 * @var string
 	 */
-	public $input_type;
+	public $input_type = 'text';
+
+	/**
+	 * Field Type
+	 *
+	 * @var string
+	 */
+	public $field_type = 'color';
 
 	/**
 	 * Data store status
@@ -32,5 +41,4 @@ class Input extends Part {
 	public function render() {
 		$this->input();
 	}
-
 }

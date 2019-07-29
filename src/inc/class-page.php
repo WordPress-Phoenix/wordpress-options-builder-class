@@ -11,14 +11,37 @@ namespace WPOP\V_5_0;
 /**
  * Class Page
  */
-class Page extends Panel {
+class Page {
+
+	/**
+	 * Slug represent the ID for the page
+	 *
+	 * @var string if it has a parent page, represents the slug or ID.
+	 */
+	public $slug = 'main_menu_slug';
+
+	/**
+	 * Page menu type - main_menu or sub_menu
+	 *
+	 * @var string if it has a parent page, represents the slug or ID.
+	 */
+	public $type = 'main_menu';
+
+
+	/**
+	 * Settings API determines database storage location
+	 * Intended to separate network settings, site settings and user settings into proper tables.
+	 *
+	 * @var string with value of API to use
+	 */
+	public $api = 'site';
 
 	/**
 	 * Parent Page ID
 	 *
 	 * @var string if it has a parent page, represents the slug or ID.
 	 */
-	public $parent_page_id = '';
+	public $parent_menu_id = null;
 
 	/**
 	 * Page Title
@@ -33,6 +56,27 @@ class Page extends Panel {
 	 * @var string
 	 */
 	public $menu_title = 'Custom Site Options';
+
+	/**
+	 * WP Admin Primary Nav Title
+	 *
+	 * @var string
+	 */
+	public $capability = 'manage_options';
+
+	/**
+	 * Field Parts
+	 *
+	 * @var array Array holds list of all parts (usually HTML fields).
+	 */
+	public $parts = [];
+
+	/**
+	 * Notifications
+	 *
+	 * @var array - string notifications to print at top of panel
+	 */
+	public $notifications = [];
 
 	/**
 	 * WP Admin Primary Nav Icon
@@ -70,38 +114,39 @@ class Page extends Panel {
 	public $installed_dir_uri = null;
 
 	/**
+	 * Update Counts
+	 *
+	 * @var array used to track what happens during save process
+	 */
+	public $updated_counts = [
+		'created' => 0,
+		'updated' => 0,
+		'deleted' => 0,
+	];
+
+	/**
 	 * Page constructor.
 	 *
-	 * @param array $args   Arguments used to customize the object.
-	 * @param array $fields Fields Fields created on the page, outside of sections.
-	 *
-	 * @return void
+	 * @param string      $options_page_slug The slug represents the ID of the page.
+	 * @param string      $options_page_type The type can be either main_menu or sub_menu.
+	 * @param string|null $parent_menu_id    The parent id only set if this is a sub_menu.
+	 * @param string      $installed_dir     A field value of menu slug.
+	 * @param string      $installed_dir_uri A value of either main_menu or sub_menu.
 	 */
-	public function __construct( $args = [], $fields ) { // @codingStandardsIgnoreLine
-		parent::__construct( $args, $fields );
-
-		// This allows you to override the relative path to WPOP, in case you put it in a `vendor` folder, or elsewhere.
-		if ( ! isset( $args['wpop_path'] ) ) {
-			$args['wpop_path'] = 'lib/wordpress-phoenix/wordpress-options-builder-class/src';
-		}
-
-		// Get the install path.
-		$this->installed_dir = trailingslashit( dirname( __DIR__ ) ) . $args['wpop_path'];
-
-		// Get the install URL (so static assets can be loaded publicly).
-		if ( isset( $args['installed_dir_uri'] ) ) {
-			$this->installed_dir_uri = trailingslashit( $args['installed_dir_uri'] ) . $args['wpop_path'];
-		}
+	public function __construct( $options_page_slug, $options_page_type, $parent_menu_id, $installed_dir, $installed_dir_uri ) {
+		$this->slug              = $options_page_slug;
+		$this->type              = $options_page_type;
+		$this->parent_menu_id    = $parent_menu_id;
+		$this->installed_dir     = $installed_dir;
+		$this->installed_dir_uri = $installed_dir_uri;
 	}
 
 	/**
-	 * !!! USE ME TO RUN THE PANEL !!!
-	 *
-	 * Main method called by extending class to initialize the panel
+	 * Executes page registration with WordPress Admin Menu API
 	 *
 	 * @return void
 	 */
-	public function initialize_panel() {
+	public function initialize() {
 		if ( empty( $this->api ) || ! is_string( $this->api ) ) {
 			return;
 		}
@@ -109,24 +154,81 @@ class Page extends Panel {
 		$hook = ( 'network' === $this->api || 'user-network' === $this->api ) ? 'network_admin_menu' : 'admin_menu';
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dependencies' ] );
-		add_action( $hook, [ $this, 'add_settings_submenu_page' ] );
+
+		add_action( $hook, [ $this, 'callback_add_custom_page' ] );
 		add_action( 'current_screen', [ $this, 'maybe_run_footer_scripts' ] );
 	}
 
 	/**
-	 * Register Submenu Page with WordPress to display the panel on
+	 * Register Submenu Page with WordPress
+	 * Do not call directly, requires the scope of running during a WordPress action like admin_menu
 	 *
 	 * @return void
 	 */
-	public function add_settings_submenu_page() {
-		add_submenu_page(
-			$this->parent_page_id,
-			$this->page_title,
-			$this->menu_title,
-			$this->capability,
-			$this->id,
-			[ $this, 'build_parts' ]
-		);
+	public function callback_add_custom_page() {
+		if ( 'sub_menu' === $this->type && ! empty( $this->parent_menu_id ) ) {
+			add_submenu_page(
+				$this->parent_menu_id,
+				$this->page_title,
+				$this->menu_title,
+				$this->capability,
+				$this->slug,
+				[ $this, 'build_parts' ]
+			);
+		} else {
+			add_menu_page(
+				$this->page_title,
+				$this->menu_title,
+				$this->capability,
+				$this->slug,
+				[ $this, 'build_parts' ],
+				$this->dashicon,
+				$this->position
+			);
+		}
+	}
+
+	/**
+	 * Build Parts - output parts to DOM
+	 *
+	 * @return void
+	 */
+	public function build_parts() {
+		if ( 'open' === $this->api ) {
+			do_action( 'wpop_' . $this->slug . '_open_page_content' );
+
+			return;
+		}
+		?>
+		<div id="wpopOptions">
+			<!-- IMPORTANT: allows core admin notices -->
+			<section class="wrap wp">
+				<header><h2></h2></header>
+			</section>
+			<section id="wpop" class="wrap">
+				<div id="panel-loader-positioning-wrap">
+					<div id="panel-loader-box">
+						<div class="wpcore-spin panel-spinner"></div>
+					</div>
+				</div>
+				<form method="post" class="pure-form wpop-form" autocomplete="off">
+					<?php
+					/**
+					 * Print WordPress Notices with Panel Information
+					 */
+					if ( ! empty( filter_input( INPUT_GET, 'submit' ) ) ) {
+						$this->echo_notifications();
+					}
+
+					$this->page_header();
+					do_action( 'wpop_' . $this->slug . '_page_content' );
+					$this->page_footer();
+					wp_nonce_field( $this->slug );
+					?>
+				</form>
+			</section>
+		</div> <!-- end #wpopOptions -->
+		<?php
 	}
 
 	/**
@@ -137,7 +239,9 @@ class Page extends Panel {
 	 * @return void
 	 */
 	public function maybe_run_footer_scripts( $screen ) {
-		if ( false === stristr( $screen->id, $this->id ) || null === $this->installed_dir_uri ) {
+		$flag1 = stristr( $screen->id, $this->slug );
+		$flag2 = $this->installed_dir_uri;
+		if ( false === stristr( $screen->id, $this->slug ) || null === $this->installed_dir_uri ) {
 			return;
 		}
 
@@ -183,72 +287,6 @@ class Page extends Panel {
 		<?php
 	}
 
-	/**
-	 * Build container holding left sidebar and main content area
-	 *
-	 * @return void
-	 */
-	public function page_content() {
-		?>
-		<div id="wpopContent" class="pure-g">
-			<div id="wpopNav" class="pure-u-1 pure-u-md-6-24">
-				<?php $this->page_content_sidebar(); ?>
-			</div>
-			<div id="wpopMain" class="pure-u-1 pure-u-md-18-24">
-				<?php $this->page_content_main(); ?>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Left-sidebar in page_content()
-	 *
-	 * @return void
-	 */
-	public function page_content_sidebar() {
-		?>
-		<div class="pure-menu wpop-options-menu">
-			<ul class="pure-menu-list">
-				<?php foreach ( $this->parts as $section_id => $section ) : ?>
-					<li id="<?php echo esc_attr( $section_id . '-nav' ); ?>" class="pure-menu-item">
-						<a href="<?php echo esc_attr( '#' . $section_id ); ?>" class="pure-menu-link">
-							<?php if ( ! empty( $section['dashicon'] ) ) : ?>
-								<span class="dashicons <?php echo sanitize_html_class( $section['dashicon'] ); ?> menu-icon"></span>
-							<?php endif; ?>
-
-							<?php echo esc_html( $section['label'] ); ?>
-
-							<?php if ( count( $section['parts'] ) > 1 ) : ?>
-								<small class="part-count">
-									<?php echo esc_attr( count( $section['parts'] ) ); ?>
-								</small>
-							<?php endif; ?>
-						</a>
-					</li>
-				<?php endforeach; ?>
-			</ul>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Main area in page_content()
-	 *
-	 * @return void
-	 */
-	public function page_content_main() {
-		?>
-		<ul id="wpopOptNavUl" style="list-style: none;">
-			<?php
-			foreach ( $this->parts as $section_key => $section ) {
-				$built_section = new Section( $section_key, $section );
-				$built_section->echo_html();
-			}
-			?>
-		</ul>
-		<?php
-	}
 
 	/**
 	 * <footer> for panel page
@@ -261,71 +299,16 @@ class Page extends Panel {
 			<div class="pure-g">
 				<div class="pure-u-1 pure-u-md-1-3">
 					<div>
+						<?php
+						do_action( 'wpop_page_footer' );
+						?>
 						<ul>
-							<li>Sections: <code><?php echo esc_attr( $this->section_count ); ?></code></li>
-							<li>Total Data Parts: <code><?php echo esc_attr( $this->data_count ); ?></code></li>
-							<li>Total Parts: <code><?php echo esc_attr( $this->part_count ); ?></code></li>
 							<li>Stored in: <code><?php echo esc_attr( $this->get_storage_table() ); ?></code></li>
 						</ul>
 					</div>
 				</div>
 			</div>
 		</footer>
-		<?php
-	}
-
-
-	/**
-	 * Build Parts - output parts to DOM
-	 *
-	 * @return void
-	 */
-	public function build_parts() {
-		if ( 'site' !== $this->api && 'network' !== $this->api && ! is_object( $this->panel_object ) ) {
-			echo '<h1>Please select a ' . esc_attr( $this->api ) . '.</h1>';
-			echo '<code>?' . esc_attr( $this->api ) . '=ID</code>';
-			exit;
-		}
-		?>
-		<div id="wpopOptions">
-			<!-- IMPORTANT: allows core admin notices -->
-			<section class="wrap wp">
-				<header><h2></h2></header>
-			</section>
-			<section id="wpop" class="wrap">
-				<div id="panel-loader-positioning-wrap">
-					<div id="panel-loader-box">
-						<div class="wpcore-spin panel-spinner"></div>
-					</div>
-				</div>
-				<form method="post" class="pure-form wpop-form">
-					<?php
-					/**
-					 * Print WordPress Notices with Panel Information
-					 */
-					if ( ! empty( filter_input( INPUT_GET, 'submit' ) ) ) {
-						$this->echo_notifications();
-					}
-					/**
-					 * Build <header>
-					 */
-					$this->page_header();
-					/**
-					 * Build <div id="wpopContent"> Container Holding Sidebar + Sections
-					 */
-					$this->page_content();
-					/**
-					 * Build <footer>
-					 */
-					$this->page_footer();
-					/**
-					 * Print Nonce Field
-					 */
-					wp_nonce_field( $this->id );
-					?>
-				</form>
-			</section>
-		</div> <!-- end #wpopOptions -->
 		<?php
 	}
 
@@ -362,5 +345,58 @@ class Page extends Panel {
 		wp_enqueue_script( 'iris' );
 		wp_enqueue_script( 'wp-util' );
 		wp_enqueue_script( 'wp-shortcode' );
+	}
+
+	/**
+	 * Print WordPress Admin Notifications
+	 *
+	 * @example $note_data = array( 'notification' => 'My text', 'type' => 'notice-success' )
+	 */
+	public function echo_notifications() {
+		foreach ( $this->notifications as $note_data ) {
+			$this->single_notification( $note_data );
+		}
+	}
+
+	/**
+	 * Create single notification markup
+	 *
+	 * @param string $notification The text to display in the notification.
+	 */
+	public function single_notification( $notification ) {
+		$data      = is_array( $notification ) ? $notification : [ 'notification' => $notification ];
+		$note_type = isset( $data['type'] ) ? $data['type'] : 'notice-success';
+		?>
+		<div class="notice <?php echo esc_attr( $note_type ); ?>">
+			<p><strong><?php echo esc_html( $data['notification'] ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Used as the public function to add fields to the section.
+	 *
+	 * @param string $page_slug Page slug field.
+	 * @param array  $params    Panels params array.
+	 *
+	 * @return Mixed
+	 */
+	public function add_panel( $page_slug, $params = [] ) {
+		$panel = new Panel( $this, $page_slug, $params );
+
+		return $this->add_part( $panel );
+	}
+
+	/**
+	 * Used to add parts (sections/fields/markup/etc) to a Panel
+	 *
+	 * @param \WPOP\V_5_0\Panel $panel object One of the part classes from this file.
+	 *
+	 * @return \WPOP\V_5_0\Panel
+	 */
+	public function add_part( &$panel ) {
+		$length = array_push( $this->parts, $panel );
+
+		return $this->parts[ $length - 1 ];
 	}
 }
