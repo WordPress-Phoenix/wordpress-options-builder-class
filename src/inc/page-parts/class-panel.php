@@ -105,7 +105,7 @@ class Panel {
 		add_action( 'wpop_' . $this->page->slug . '_page_content', [ $this, 'callback_content_html' ] );
 
 		// Establish panel id.
-		$this->id = preg_replace( '/_/', '-', $args['id'] );
+		$this->id = preg_replace( '/_/', '-', $this->slug );
 
 		// Magic-set class object vars from array.
 		foreach ( $default_param_overrides as $key => $val ) {
