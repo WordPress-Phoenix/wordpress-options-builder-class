@@ -120,17 +120,6 @@ class Panel {
 	}
 
 	/**
-	 * WP nonce verification callback.
-	 */
-	public static function check_nonce() {
-		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * Print function to iterate through parts.
 	 */
 	public function callback_content_html() {
@@ -218,11 +207,6 @@ class Panel {
 	public function detect_data_api_and_permissions() {
 		$api = null;
 
-		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
-			return false;
-		}
-
 		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page' ) : null;
 		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
 		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
@@ -288,11 +272,6 @@ class Panel {
 	 * @return int|null
 	 */
 	public function maybe_capture_wp_object_id() {
-		$nonce = ( isset( $_REQUEST ) && isset( $_REQUEST['_wpnonce'] ) ) ? filter_input( INPUT_REQUEST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce ) ) {
-			return false;
-		}
-
 		switch ( $this->api ) {
 			case 'post':
 				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;

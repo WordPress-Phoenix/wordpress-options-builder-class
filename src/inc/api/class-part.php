@@ -154,8 +154,14 @@ abstract class Part {
 	 * Blocks attempting updates to fields unless POST event is happening and part has "data_store" set to true
 	 */
 	public function maybe_process_update() {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->data_store ) ) {
+		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
+		if ( ! isset( $_POST['_wpnonce'] ) ) {
+			return false;
+		}
+		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+
+		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
+		if ( empty( $wpnonce ) || wp_verify_nonce( $wpnonce ) ) {
 			return false;
 		}
 
@@ -298,10 +304,17 @@ abstract class Part {
 	 * @param string $value      Value.
 	 *
 	 * @return bool|string
+	 * @throws \Exception Custom error output.
 	 */
 	protected function sanitize_data_input( $input_type, $id, $value ) {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
-		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $input_type ) ) {
+		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
+		if ( ! isset( $_POST['_wpnonce'] ) ) {
+			return false;
+		}
+		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+
+		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
+		if ( empty( $wpnonce ) || wp_verify_nonce( $wpnonce ) ) {
 			return false;
 		}
 
