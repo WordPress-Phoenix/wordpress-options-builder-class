@@ -35,12 +35,21 @@ class WordPress_Options_Panels {
 	 * @param string $plugins_installed_dir Install directory of the plugin.
 	 * @param string $plugins_installed_url Install plugin URL.
 	 * @param string $plugin_basedir        Base plugin directory.
+	 * @param string $asset_dir_url         A direct URL path to the static assets.
 	 */
-	public function __construct( $plugins_installed_dir, $plugins_installed_url, $plugin_basedir ) {
-		$current_dir         = dirname( __FILE__ );
-		$relative_dir        = str_replace( $plugin_basedir . '/', '', $current_dir );
+	public function __construct(
+		$plugins_installed_dir,
+		$plugins_installed_url,
+		$plugin_basedir,
+		$asset_dir_url = null
+	) {
+		$current_dir  = dirname( __FILE__ );
+		$relative_dir = str_replace( $plugin_basedir . '/', '', $current_dir );
+
 		$this->installed_dir = $plugin_basedir . '/' . $relative_dir;
 		$this->installed_url = $plugins_installed_url . $relative_dir;
+		$this->asset_dir_url = $asset_dir_url;
+
 		// Data api wrappers.
 		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/api/class-*.php' ) as $file ) {
 			include_once $file;
@@ -81,8 +90,14 @@ class WordPress_Options_Panels {
 	 * @return \WPOP\V_5_0\Page
 	 */
 	public function register_page( $options_page_slug, $options_page_type, $parent_menu_id = null ) {
-
-		return new Page( $options_page_slug, $options_page_type, $parent_menu_id, $this->installed_dir, $this->installed_url );
+		return new Page(
+			$options_page_slug,
+			$options_page_type,
+			$parent_menu_id,
+			$this->installed_dir,
+			$this->installed_url,
+			$this->asset_dir_url
+		);
 	}
 
 }
