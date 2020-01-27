@@ -259,6 +259,10 @@ class Page {
 
 		$asset_class_path = __NAMESPACE__ . '\\Assets';
 
+		if ( null !== $this->asset_dir_url ) {
+			$this->asset_dir_url = $this->asset_dir_url . '/wordpress-phoenix/wordpress-options-builder-class/src';
+		}
+
 		// Instantiate the Asset class with the installed directory as a parameter.
 		$asset_class = new $asset_class_path( $this->asset_dir_url ?? $this->installed_dir_uri );
 
