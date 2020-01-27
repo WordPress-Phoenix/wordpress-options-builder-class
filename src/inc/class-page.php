@@ -132,13 +132,22 @@ class Page {
 	 * @param string|null $parent_menu_id    The parent id only set if this is a sub_menu.
 	 * @param string      $installed_dir     A field value of menu slug.
 	 * @param string      $installed_dir_uri A value of either main_menu or sub_menu.
+	 * @param string      $asset_dir_url     A direct path to static assets.
 	 */
-	public function __construct( $options_page_slug, $options_page_type, $parent_menu_id, $installed_dir, $installed_dir_uri ) {
+	public function __construct(
+		$options_page_slug,
+		$options_page_type,
+		$parent_menu_id,
+		$installed_dir,
+		$installed_dir_uri,
+		$asset_dir_url = null
+	) {
 		$this->slug              = $options_page_slug;
 		$this->type              = $options_page_type;
 		$this->parent_menu_id    = $parent_menu_id;
 		$this->installed_dir     = $installed_dir;
 		$this->installed_dir_uri = $installed_dir_uri;
+		$this->asset_dir_url     = $asset_dir_url;
 	}
 
 	/**
@@ -239,16 +248,19 @@ class Page {
 	 * @return void
 	 */
 	public function maybe_run_footer_scripts( $screen ) {
-		$flag1 = stristr( $screen->id, $this->slug );
-		$flag2 = $this->installed_dir_uri;
-		if ( false === stristr( $screen->id, $this->slug ) || null === $this->installed_dir_uri ) {
+		if ( false === stristr( $screen->id, $this->slug ) ) {
+			return;
+		}
+
+		// Either asset_dir_url or installed_dir_uri must be set.
+		if ( null === $this->asset_dir_url || null === $this->installed_dir_uri ) {
 			return;
 		}
 
 		$asset_class_path = __NAMESPACE__ . '\\Assets';
 
 		// Instantiate the Asset class with the installed directory as a parameter.
-		$asset_class = new $asset_class_path( $this->installed_dir_uri );
+		$asset_class = new $asset_class_path( $this->asset_dir_url ?? $this->installed_dir_uri );
 
 		add_action(
 			'admin_print_footer_scripts-' . $screen->id,
