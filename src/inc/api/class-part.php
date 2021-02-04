@@ -284,7 +284,6 @@ abstract class Part {
 	 * @return mixed|string
 	 */
 	public function get_saved() {
-
 		$response = new Read(
 			$this->page_slug,
 			$this->data_api,
