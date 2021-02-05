@@ -84,6 +84,12 @@ class Mcrypt {
 	 * @return string
 	 */
 	public static function mcrypt_decrypt( $encrypted_string ) {
+		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
+			return new \WP_Error( 'php_version', __( 'PHP version is to low to support mcrypt_decrypt. This function has been DEPRECATED as of PHP 7.1.0 and REMOVED as of PHP 7.2.0. Relying on this function is highly discouraged.', 'wpop' ) );
+		}
+
+		// Throws errors depending on version of PHP. Added the catch above to account for this.
+		// @codingStandardsIgnoreStart
 		return trim(
 			mcrypt_decrypt(
 				MCRYPT_RIJNDAEL_256,
@@ -92,6 +98,7 @@ class Mcrypt {
 				MCRYPT_MODE_ECB
 			)
 		);
+		// @codingStandardsIgnoreEnd
 	}
 
 }
