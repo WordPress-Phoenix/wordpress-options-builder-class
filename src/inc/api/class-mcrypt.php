@@ -60,7 +60,7 @@ class Mcrypt {
 	public static function upgrade_mcrypt_option( $encrypted_string ) {
 		// mcrypt was removed in PHP 7.2.
 		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
-			return new \WP_Error( 'php_version', __( 'PHP version is to low to support mcrypt_decrypt. This function has been DEPRECATED as of PHP 7.1.0 and REMOVED as of PHP 7.2.0. Relying on this function is highly discouraged.', 'wpop' ) );
+			return new \WP_Error( 'php_version', __( 'PHP version is too low to support mcrypt_decrypt. This function has been DEPRECATED as of PHP 7.1.0 and REMOVED as of PHP 7.2.0. Relying on this function is highly discouraged.', 'wpop' ) );
 		}
 
 		// If we cannot successfully decrypt, try falling back to mcrypt and re-encrypting.
@@ -90,7 +90,7 @@ class Mcrypt {
 	 */
 	public static function mcrypt_decrypt( $encrypted_string ) {
 		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
-			return new \WP_Error( 'php_version', __( 'PHP version is to low to support mcrypt_decrypt. This function has been DEPRECATED as of PHP 7.1.0 and REMOVED as of PHP 7.2.0. Relying on this function is highly discouraged.', 'wpop' ) );
+			return new \WP_Error( 'php_version', __( 'PHP version is too low to support mcrypt_decrypt. This function has been DEPRECATED as of PHP 7.1.0 and REMOVED as of PHP 7.2.0. Relying on this function is highly discouraged.', 'wpop' ) );
 		}
 
 		// Throws errors depending on version of PHP. Added the catch above to account for this.
