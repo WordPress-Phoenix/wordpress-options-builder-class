@@ -296,7 +296,7 @@ abstract class Part {
 	}
 
 	/**
-	 * Master sanitization function used to clean user input
+	 * Main sanitization function used to clean user input
 	 *
 	 * @param string $input_type Input Type.
 	 * @param string $id         ID.
