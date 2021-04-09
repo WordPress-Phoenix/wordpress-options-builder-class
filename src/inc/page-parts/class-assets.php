@@ -12,6 +12,7 @@ namespace WPOP\V_5_0;
  * Class Assets
  */
 class Assets {
+
 	/**
 	 * Installed Directory URI
 	 *
@@ -199,4 +200,5 @@ class Assets {
 		</script>
 		<?php
 	}
+
 }

@@ -18,7 +18,7 @@
     }
   ],
   "config": {
-	"sort-packages": true
+    "sort-packages": true
   },
   "require-dev": {
     "automattic/vipwpcs": "^2.0.0",

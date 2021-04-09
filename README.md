@@ -63,5 +63,5 @@ Version 5.0 is a major rewrite of the WordPress Phoenix Options Panel and there 
 ## Usage
 
 *   [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
-*   [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/blob/master/app/admin/class-options-panel.php) in the WPOP Example Plugin
+*   [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/) in the WPOP Example Plugin
 *   [Generate a working copy](https://github.com/WordPress-Phoenix/wordpress-development-toolkit/releases) using the WordPress Development Toolkit and the [Abstract Plugin Base](https://github.com/WordPress-Phoenix/abstract-plugin-base).

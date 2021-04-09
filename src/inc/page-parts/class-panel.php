@@ -221,7 +221,7 @@ class Panel {
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $post_obj->post_title );
 				}
 			} elseif ( isset( $user ) && absint( $user ) ) {
-				if ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
+				if ( is_multisite() && is_network_admin() ) {
 					$api = 'user-network';
 				} else {
 					$api = 'user';
@@ -238,7 +238,7 @@ class Panel {
 					$this->panel_object = $term_obj;
 					$this->page_title   = esc_attr( $this->page_title ) . ' for ' . esc_attr( $term_obj->name );
 				}
-			} elseif ( is_multisite() && is_network_admin() && ! self::is_wordpress_vip_or_vip_go() ) {
+			} elseif ( is_multisite() && is_network_admin() ) {
 				$api = 'network';
 			} else {
 				$api = 'site';
