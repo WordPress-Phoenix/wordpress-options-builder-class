@@ -11,7 +11,7 @@ namespace WPOP\V_5_0;
 /**
  * Class Mcrypt
  *
- * @package WPOP\V_4_0
+ * @package WPOP\V_5_0
  */
 class Mcrypt {
 
@@ -72,7 +72,7 @@ class Mcrypt {
 		}
 
 		// Re-encrypt with OpenSSL.
-		Password::encrypt( $result );
+		Fields\Password::encrypt( $result );
 
 		return $result;
 	}
