@@ -26,11 +26,10 @@
 
 	<rule ref="WordPress-Core"></rule>
 
-	<rule ref="WordPress-VIP">
-		<exclude name="WordPress.VIP.SuperGlobalInputUsage" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.switch_to_blog" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.get_page_by_title" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.get_page_by_title_get_page_by_title" />
+	<rule ref="WordPressVIPMinimum">
+		<exclude name="WordPressVIPMinimum.Functions.RestrictedFunctions.switch_to_blog" />
+		<exclude name="WordPressVIPMinimum.Functions.RestrictedFunctions.get_page_by_title" />
+		<exclude name="WordPressVIPMinimum.Functions.RestrictedFunctions.get_page_by_title_get_page_by_title" />
 	</rule>
 
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
