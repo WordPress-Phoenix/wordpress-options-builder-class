@@ -30,6 +30,13 @@ class WordPress_Options_Panels {
 	public $installed_url;
 
 	/**
+	 * Asset Directory URL
+	 * 
+	 * @var string
+	 */
+	public $asset_dir_url = null;
+
+	/**
 	 * Load files required to use this utility.
 	 *
 	 * @param string $plugins_installed_dir Install directory of the plugin.

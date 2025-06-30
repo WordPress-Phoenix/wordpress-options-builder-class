@@ -92,6 +92,13 @@ class Panel {
 	public $page;
 
 	/**
+	 * Panel ID
+	 *
+	 * @var string
+	 */
+	public $id;
+
+	/**
 	 * Container constructor.
 	 *
 	 * @param object $page                    Referenced page object.

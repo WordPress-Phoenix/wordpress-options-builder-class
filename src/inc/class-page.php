@@ -114,6 +114,20 @@ class Page {
 	public $installed_dir_uri = null;
 
 	/**
+	 * Asset Directory URL
+	 * 
+	 * @var string
+	 */
+	public $asset_dir_url = null;
+
+	/**
+	 * Menu Position
+	 * 
+	 * @var int|float
+	 */
+	public $position = null;
+
+	/**
 	 * Update Counts
 	 *
 	 * @var array used to track what happens during save process
