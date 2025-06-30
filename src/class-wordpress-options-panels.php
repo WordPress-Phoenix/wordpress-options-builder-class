@@ -31,7 +31,7 @@ class WordPress_Options_Panels {
 
 	/**
 	 * Asset Directory URL
-	 * 
+	 *
 	 * @var string
 	 */
 	public $asset_dir_url = null;

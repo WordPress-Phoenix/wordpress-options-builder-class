@@ -115,14 +115,14 @@ class Page {
 
 	/**
 	 * Asset Directory URL
-	 * 
+	 *
 	 * @var string
 	 */
 	public $asset_dir_url = null;
 
 	/**
 	 * Menu Position
-	 * 
+	 *
 	 * @var int|float
 	 */
 	public $position = null;
