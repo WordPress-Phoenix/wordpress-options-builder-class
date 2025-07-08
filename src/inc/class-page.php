@@ -239,8 +239,12 @@ class Page {
 					/**
 					 * Print WordPress Notices with Panel Information
 					 */
-					if ( ! empty( filter_input( INPUT_GET, 'submit' ) ) ) {
-						$this->echo_notifications();
+					if ( isset( $_GET['submit'] ) && isset( $_GET['_wpnonce'] ) ) {
+						$nonce = sanitize_text_field( $_GET['_wpnonce'] );
+
+						if ( wp_verify_nonce( $nonce, $this->slug ) ) {
+							$this->echo_notifications();
+						}
 					}
 
 					$this->page_header();

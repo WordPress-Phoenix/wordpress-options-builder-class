@@ -77,14 +77,15 @@ class Multiselect extends Part {
 	 * @return bool|string
 	 */
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->section->panel->page->slug ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : false;
+		// Sanitized in the next line. 
+		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : false; // phpcs:ignore WordPressVIPMinimum.Security.PHPFilterFunctions.RestrictedFilter 
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 

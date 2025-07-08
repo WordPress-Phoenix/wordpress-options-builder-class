@@ -214,10 +214,10 @@ class Panel {
 	public function detect_data_api_and_permissions() {
 		$api = null;
 
-		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page' ) : null;
-		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
-		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
-		$term = array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
+		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$term = array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		if ( ! empty( $page ) ) {
 			if ( isset( $post ) && absint( $post ) ) {
@@ -281,11 +281,11 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
+				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			case 'user':
-				return array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
+				return array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			case 'term':
-				return array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
+				return array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			default:
 				return null;
 		}

@@ -15,7 +15,7 @@ use WP_Error;
  */
 class Update {
 	/**
-	 * Update constructor.
+	 * Save data wrapper for nonce check.
 	 *
 	 * @param string $page_slug Page URL.
 	 * @param string $type      Type.
@@ -31,7 +31,7 @@ class Update {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 			return false;
 		}
-		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$wpnonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( ! wp_verify_nonce( $wpnonce, $page_slug ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {

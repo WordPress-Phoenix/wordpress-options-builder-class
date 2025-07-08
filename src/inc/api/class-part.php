@@ -158,7 +158,7 @@ abstract class Part {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 			return false;
 		}
-		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( empty( $wpnonce ) || wp_verify_nonce( $wpnonce ) ) {
@@ -251,7 +251,7 @@ abstract class Part {
 	 * @return bool|string
 	 */
 	public function run_save_process() {
-		$nonce               = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$nonce               = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 		$page_slug_as_action = $this->section->panel->page->slug;
 		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $page_slug_as_action ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
@@ -259,7 +259,7 @@ abstract class Part {
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id ) : false;
+		$field_input = isset( $_POST[ $this->id ] ) ? sanitize_text_field( $_POST[ $this->id ] ) : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
@@ -311,7 +311,7 @@ abstract class Part {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 			return false;
 		}
-		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$wpnonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( empty( $wpnonce ) || wp_verify_nonce( $wpnonce ) ) {
@@ -320,7 +320,7 @@ abstract class Part {
 
 		switch ( $input_type ) {
 			case 'password':
-				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? filter_input( INPUT_POST, 'stored_' . $id ) : null;
+				$hidden_pwd_field = isset( $_POST[ 'stored_' . $id ] ) ? sanitize_text_field( $_POST[ 'stored_' . $id ] ) : null;
 
 				if ( $hidden_pwd_field === $value && ! empty( $value ) ) {
 					return '### wpop-encrypted-pwd-field-val-unchanged ###';
