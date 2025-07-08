@@ -26,8 +26,8 @@
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress-VIP-Go" />
 
-	<rule ref="PHPCompatibility">
-		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
+	<rule ref="WordPress-Core">
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax" />
 		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found" />
 	</rule>
 
