@@ -174,5 +174,4 @@ class Password extends Part {
 
 		return $result;
 	}
-
 }

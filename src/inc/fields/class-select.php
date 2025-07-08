@@ -85,5 +85,4 @@ class Select extends Part {
 		</select>
 		<?php
 	}
-
 }

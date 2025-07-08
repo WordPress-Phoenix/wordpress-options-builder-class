@@ -150,5 +150,4 @@ class Update {
 	private static function handle_post_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_post_meta( $id, $key ) : update_post_meta( $id, $key, $value );
 	}
-
 }

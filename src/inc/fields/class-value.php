@@ -40,11 +40,10 @@ class Value extends Part {
 			return;
 		}
 
-		echo sprintf(
+		printf(
 			'<span class="%1$s">%2$s</span>',
 			esc_attr( $this->get_clean_classname() ),
 			wp_kses( $this->value, wp_kses_allowed_html() )
 		);
 	}
-
 }

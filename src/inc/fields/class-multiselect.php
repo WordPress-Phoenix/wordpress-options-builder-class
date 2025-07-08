@@ -133,5 +133,4 @@ class Multiselect extends Part {
 		}
 		echo '</select>';
 	}
-
 }

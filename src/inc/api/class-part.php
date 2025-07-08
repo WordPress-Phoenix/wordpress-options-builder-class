@@ -357,5 +357,4 @@ abstract class Part {
 	 * Render is an output placeholder for sub parts.
 	 */
 	abstract public function render();
-
 }

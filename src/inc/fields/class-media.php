@@ -83,5 +83,4 @@ class Media extends Part {
 		</a>
 		<?php
 	}
-
 }

@@ -340,10 +340,9 @@ class Panel {
 		$length = array_push( $this->parts, $section );
 		// TODO: Move counter to Section constructor.
 		if ( is_a( $section, 'WPOP\V_5_0\Section' ) ) {
-			$this->section_count ++;
+			++$this->section_count;
 		}
 
 		return $this->parts[ $length - 1 ];
 	}
-
 }

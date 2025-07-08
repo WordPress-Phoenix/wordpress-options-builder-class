@@ -63,5 +63,4 @@ class Checkbox extends Part {
 		</div>
 		<?php
 	}
-
 }

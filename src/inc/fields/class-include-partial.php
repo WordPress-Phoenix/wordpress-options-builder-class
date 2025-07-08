@@ -57,5 +57,4 @@ class Include_Partial extends Part {
 		</li>
 		<?php
 	}
-
 }
