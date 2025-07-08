@@ -17,21 +17,24 @@
 	<!-- Don't fail in CI if there are warnings. -->
 	<config name="ignore_warnings_on_exit" value="1" />
 
-	<!-- Only worry about WordPress 5.0+. -->
-	<config name="minimum_supported_wp_version" value="5.0" />
+	<config name="minimum_supported_wp_version" value="6.6" />
 
 	<rule ref="WordPress">
 		<exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found" />
 	</rule>
 
-	<rule ref="WordPress-Core"></rule>
+	<rule ref="WordPress-Extra" />
+	<rule ref="WordPress-VIP-Go" />
 
-	<rule ref="WordPress-VIP">
-		<exclude name="WordPress.VIP.SuperGlobalInputUsage" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.switch_to_blog" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.get_page_by_title" />
-		<exclude name="WordPress.VIP.RestrictedFunctions.get_page_by_title_get_page_by_title" />
+	<rule ref="WordPress-Core">
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax" />
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found" />
 	</rule>
+
+	<config name="testVersion" value="8.3-" />
+
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
 
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>/lib/*</exclude-pattern>

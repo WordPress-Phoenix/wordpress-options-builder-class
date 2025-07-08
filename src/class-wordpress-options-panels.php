@@ -30,6 +30,13 @@ class WordPress_Options_Panels {
 	public $installed_url;
 
 	/**
+	 * Asset Directory URL
+	 *
+	 * @var string
+	 */
+	public $asset_dir_url = null;
+
+	/**
 	 * Load files required to use this utility.
 	 *
 	 * @param string $plugins_installed_dir Install directory of the plugin.
@@ -43,7 +50,7 @@ class WordPress_Options_Panels {
 		$plugin_basedir,
 		$asset_dir_url = null
 	) {
-		$current_dir  = dirname( __FILE__ );
+		$current_dir  = __DIR__;
 		$relative_dir = str_replace( $plugin_basedir . '/', '', $current_dir );
 
 		$this->installed_dir = $plugin_basedir . '/' . $relative_dir;
@@ -51,7 +58,7 @@ class WordPress_Options_Panels {
 		$this->asset_dir_url = $asset_dir_url;
 
 		// Data api wrappers.
-		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/api/class-*.php' ) as $file ) {
+		foreach ( glob( trailingslashit( __DIR__ ) . 'inc/api/class-*.php' ) as $file ) {
 			include_once $file;
 		}
 
@@ -68,7 +75,7 @@ class WordPress_Options_Panels {
 		include_once 'inc/panel-parts/class-section.php';
 
 		// Load the individual parts.
-		foreach ( glob( trailingslashit( dirname( __FILE__ ) ) . 'inc/fields/class-*.php' ) as $file ) {
+		foreach ( glob( trailingslashit( __DIR__ ) . 'inc/fields/class-*.php' ) as $file ) {
 			require_once $file;
 		}
 
@@ -99,5 +106,4 @@ class WordPress_Options_Panels {
 			$this->asset_dir_url
 		);
 	}
-
 }

@@ -114,6 +114,20 @@ class Page {
 	public $installed_dir_uri = null;
 
 	/**
+	 * Asset Directory URL
+	 *
+	 * @var string
+	 */
+	public $asset_dir_url = null;
+
+	/**
+	 * Menu Position
+	 *
+	 * @var int|float
+	 */
+	public $position = null;
+
+	/**
 	 * Update Counts
 	 *
 	 * @var array used to track what happens during save process
@@ -225,8 +239,12 @@ class Page {
 					/**
 					 * Print WordPress Notices with Panel Information
 					 */
-					if ( ! empty( filter_input( INPUT_GET, 'submit' ) ) ) {
-						$this->echo_notifications();
+					if ( isset( $_GET['submit'] ) && isset( $_GET['_wpnonce'] ) ) {
+						$nonce = sanitize_text_field( $_GET['_wpnonce'] );
+
+						if ( wp_verify_nonce( $nonce, $this->slug ) ) {
+							$this->echo_notifications();
+						}
 					}
 
 					$this->page_header();
@@ -319,7 +337,7 @@ class Page {
 						do_action( 'wpop_page_footer' );
 						?>
 						<ul>
-							<li>Stored in: <code><?php echo esc_attr( $this->get_storage_table() ); ?></code></li>
+							<li>Stored in: <code><?php echo esc_html( $this->get_storage_table() ); ?></code></li>
 						</ul>
 					</div>
 				</div>

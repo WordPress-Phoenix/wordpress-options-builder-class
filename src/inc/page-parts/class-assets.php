@@ -200,5 +200,4 @@ class Assets {
 		</script>
 		<?php
 	}
-
 }

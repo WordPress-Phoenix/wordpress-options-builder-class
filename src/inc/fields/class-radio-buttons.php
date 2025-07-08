@@ -86,5 +86,4 @@ class Radio_Buttons extends Part {
 			<?php
 		}
 	}
-
 }

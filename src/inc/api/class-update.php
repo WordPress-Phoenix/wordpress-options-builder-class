@@ -15,7 +15,7 @@ use WP_Error;
  */
 class Update {
 	/**
-	 * Update constructor.
+	 * Save data wrapper for nonce check.
 	 *
 	 * @param string $page_slug Page URL.
 	 * @param string $type      Type.
@@ -23,13 +23,15 @@ class Update {
 	 * @param string $value     Value.
 	 * @param null   $obj_id    Object ID.
 	 * @param bool   $autoload  Autoload status.
+	 *
+	 * @return bool|int|\WP_Error
 	 */
-	public function __construct( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
+	public function get_save_data( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 			return false;
 		}
-		$wpnonce = isset( $_POST['_wpnonce'] ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$wpnonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 
 		// Only allow class to be used by panel OR encrypted pwds never updated after insert.
 		if ( ! wp_verify_nonce( $wpnonce, $page_slug ) || '### wpop-encrypted-pwd-field-val-unchanged ###' === $value ) {
@@ -150,5 +152,4 @@ class Update {
 	private static function handle_post_meta_save( $id, $key, $value ) {
 		return empty( $value ) ? delete_post_meta( $id, $key ) : update_post_meta( $id, $key, $value );
 	}
-
 }

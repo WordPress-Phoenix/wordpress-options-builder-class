@@ -92,6 +92,13 @@ class Panel {
 	public $page;
 
 	/**
+	 * Panel ID
+	 *
+	 * @var string
+	 */
+	public $id;
+
+	/**
 	 * Container constructor.
 	 *
 	 * @param object $page                    Referenced page object.
@@ -153,7 +160,7 @@ class Panel {
 				foreach ( $this->parts as $key => $section ) :
 					?>
 					<li id="<?php echo esc_attr( $section->slug . '-nav' ); ?>" class="pure-menu-item">
-						<a href="<?php echo esc_attr( '#' . $section->slug ); ?>" class="pure-menu-link">
+						<a href="<?php echo esc_url( '#' . $section->slug ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section->dashicon ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section->dashicon ); ?> menu-icon"></span>
 							<?php endif; ?>
@@ -207,10 +214,10 @@ class Panel {
 	public function detect_data_api_and_permissions() {
 		$api = null;
 
-		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page' ) : null;
-		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
-		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
-		$term = array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
+		$page = array_key_exists( 'page', $_GET ) ? filter_input( INPUT_GET, 'page', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$post = array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$user = array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$term = array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		if ( ! empty( $page ) ) {
 			if ( isset( $post ) && absint( $post ) ) {
@@ -274,11 +281,11 @@ class Panel {
 	public function maybe_capture_wp_object_id() {
 		switch ( $this->api ) {
 			case 'post':
-				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post' ) : null;
+				return array_key_exists( 'post', $_GET ) ? filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			case 'user':
-				return array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user' ) : null;
+				return array_key_exists( 'user', $_GET ) ? filter_input( INPUT_GET, 'user', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			case 'term':
-				return array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term' ) : null;
+				return array_key_exists( 'term', $_GET ) ? filter_input( INPUT_GET, 'term', FILTER_VALIDATE_INT ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			default:
 				return null;
 		}
@@ -301,9 +308,9 @@ class Panel {
 	public function callback_footer_html() {
 		?>
 		<ul>
-			<li>Sections: <code><?php echo esc_attr( $this->section_count ); ?></code></li>
-			<li>Total Data Parts: <code><?php echo esc_attr( $this->data_count ); ?></code></li>
-			<li>Total Parts: <code><?php echo esc_attr( $this->part_count ); ?></code></li>
+			<li>Sections: <code><?php echo esc_html( $this->section_count ); ?></code></li>
+			<li>Total Data Parts: <code><?php echo esc_html( $this->data_count ); ?></code></li>
+			<li>Total Parts: <code><?php echo esc_html( $this->part_count ); ?></code></li>
 		</ul>
 		<?php
 	}
@@ -333,10 +340,9 @@ class Panel {
 		$length = array_push( $this->parts, $section );
 		// TODO: Move counter to Section constructor.
 		if ( is_a( $section, 'WPOP\V_5_0\Section' ) ) {
-			$this->section_count ++;
+			++$this->section_count;
 		}
 
 		return $this->parts[ $length - 1 ];
 	}
-
 }

@@ -53,16 +53,14 @@ class Read {
 	/**
 	 * Read constructor.
 	 *
-	 * @param string $panel_id Panel ID is a string slug.
-	 * @param string $type     Type.
-	 * @param string $key      Key.
-	 * @param null   $default  Default.
-	 * @param null   $obj_id   Object ID.
-	 * @param bool   $single   Is single object type status.
-	 *
-	 * @return array|int|string|null|bool
+	 * @param string $panel_id     Panel ID is a string slug.
+	 * @param string $type         Type.
+	 * @param string $key          Key.
+	 * @param null   $default_val  Default.
+	 * @param null   $obj_id       Object ID.
+	 * @param bool   $single       Is single object type status.
 	 */
-	public function __construct( $panel_id, $type, $key, $default = null, $obj_id = null, $single = true ) {
+	public function __construct( $panel_id, $type, $key, $default_val = null, $obj_id = null, $single = true ) {
 		$this->type   = $type;
 		$this->key    = $key;
 		$this->obj_id = $obj_id;
@@ -70,9 +68,6 @@ class Read {
 
 		// 1. Data API switchboard
 		$this->get_data();
-
-		// 2. Return data for use by field.
-		return $this->response;
 	}
 
 	/**
@@ -106,5 +101,4 @@ class Read {
 				break;
 		}
 	}
-
 }

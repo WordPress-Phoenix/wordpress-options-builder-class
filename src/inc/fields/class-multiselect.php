@@ -77,17 +77,20 @@ class Multiselect extends Part {
 	 * @return bool|string
 	 */
 	public function run_save_process() {
-		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? filter_input( INPUT_POST, '_wpnonce' ) : null;
+		$nonce = ( isset( $_POST['submit'] ) && isset( $_POST['_wpnonce'] ) ) ? sanitize_text_field( $_POST['_wpnonce'] ) : null;
 		if ( empty( $nonce ) || false === wp_verify_nonce( $nonce, $this->section->panel->page->slug ) ) {
 			return false; // Only run logic if asked to run & auth'd by nonce.
 		}
 
 		$type = ( ! empty( $this->field_type ) ) ? $this->field_type : $this->input_type;
 
-		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : false;
+		// Sanitized in the next line. 
+		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : false; // phpcs:ignore WordPressVIPMinimum.Security.PHPFilterFunctions.RestrictedFilter 
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
-		$updated        = new Update(
+
+		$update_obj = new Update();
+		$updated    = $update_obj->get_save_data(
 			$this->section->panel->page->slug, // Used to check nonce.
 			$this->data_api, // Doing this way to allow multi-api saving from single panel down-the-road.
 			$this->id, // This is the data storage key in the database.
@@ -95,11 +98,11 @@ class Multiselect extends Part {
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
 		);
 
-		if ( $updated ) {
-			return $this->id;
+		if ( empty( $updated ) || is_wp_error( $updated ) ) {
+			return false;
 		}
 
-		return false;
+		return $this->id;
 	}
 
 	/**
@@ -133,5 +136,4 @@ class Multiselect extends Part {
 		}
 		echo '</select>';
 	}
-
 }
