@@ -87,7 +87,9 @@ class Multiselect extends Part {
 		$field_input = isset( $_POST[ $this->id ] ) ? filter_input( INPUT_POST, $this->id, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : false;
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
-		$updated        = new Update(
+
+		$update_obj = new Update();
+		$updated    = $update_obj->get_save_data(
 			$this->section->panel->page->slug, // Used to check nonce.
 			$this->data_api, // Doing this way to allow multi-api saving from single panel down-the-road.
 			$this->id, // This is the data storage key in the database.
@@ -95,11 +97,11 @@ class Multiselect extends Part {
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
 		);
 
-		if ( $updated ) {
-			return $this->id;
+		if ( empty( $updated ) || is_wp_error( $updated ) ) {
+			return false;
 		}
 
-		return false;
+		return $this->id;
 	}
 
 	/**

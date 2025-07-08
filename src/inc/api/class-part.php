@@ -263,7 +263,8 @@ abstract class Part {
 
 		$sanitize_input = $this->sanitize_data_input( $type, $this->id, $field_input );
 
-		$updated = new Update(
+		$update_obj = new Update();
+		$updated    = $update_obj->get_save_data(
 			$this->section->panel->page->slug, // Used to check nonce.
 			$this->data_api, // Doing this way to allow multi-api saving from single section down-the-road.
 			$this->id, // This is the data storage key in the database.
@@ -271,11 +272,11 @@ abstract class Part {
 			isset( $this->obj_id ) ? $this->obj_id : null // Maybe an object ID needed for metadata API.
 		);
 
-		if ( $updated ) {
-			return $this->id;
+		if ( empty( $updated ) || is_wp_error( $updated ) ) {
+			return false;
 		}
 
-		return false;
+		return $this->id;
 	}
 
 	/**

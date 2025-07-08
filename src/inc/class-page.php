@@ -333,7 +333,7 @@ class Page {
 						do_action( 'wpop_page_footer' );
 						?>
 						<ul>
-							<li>Stored in: <code><?php echo esc_attr( $this->get_storage_table() ); ?></code></li>
+							<li>Stored in: <code><?php echo esc_html( $this->get_storage_table() ); ?></code></li>
 						</ul>
 					</div>
 				</div>

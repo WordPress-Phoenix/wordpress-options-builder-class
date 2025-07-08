@@ -160,7 +160,7 @@ class Panel {
 				foreach ( $this->parts as $key => $section ) :
 					?>
 					<li id="<?php echo esc_attr( $section->slug . '-nav' ); ?>" class="pure-menu-item">
-						<a href="<?php echo esc_attr( '#' . $section->slug ); ?>" class="pure-menu-link">
+						<a href="<?php echo esc_url( '#' . $section->slug ); ?>" class="pure-menu-link">
 							<?php if ( ! empty( $section->dashicon ) ) : ?>
 								<span class="dashicons <?php echo sanitize_html_class( $section->dashicon ); ?> menu-icon"></span>
 							<?php endif; ?>
@@ -308,9 +308,9 @@ class Panel {
 	public function callback_footer_html() {
 		?>
 		<ul>
-			<li>Sections: <code><?php echo esc_attr( $this->section_count ); ?></code></li>
-			<li>Total Data Parts: <code><?php echo esc_attr( $this->data_count ); ?></code></li>
-			<li>Total Parts: <code><?php echo esc_attr( $this->part_count ); ?></code></li>
+			<li>Sections: <code><?php echo esc_html( $this->section_count ); ?></code></li>
+			<li>Total Data Parts: <code><?php echo esc_html( $this->data_count ); ?></code></li>
+			<li>Total Parts: <code><?php echo esc_html( $this->part_count ); ?></code></li>
 		</ul>
 		<?php
 	}

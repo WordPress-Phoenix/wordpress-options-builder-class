@@ -23,8 +23,10 @@ class Update {
 	 * @param string $value     Value.
 	 * @param null   $obj_id    Object ID.
 	 * @param bool   $autoload  Autoload status.
+	 *
+	 * @return bool|int|\WP_Error
 	 */
-	public function __construct( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
+	public function get_save_data( $page_slug, $type, $key, $value, $obj_id = null, $autoload = true ) {
 		// Confirms both that POST is happening and that _wpnonce was sent, otherwise returns false to not try updates.
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 			return false;
