@@ -1,6 +1,6 @@
 # WordPress Phoenix Options Panel 
 
-WordPress options builder class is a library that helps you setup theme or plugin options that store data in the database with just a few lines of code.
+WordPress options builder class is a library that helps you set up theme or plugin options that store data in the database with just a few lines of code.
 
 ### Updated in 5.0
 
@@ -65,3 +65,7 @@ Version 5.0 is a major rewrite of the WordPress Phoenix Options Panel and there 
 *   [Get started](https://github.com/WordPress-Phoenix/wordpress-options-builder-class/wiki) at the Wiki describing Panel, Section and Part schemas
 *   [See a full example](https://github.com/WordPress-Phoenix/wpop-example-panel/) in the WPOP Example Plugin
 *   [Generate a working copy](https://github.com/WordPress-Phoenix/wordpress-development-toolkit/releases) using the WordPress Development Toolkit and the [Abstract Plugin Base](https://github.com/WordPress-Phoenix/abstract-plugin-base).
+
+## Contributing
+
+Pull requests with bug fixes and enhancements can be made by forking this repository and then submitting your new PR.
